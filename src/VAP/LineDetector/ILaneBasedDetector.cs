@@ -29,7 +29,7 @@ namespace LineDetector
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
         void notifyFrameArrival(int frameNo, Bitmap mask);
 
-        //[TODO] This should be moved somewhere more appropriate.
+        //TODO(isaach): This should be moved somewhere more appropriate.
         /// <summary>
         /// Activates debug logging.
         /// </summary>
@@ -57,7 +57,7 @@ namespace LineDetector
         /// <returns></returns>
         int getCount();
 
-        //[TODO] This seems like it should not be part of the interface.
+        //TODO(isaach): This seems like it should not be part of the interface.
         /// <summary>
         /// Sets the count of this detector.
         /// </summary>
@@ -67,8 +67,7 @@ namespace LineDetector
         /// <summary>
         /// Gets the bounding box of the line used by this detector.
         /// </summary>
-        /// <returns></returns>
-        Box getBbox();
+        Box Bbox { get; }
 
         /// <summary>
         /// Gets a <c>Dictionary</c> of the parameters used by this detector, stored by name.

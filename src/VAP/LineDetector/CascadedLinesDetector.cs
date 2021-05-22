@@ -17,7 +17,7 @@ namespace LineDetector
         int noLines;
         List<List<int>> CrossingEventTimeStampBuffers;
         int Count;
-        Box Bbox;
+        Box bbox;
         int SUPRESSION_INTERVAL = 1;
         List<int> lastEventFrame;
         bool debug = false;
@@ -164,7 +164,7 @@ namespace LineDetector
             for (int i = 0; i < noLines; i++)
             {
                 (bool val, Box b) = lineCrossingDetectors[i].notifyFrameArrival(frameNo, boxes, mask);
-                if (b != null) Bbox = b;
+                if (b != null) bbox = b;
                 if (val)
                 {
                     NotifyCrossingEvent(frameNo, i);
@@ -201,10 +201,12 @@ namespace LineDetector
         /// <summary>
         /// Gets the bounding box of the line used by this detector.
         /// </summary>
-        /// <returns></returns>
-        public Box getBbox()
+        public Box Bbox
         {
-            return Bbox;
+            get
+            {
+                return bbox;
+            }
         }
 
         /// <summary>
