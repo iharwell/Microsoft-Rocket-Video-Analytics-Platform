@@ -11,6 +11,7 @@ using OpenCvSharp;
 using Utils.Config;
 using Wrapper.Yolo;
 using Wrapper.Yolo.Model;
+using Utils;
 
 
 namespace DarknetDetector
@@ -29,14 +30,14 @@ namespace DarknetDetector
             frameDNNYolo = new FrameDNNDarknet(YOLOCONFIG, DNNMode.LT, rFactor);
         }
 
-        public LineTriggeredDNNDarknet(List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> lines)
+        public LineTriggeredDNNDarknet(List<(string key, LineSegment coordinates)> lines)
         {
             frameBufferLtDNNYolo = new FrameBuffer(DNNConfig.FRAME_SEARCH_RANGE);
 
             frameDNNYolo = new FrameDNNDarknet(YOLOCONFIG, DNNMode.LT, lines);
         }
 
-        public List<Item> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> lines, HashSet<string> category)
+        public List<Item> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, HashSet<string> category)
         {
             // buffer frame
             frameBufferLtDNNYolo.Buffer(frame);
@@ -52,8 +53,7 @@ namespace DarknetDetector
                         {
                             // call yolo for crosscheck
                             int lineID = Array.IndexOf(counts.Keys.ToArray(), lane);
-                            frameDNNYolo.SetTrackingPoint(new System.Drawing.Point((int)((lines[lineID].coordinates.p1.X + lines[lineID].coordinates.p2.X) / 2),
-                                                                (int)((lines[lineID].coordinates.p1.Y + lines[lineID].coordinates.p2.Y) / 2))); //only needs to check the last line in each row
+                            frameDNNYolo.SetTrackingPoint( lines[lineID].coordinates.MidPoint ); //only needs to check the last line in each row
                             Mat[] frameBufferArray = frameBufferLtDNNYolo.ToArray();
                             int frameIndexYolo = frameIndex - 1;
                             DateTime start = DateTime.Now;

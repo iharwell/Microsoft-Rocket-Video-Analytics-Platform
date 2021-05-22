@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using Utils;
 using Utils.Config;
 using Wrapper.TF;
 using Wrapper.TF.Common;
@@ -19,14 +20,14 @@ namespace TFDetector
     public class FrameDNNTF
     {
         private static int _imageWidth, _imageHeight, _index;
-        private static List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> _lines;
+        private static List<(string key, LineSegment coordinates)> _lines;
         private static HashSet<string> _category;
 
         TFWrapper tfWrapper = new TFWrapper();
         byte[] imageByteArray;
         Brush bboxColor = Brushes.Green;
 
-        public FrameDNNTF(List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> lines)
+        public FrameDNNTF(List<(string key, LineSegment coordinates)> lines)
         {
             _lines = lines;
         }
@@ -146,9 +147,9 @@ namespace TFDetector
             return frameDNNItem;
         }
 
-        private double Distance((System.Drawing.Point p1, System.Drawing.Point p2) line, System.Drawing.Point bboxCenter)
+        private double Distance(LineSegment line, System.Drawing.Point bboxCenter)
         {
-            System.Drawing.Point p1 = new System.Drawing.Point((int)((line.p1.X + line.p2.X) / 2), (int)((line.p1.Y + line.p2.Y) / 2));
+            System.Drawing.Point p1 = line.MidPoint;
             return Math.Sqrt(this.Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
         }
 

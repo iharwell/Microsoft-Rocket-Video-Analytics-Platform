@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 
 using BGSObjectDetector;
+using Utils;
 
 namespace LineDetector
 {
@@ -250,13 +251,12 @@ namespace LineDetector
         /// Gets the line segments used by this detector.
         /// </summary>
         /// <returns></returns>
-        public List<(Point p1, Point p2)> getLineCoor()
+        public List<LineSegment> getLineCoor()
         {
-            List<(Point p1, Point p2)> coors = new List<(Point p1, Point p2)>();
+            List<LineSegment> coors = new List<LineSegment>();
             for (int i = 0; i < lineCrossingDetectors.Count; i++)
             {
-                (Point p1, Point p2) coor = (lineCrossingDetectors[i].getDetectionLine().p1, lineCrossingDetectors[i].getDetectionLine().p2);
-                coors.Add(coor);
+                coors.Add( lineCrossingDetectors[i].getDetectionLine().Line );
             }
             return coors;
         }

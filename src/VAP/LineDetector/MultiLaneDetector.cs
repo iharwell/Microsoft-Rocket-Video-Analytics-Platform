@@ -5,6 +5,7 @@ using BGSObjectDetector;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Utils;
 
 namespace LineDetector
 {
@@ -103,12 +104,12 @@ namespace LineDetector
         /// <returns>
         /// Returns a list of <c>Tuples</c> containing the name and coordinates of each line.
         /// </returns>
-        public List<(string key, (Point p1, Point p2) coordinates)> getAllLines()
+        public List<(string key, LineSegment segments)> getAllLines()
         {
-            List<(string key, (Point p1, Point p2) coordinates)> lines = new List<(string key, (Point p1, Point p2) coordinates)>();
+            var lines = new List<(string key, LineSegment coordinates)>();
             foreach (KeyValuePair<string, ILineBasedDetector> lane in laneDetector)
             {
-                (Point p1, Point p2) coor = lane.Value.getLineCoor()[0];
+                var coor = lane.Value.getLineCoor()[0];
                 lines.Add((lane.Key, coor));
             }
             return lines;

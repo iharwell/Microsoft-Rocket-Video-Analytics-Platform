@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using TFDetector;
+using Utils;
 
 namespace VideoPipelineCore
 {
@@ -70,7 +71,7 @@ namespace VideoPipelineCore
             Detector lineDetector = new Detector(SAMPLING_FACTOR, RESOLUTION_FACTOR, lineFile, displayBGSVideo);
             Dictionary<string, int> counts = null;
             Dictionary<string, bool> occupancy = null;
-            List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> lines = lineDetector.multiLaneDetector.getAllLines();
+            List<(string key, LineSegment coordinates)> lines = lineDetector.multiLaneDetector.getAllLines();
 
             //-----LineTriggeredDNN (Darknet)-----
             LineTriggeredDNNDarknet ltDNNDarknet = null;
