@@ -90,7 +90,7 @@ namespace LineDetector
             {
                 if (entry.Key == laneID)
                 {
-                    return entry.Value.getBbox().Center;
+                    return entry.Value.Bbox.Center;
                 }
             }
 
