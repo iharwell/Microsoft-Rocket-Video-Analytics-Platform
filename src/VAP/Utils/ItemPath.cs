@@ -6,10 +6,16 @@ using System.Text;
 namespace Utils
 {
     /// <summary>
-    /// An abstract base class for <see cref="IItemPath"/> implementations providing default functionality.
+    /// A simple base class for <see cref="IItemPath"/> implementations providing default functionality.
     /// </summary>
-    public abstract class ItemPath : IItemPath
+    public class ItemPath : IItemPath
     {
+        protected ItemPath()
+        {
+            FrameIndices = new List<int>();
+            FramedItems = new List<IFramedItem>();
+        }
+
         public IList<int> FrameIndices { get; protected set; }
         public IList<IFramedItem> FramedItems { get; protected set; }
 
