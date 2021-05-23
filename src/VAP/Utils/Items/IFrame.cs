@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utils
+namespace Utils.Items
 {
     /// <summary>
     /// Interface for a single frame of a video feed.

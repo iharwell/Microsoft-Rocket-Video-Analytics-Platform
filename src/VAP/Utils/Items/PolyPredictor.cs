@@ -6,7 +6,7 @@ using System.Text;
 using MathNet.Numerics;
 using Utils.ShapeTools;
 
-namespace Utils
+namespace Utils.Items
 {
     public class PolyPredictor : PathPredictor
     {

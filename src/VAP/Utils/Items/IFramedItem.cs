@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utils
+namespace Utils.Items
 {
     /// <summary>
     /// An interface exposing an item that was found in a frame.

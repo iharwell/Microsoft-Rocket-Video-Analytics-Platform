@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
-namespace Utils
+namespace Utils.Items
 {
     /// <summary>
     /// Interface for the identification info on an item. Specifically, this interface exposes information from DNN identification.

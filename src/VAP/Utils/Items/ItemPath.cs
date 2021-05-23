@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
-namespace Utils
+namespace Utils.Items
 {
     /// <summary>
     /// A simple base class for <see cref="IItemPath"/> implementations providing default functionality.

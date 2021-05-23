@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
-namespace Utils
+namespace Utils.Items
 {
     /// <summary>
     /// The default partial implementation of the <see cref="IPathPredictor"/> interface.
