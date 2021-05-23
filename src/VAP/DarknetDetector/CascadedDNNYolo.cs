@@ -7,6 +7,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Utils;
 using Utils.Config;
 using Wrapper.Yolo;
 using Wrapper.Yolo.Model;
@@ -26,14 +27,14 @@ namespace DarknetDetector
             frameDNNYolo = new FrameDNNDarknet(YOLOCONFIG, DNNMode.CC, rFactor);
         }
 
-        public CascadedDNNDarknet(List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> lines)
+        public CascadedDNNDarknet(List<(string key, LineSegment coordinates)> lines)
         {
             frameBufferCcDNN = new FrameBuffer(DNNConfig.FRAME_SEARCH_RANGE);
 
             frameDNNYolo = new FrameDNNDarknet(YOLOCONFIG, DNNMode.CC, lines);
         }
 
-        public List<Item> Run(Mat frame, int frameIndex, List<Item> ltDNNItemList, List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> lines, HashSet<string> category)
+        public List<Item> Run(Mat frame, int frameIndex, List<Item> ltDNNItemList, List<(string key, LineSegment coordinates)> lines, HashSet<string> category)
         {
             if (ltDNNItemList == null)
             {
@@ -52,8 +53,7 @@ namespace DarknetDetector
                 else
                 {
                     List<YoloTrackingItem> analyzedTrackingItems = null;
-                    frameDNNYolo.SetTrackingPoint(new System.Drawing.Point((int)((lines[ltDNNItem.TriggerLineID].coordinates.p1.X + lines[ltDNNItem.TriggerLineID].coordinates.p2.X) / 2),
-                                                                (int)((lines[ltDNNItem.TriggerLineID].coordinates.p1.Y + lines[ltDNNItem.TriggerLineID].coordinates.p2.Y) / 2))); //only needs to check the last line in each row
+                    frameDNNYolo.SetTrackingPoint( lines[ltDNNItem.TriggerLineID].coordinates.MidPoint ); //only needs to check the last line in each row
                     byte[] imgByte = ltDNNItem.RawImageData;
 
                     Console.WriteLine("** Calling Heavy");

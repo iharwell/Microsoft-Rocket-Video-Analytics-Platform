@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Utils.Config;
+using Utils;
 
 namespace TFDetector
 {
@@ -19,14 +20,14 @@ namespace TFDetector
         FrameBuffer frameBufferLtDNNTF;
         Dictionary<string, int> counts_prev = new Dictionary<string, int>();
 
-        public LineTriggeredDNNTF(List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> lines)
+        public LineTriggeredDNNTF(List<(string key, LineSegment coordinates)> lines)
         {
             frameBufferLtDNNTF = new FrameBuffer(DNNConfig.FRAME_SEARCH_RANGE);
 
             frameDNNTF = new FrameDNNTF(lines);
         }
 
-        public List<Item> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, (System.Drawing.Point p1, System.Drawing.Point p2) coordinates)> lines, HashSet<string> category)
+        public List<Item> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, HashSet<string> category)
         {
             // buffer frame
             frameBufferLtDNNTF.Buffer(frame);

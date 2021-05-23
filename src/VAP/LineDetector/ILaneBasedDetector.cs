@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 
 using BGSObjectDetector;
+using Utils;
 
 namespace LineDetector
 {
@@ -67,8 +68,7 @@ namespace LineDetector
         /// <summary>
         /// Gets the bounding box of the line used by this detector.
         /// </summary>
-        /// <returns></returns>
-        Box getBbox();
+        Box Bbox { get; }
 
         /// <summary>
         /// Gets a <c>Dictionary</c> of the parameters used by this detector, stored by name.
@@ -80,6 +80,6 @@ namespace LineDetector
         /// Gets the line segments used by this detector.
         /// </summary>
         /// <returns></returns>
-        List<(Point p1, Point p2)> getLineCoor();
+        List<LineSegment> getLineCoor();
     }
 }

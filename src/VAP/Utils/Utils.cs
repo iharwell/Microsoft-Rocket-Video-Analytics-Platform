@@ -51,16 +51,16 @@ namespace Utils
 
         public static float checkLineBboxOverlapRatio(int[] line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
         {
-            (Point p1, Point p2) newLine = (new Point(line[0], line[1]), new Point(line[2], line[3]));
+            LineSegment newLine = new LineSegment( new Point(line[0], line[1]), new Point(line[2], line[3]));
             return checkLineBboxOverlapRatio(newLine, bbox_x, bbox_y, bbox_w, bbox_h);
         }
 
-        public static float checkLineBboxOverlapRatio((Point p1, Point p2) line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
+        public static float checkLineBboxOverlapRatio( LineSegment line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
         {
             float overlapRatio = 0.0F;
             int insidePixels = 0;
 
-            IEnumerable<Point> linePixels = EnumerateLineNoDiagonalSteps(line.p1, line.p2);
+            IEnumerable<Point> linePixels = EnumerateLineNoDiagonalSteps(line.P1, line.P2);
             
             foreach(Point pixel in linePixels)
             {
@@ -138,12 +138,12 @@ namespace Utils
             }
         }
 
-        public static List<Tuple<string, int[]>> ConvertLines(List<(string key, (Point p1, Point p2) coordinates)> lines)
+        public static List<Tuple<string, int[]>> ConvertLines(List<(string key, LineSegment coordinates)> lines)
         {
             List<Tuple<string, int[]>> newLines = new List<Tuple<string, int[]>>();
-            foreach ((string key, (Point p1, Point p2) coordinates) line in lines)
+            foreach ((string key, LineSegment coordinates) line in lines)
             {
-                int[] coor = new int[] { line.coordinates.p1.X, line.coordinates.p1.Y, line.coordinates.p2.X, line.coordinates.p2.Y };
+                int[] coor = new int[] { line.coordinates.P1.X, line.coordinates.P1.Y, line.coordinates.P2.X, line.coordinates.P2.Y };
                 Tuple<string, int[]> newLine = new Tuple<string, int[]>(line.key, coor);
                 newLines.Add(newLine);
             }

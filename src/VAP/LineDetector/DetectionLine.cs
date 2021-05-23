@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 
 using BGSObjectDetector;
+using Utils;
 
 namespace LineDetector
 {
@@ -15,15 +16,31 @@ namespace LineDetector
 
         public static double DEFAULT_OCCUPANCY_THRESHOLD = 0.9; // default threhsold
 
+        LineSegment lineSegment;
+
+        public LineSegment Line
+        {
+            get => lineSegment;
+            set => lineSegment = value;
+        }
+
         /// <summary>
         /// The first point of the line.
         /// </summary>
-        public Point p1 { get; set; }
+        public Point p1
+        {
+            get => lineSegment.P1;
+            set => lineSegment.P1 = value;
+        }
 
         /// <summary>
         /// The second point of the line.
         /// </summary>
-        public Point p2 { get; set; }
+        public Point p2
+        {
+            get => lineSegment.P2;
+            set => lineSegment.P2 = value;
+        }
 
         /// <summary>
         /// The step size used to determine occupancy.
@@ -46,7 +63,7 @@ namespace LineDetector
         {
             p1 = new Point(a, b);
             p2 = new Point(c, d);
-            double length = Math.Sqrt(Math.Pow((double)(p2.Y - p1.Y), 2) + Math.Pow((double)(p2.X - p1.X), 2));
+            double length = lineSegment.Length;
             increment = 1 / (2 * length);
         }
 
@@ -62,7 +79,7 @@ namespace LineDetector
         {
             p1 = new Point(a, b);
             p2 = new Point(c, d);
-            double length = Math.Sqrt(Math.Pow((double)(p2.Y - p1.Y), 2) + Math.Pow((double)(p2.X - p1.X), 2));
+            double length = lineSegment.Length;
             increment = 1 / (2 * length);
             overlapFractionThreshold = l_threshold;
         }
@@ -79,8 +96,9 @@ namespace LineDetector
         public double getFractionContainedInBox(Box b, Bitmap mask)
         {
             double eta = 0;
-            double currentX = p1.X + eta * (p2.X - p1.X);
-            double currentY = p1.Y + eta * (p2.Y - p1.Y);
+            Size size = Line.P2Offset;
+            double currentX = p1.X + eta * size.Width;
+            double currentY = p1.Y + eta * size.Height;
             double lastX = -1;
             double lastY = -1;
             int totalPixelCount = 0;
@@ -101,8 +119,8 @@ namespace LineDetector
 
                 lastX = currentX; lastY = currentY;
                 eta += increment;
-                currentX = p1.X + eta * (p2.X - p1.X);
-                currentY = p1.Y + eta * (p2.Y - p1.Y);
+                currentX = p1.X + eta * size.Width;
+                currentY = p1.Y + eta * size.Height;
             } while (eta <= 1);
 
             double fraction = (double)overlapCount / (double)totalPixelCount;
@@ -121,8 +139,9 @@ namespace LineDetector
         public double getFractionInForeground(Bitmap mask)
         {
             double eta = 0;
-            double currentX = p1.X + eta * (p2.X - p1.X);
-            double currentY = p1.Y + eta * (p2.Y - p1.Y);
+            Size size = Line.P2Offset;
+            double currentX = p1.X + eta * size.Width;
+            double currentY = p1.Y + eta * size.Height;
             double lastX = -1;
             double lastY = -1;
             int totalPixelCount = 0;
@@ -141,8 +160,8 @@ namespace LineDetector
 
                 lastX = currentX; lastY = currentY;
                 eta += increment;
-                currentX = p1.X + eta * (p2.X - p1.X);
-                currentY = p1.Y + eta * (p2.Y - p1.Y);
+                currentX = p1.X + eta * size.Width;
+                currentY = p1.Y + eta * size.Height;
             } while (eta <= 1);
 
             double fraction = (double)overlapCount / (double)totalPixelCount;
