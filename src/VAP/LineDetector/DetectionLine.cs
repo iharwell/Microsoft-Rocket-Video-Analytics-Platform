@@ -171,7 +171,7 @@ namespace LineDetector
         /// </summary>
         /// <param name="boxes">The list of <see cref="Box"/> objects to check, representing the bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
-        /// <returns>Returns a <see cref="Tuple{double, Box}"/> containing both the maximum overlap fraction found, and the <see cref="Box"/> associated with that overlap.</returns>
+        /// <returns>Returns a tuple containing both the maximum overlap fraction found, and the <see cref="Box"/> associated with that overlap.</returns>
         public (double frac, IFramedItem b) getMaximumFractionContainedInAnyBox(IList<IFramedItem> boxes, Bitmap mask)
         {
             double maxOverlapFraction = 0;

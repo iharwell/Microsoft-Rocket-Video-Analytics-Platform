@@ -78,7 +78,7 @@ namespace LineDetector
         /// </summary>
         /// <param name="frameNo">The index of the frame of interest.</param>
         /// <param name="occupancy">The occupancy state at that frame.</param>
-        /// <returns>Returns true if an event was detected, and false otherwise.</returns>
+        /// <returns><see langword="true"/> if an event was detected, and <see langword="false"/> otherwise.</returns>
         public bool notifyOccupancy(int frameNo, bool occupancy)
         {
             while (FrameNoList.Count > 0)
@@ -137,7 +137,6 @@ namespace LineDetector
         /// <summary>
         /// Gets the occupancy state of the detector as of the latest frame.
         /// </summary>
-        /// <returns></returns>
         public OCCUPANCY_STATE getState()
         {
             return curState;
@@ -146,7 +145,6 @@ namespace LineDetector
         /// <summary>
         /// Gets a list of all occupancy values observed by the detector while debugging has been enabled. No frame indices are included.
         /// </summary>
-        /// <returns></returns>
         public List<double> getLineOccupancyHistory()
         {
             return debug_occupancySequence;

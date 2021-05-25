@@ -32,7 +32,6 @@
         /// <summary>
         /// Gets the occupancy state of the detector as of the latest frame.
         /// </summary>
-        /// <returns></returns>
         OCCUPANCY_STATE getState();
     }
 }

@@ -39,7 +39,6 @@ namespace LineDetector
         /// <summary>
         /// Gets the occupancy state of this detector as of the latest frame.
         /// </summary>
-        /// <returns></returns>
         OCCUPANCY_STATE getState();
 
         /// <summary>
@@ -50,13 +49,11 @@ namespace LineDetector
         /// <summary>
         /// Gets the line occupancy overlap values which are stored while in debug mode.
         /// </summary>
-        /// <returns></returns>
         List<double> getLineOccupancyHistory();
 
         /// <summary>
         /// Gets the <see cref="DetectionLine"/> used by this detector.
         /// </summary>
-        /// <returns></returns>
         DetectionLine getDetectionLine();
 
         /// <summary>

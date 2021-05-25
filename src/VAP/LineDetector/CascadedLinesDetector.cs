@@ -218,7 +218,6 @@ namespace LineDetector
         /// <summary>
         /// Gets a <see cref="Dictionary{TKey, TValue}"/> of the parameters used by this detector, stored by name.
         /// </summary>
-        /// <returns></returns>
         public Dictionary<string, Object> getParameters()
         {
             Dictionary<string, Object> ret = new Dictionary<string, object>();
@@ -240,7 +239,6 @@ namespace LineDetector
         /// <summary>
         /// Gets the line segments used by this detector.
         /// </summary>
-        /// <returns></returns>
         public List<LineSegment> getLineCoor()
         {
             List<LineSegment> coors = new List<LineSegment>();

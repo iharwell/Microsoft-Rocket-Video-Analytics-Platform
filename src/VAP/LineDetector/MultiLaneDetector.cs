@@ -57,7 +57,7 @@ namespace LineDetector
         /// <summary>
         /// Gets the detection counts of each line used by this detector as of the latest frame.
         /// </summary>
-        /// <returns>Returns a <c>Dictionary</c> of all occupancy counters, organized by the name of the lines.</returns>
+        /// <returns>Returns a <see cref="Dictionary{TKey, TValue}"/> of all occupancy counters, organized by the name of the lines.</returns>
         public Dictionary<string, int> getCounts()
         {
             Dictionary<string, int> counts = new Dictionary<string, int>();
@@ -71,7 +71,7 @@ namespace LineDetector
         /// <summary>
         /// Gets the occupancy state of each line used by this detector as of the latest frame.
         /// </summary>
-        /// <returns>Returns a <c>Dictionary</c> of all occupancy states, organized by the name of the lines.</returns>
+        /// <returns>Returns a <see cref="Dictionary{TKey, TValue}"/> of all occupancy states, organized by the name of the lines.</returns>
         public Dictionary<string, bool> getOccupancy()
         {
             Dictionary<string, bool> occupancy = new Dictionary<string, bool>();
@@ -86,7 +86,7 @@ namespace LineDetector
         /// Gets the center of the bounding box of the requested line.
         /// </summary>
         /// <param name="laneID">The name of the line to get the center of.</param>
-        /// <returns>Returns a <c>PointF</c> with the value of the center of the requested line if it exists, and null otherwise.</returns>
+        /// <returns>Returns a <see cref="PointF"> with the value of the center of the requested line if it exists, and null otherwise.</returns>
         public PointF? getBboxCenter(string laneID)
         {
             foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)

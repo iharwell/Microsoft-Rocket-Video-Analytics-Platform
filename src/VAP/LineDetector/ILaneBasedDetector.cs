@@ -56,14 +56,12 @@ namespace LineDetector
         /// <summary>
         /// Gets the number of times that this detector has been triggered.
         /// </summary>
-        /// <returns></returns>
         int getCount();
 
         //TODO(iharwell): This seems like it should not be part of the interface.
         /// <summary>
         /// Sets the count of this detector.
         /// </summary>
-        /// <param name="value"></param>
         void setCount(int value);
 
         /// <summary>
@@ -72,15 +70,13 @@ namespace LineDetector
         IFramedItem Bbox { get; }
 
         /// <summary>
-        /// Gets a <c>Dictionary</c> of the parameters used by this detector, stored by name.
+        /// Gets a <see cref="Dictionary{TKey, TValue}"/> of the parameters used by this detector, stored by name.
         /// </summary>
-        /// <returns></returns>
         Dictionary<string, Object> getParameters();
 
         /// <summary>
         /// Gets the line segments used by this detector.
         /// </summary>
-        /// <returns></returns>
         List<LineSegment> getLineCoor();
     }
 }
