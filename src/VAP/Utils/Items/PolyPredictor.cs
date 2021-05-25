@@ -8,13 +8,20 @@ using Utils.ShapeTools;
 
 namespace Utils.Items
 {
+    /// <summary>
+    ///   An <see cref="IPathPredictor" /> that uses a polynomial regression on the for corners of
+    ///   the known bounding boxes to predict the bounding box location in another frame.
+    /// </summary>
     public class PolyPredictor : PathPredictor
     {
+
+        /// <inheritdoc/>
         public override bool CanPredict( IItemPath path, int frameIndex )
         {
             return path.FramedItems.Count > 0;
         }
 
+        /// <inheritdoc/>
         public override Rectangle Predict( IItemPath path, int frameIndex )
         {
             int count = path.FramedItems.Count;
@@ -31,6 +38,7 @@ namespace Utils.Items
             throw new InvalidOperationException( "The provided path is empty, so no prediction can be made." );
         }
 
+        /// <inheritdoc/>
         private Rectangle PolyPredict( IItemPath path, int frameIndex, int order )
         {
             // Linear Regression for each member of the rectangles.
@@ -39,7 +47,7 @@ namespace Utils.Items
             double[] fVals = fEnum.ToArray();
 
             var meanRects = from IFramedItem fi in path.FramedItems
-                            select MeanBound( fi );
+                            select MedianBound( fi );
 
             var xEnum = from RectangleF r in meanRects
                         select (double)r.X;
@@ -71,25 +79,7 @@ namespace Utils.Items
             return RectangleTools.RoundRectF( fPrediction.ScaleFromCenter(1 + 0.1/Math.Max(1,order)) );
         }
 
-        private Rectangle StaticPredict( IItemPath path, int frameIndex )
-        {
-            int givenIndex = path.FrameIndex(0);
-            var ids = path.FramedItems[0].ItemIDs;
-
-            int indexDelta = frameIndex-givenIndex;
-            var mean = MeanBound( path.FramedItems[0] );
-            return new Rectangle( (int)( mean.X + 0.5f ),
-                                  (int)( mean.Y + 0.5f ),
-                                  (int)( mean.Width + 0.5f ),
-                                  (int)( mean.Height + 0.5f ) );
-        }
-
-        private Rectangle CubicPredict( IItemPath path, int frameIndex )
-        {
-            throw new NotImplementedException();
-        }
-
-        private static RectangleF MeanBound( IFramedItem framedItem )
+        private static RectangleF MedianBound( IFramedItem framedItem )
         {
             var rectangles = from IItemID itemId in framedItem.ItemIDs
                              select itemId.BoundingBox;

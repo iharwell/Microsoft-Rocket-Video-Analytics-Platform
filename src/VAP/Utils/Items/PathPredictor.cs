@@ -6,14 +6,17 @@ using System.Text;
 namespace Utils.Items
 {
     /// <summary>
-    /// The default partial implementation of the <see cref="IPathPredictor"/> interface.
+    ///   The default abstract implementation of the <see cref="IPathPredictor" /> interface.
     /// </summary>
     public abstract class PathPredictor : IPathPredictor
     {
+        /// <inheritdoc />
         public abstract bool CanPredict( IItemPath path, int frameIndex );
 
+        /// <inheritdoc />
         public abstract Rectangle Predict( IItemPath path, int frameIndex );
 
+        /// <inheritdoc />
         public virtual bool TryPredict( IItemPath path, int frameIndex, out Rectangle? prediction )
         {
             if (CanPredict(path,frameIndex))

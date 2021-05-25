@@ -8,6 +8,19 @@ namespace Utils.Items
 {
     public static class IFramedItemExtensions
     {
+        /// <summary>
+        ///   Calculates a similarity score between the provided rectangle and the items in this <see cref="IFramedItem" />.
+        /// </summary>
+        /// <param name="item">
+        ///   The <see cref="IFramedItem" /> to calculate the score for.
+        /// </param>
+        /// <param name="rect">
+        ///   The rectangle under consideration.
+        /// </param>
+        /// <returns>
+        ///   Returns a value no greater than 1, with greater numbers representing a closer match
+        ///   and positive values indicating some degree of overlap.
+        /// </returns>
         public static double Similarity( this IFramedItem item, Rectangle rect )
         {
             StatisticRectangle sr = new StatisticRectangle(item.ItemIDs);
@@ -41,6 +54,61 @@ namespace Utils.Items
                                   * Math.Max(sr.Median.Height, rect.Height) / Math.Min(sr.Median.Height, rect.Height);
 
                 return -( normalizedDistance1 * normalizedDistance2 ) * sizeFactor;
+            }
+        }
+
+        /// <summary>
+        ///   Inserts a <see cref="IItemID" /> into a list of existing <see cref="IFramedItem" />
+        ///   objects, either by adding the <see cref="IItemID" /> to an existing entry, or by
+        ///   creating a new entry if no match is found.
+        /// </summary>
+        /// <param name="itemID">
+        ///   The <see cref="IItemID" /> to insert.
+        /// </param>
+        /// <param name="framedItems">
+        ///   The list of <see cref="IFramedItem" /> objects to insert the item into.
+        /// </param>
+        /// <param name="framedItem">
+        ///   Outputs the specific <see cref="IFramedItem" /> that the provided
+        ///   <see cref="IItemID" /> was added to. This object will both exist in the list and
+        ///   contain the provided <see cref="IItemID" />.
+        /// </param>
+        /// <param name="frameIndex">
+        ///   The index in the list that the provided <see cref="IItemID" /> was added to.
+        /// </param>
+        /// <returns>
+        ///   <see langword="true" /> if a new <see cref="IFramedItem" /> was created to add the
+        ///   item; <see langword="false" /> if the item was appended to an existing entry.
+        /// </returns>
+        public static bool InsertIntoFramedItemList( this IItemID itemID, IList<IFramedItem> framedItems,  out IFramedItem framedItem, int frameIndex = -1 )
+        {
+            int bestIndex = 0;
+            double bestSimilarity = double.NegativeInfinity;
+            for ( int i = 0; i < framedItems.Count; i++ )
+            {
+                IFramedItem fItem = framedItems[i];
+                double sim = double.NegativeInfinity;
+                if ( frameIndex >= 0 && fItem.Frame.FrameIndex == frameIndex )
+                {
+                    sim = fItem.Similarity( itemID.BoundingBox );
+                    if ( sim > bestSimilarity )
+                    {
+                        bestIndex = i;
+                        bestSimilarity = sim;
+                    }
+                }
+            }
+            if ( bestSimilarity > 0 )
+            {
+                framedItem = framedItems[bestIndex];
+                framedItem.ItemIDs.Add( itemID );
+                return false;
+            }
+            else
+            {
+                framedItem = new FramedItem( new Frame(), itemID );
+                framedItems.Add( framedItem );
+                return true;
             }
         }
     }

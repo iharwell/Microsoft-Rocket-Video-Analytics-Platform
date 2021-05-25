@@ -8,16 +8,38 @@ using Utils.ShapeTools;
 
 namespace Utils.Items
 {
+    /// <summary>
+    ///   The default implementation of the <see cref="IFramedItem" /> interface.
+    /// </summary>
     public class FramedItem : IFramedItem
     {
+        /// <summary>
+        ///   Creates an empty <see cref="FramedItem" />.
+        /// </summary>
         public FramedItem()
         {
             ItemIDs = new List<IItemID>();
         }
+
+        /// <summary>
+        ///   Creates a <see cref="FramedItem" /> and adds the given <see cref="IItemID" /> to it.
+        /// </summary>
+        /// <param name="itemID">
+        ///   The <see cref="IItemID" /> that is to be framed.
+        /// </param>
         public FramedItem( IItemID itemID )
-        {
-            ItemIDs = new List<IItemID>();
-        }
+            : this( null, itemID )
+        { }
+
+        /// <summary>
+        ///   Creates a <see cref="FramedItem" /> and adds the given <see cref="IItemID" /> to it.
+        /// </summary>
+        /// <param name="frame">
+        ///   The <see cref="IFrame" /> that the item was found in.
+        /// </param>
+        /// <param name="itemID">
+        ///   The <see cref="IItemID" /> which identifies the item found in the frame.
+        /// </param>
         public FramedItem(IFrame frame, IItemID itemID )
         {
             ItemIDs = new List<IItemID>();
@@ -25,10 +47,13 @@ namespace Utils.Items
             ItemIDs.Add( itemID );
         }
 
+        /// <inheritdoc />
         public IFrame Frame { get; set; }
 
+        /// <inheritdoc />
         public IList<IItemID> ItemIDs { get; }
 
+        /// <inheritdoc />
         public byte[] CroppedImageData( int itemIDIndex )
         {
             var item = ItemIDs[itemIDIndex];
@@ -50,11 +75,13 @@ namespace Utils.Items
             }
         }
 
+        /// <inheritdoc />
         public byte[] TaggedImageData( int itemIDIndex, Color tagColor )
         {
             return TaggedImageData( itemIDIndex, new SolidBrush( tagColor ) );
         }
 
+        /// <inheritdoc />
         public byte[] TaggedImageData( int itemIDIndex, Brush tagColor )
         {
             var item = ItemIDs[itemIDIndex];
@@ -74,6 +101,7 @@ namespace Utils.Items
             }
         }
 
+        /// <inheritdoc />
         public double Similarity( Rectangle rect )
         {
             StatisticRectangle sr = new StatisticRectangle(ItemIDs);
@@ -106,6 +134,7 @@ namespace Utils.Items
                 return -( normalizedDistance1 * normalizedDistance2 ) * sizeFactor;
             }
         }
+
 
         public static bool InsertIntoFramedItemList( IList<IFramedItem> framedItems, IItemID itemID, out IFramedItem framedItem, int frameIndex = -1 )
         {

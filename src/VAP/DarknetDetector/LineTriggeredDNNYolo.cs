@@ -78,7 +78,7 @@ namespace DarknetDetector
                                         item.TriggerLine = lines[lineID].key;
                                         item.TriggerLineID = lineID;
 
-                                        if ( FramedItem.InsertIntoFramedItemList( items, item, out IFramedItem framedItem, frameIndexYolo ) )
+                                        if ( item.InsertIntoFramedItemList( items, out IFramedItem framedItem, frameIndexYolo ) )
                                         {
                                             var f = framedItem.Frame;
                                             f.FrameIndex = frameIndexYolo;

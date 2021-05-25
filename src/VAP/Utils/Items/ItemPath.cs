@@ -6,7 +6,7 @@ using System.Text;
 namespace Utils.Items
 {
     /// <summary>
-    /// A simple base class for <see cref="IItemPath"/> implementations providing default functionality.
+    ///   A simple base class for <see cref="IItemPath" /> implementations providing default functionality.
     /// </summary>
     public class ItemPath : IItemPath
     {
@@ -15,13 +15,16 @@ namespace Utils.Items
             FramedItems = new List<IFramedItem>();
         }
 
-        public int FrameIndex( int entryIndex )
+        /// <inheritdoc />
+        public virtual int FrameIndex( int entryIndex )
         {
             return FramedItems[entryIndex].Frame.FrameIndex;
         }
 
+        /// <inheritdoc cref="IItemPath.FramedItems" />
         public IList<IFramedItem> FramedItems { get; protected set; }
 
+        /// <inheritdoc />
         IList<IFramedItem> IItemPath.FramedItems => FramedItems;
     }
 }
