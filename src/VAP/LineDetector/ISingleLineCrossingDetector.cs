@@ -6,7 +6,7 @@ using Utils.Items;
 
 namespace LineDetector
 {
-    //TODO(isaach): Pull methods into a separate interface for things that overlap with ICrossingDetector and ILineBasedDetector.
+    //TODO(iharwell): Pull methods into a separate interface for things that overlap with ICrossingDetector and ILineBasedDetector.
     /// <summary>
     /// Interface for a line crossing detector that uses a single line for detection.
     /// </summary>
