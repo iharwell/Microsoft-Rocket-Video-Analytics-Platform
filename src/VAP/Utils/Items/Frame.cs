@@ -68,6 +68,9 @@ namespace Utils.Items
         public byte[] FrameData { get; set; }
 
         /// <inheritdoc />
+        public byte[] ForegroundMask { get; set; }
+
+        /// <inheritdoc />
         public string SourceName { get; set; }
 
         /// <inheritdoc />

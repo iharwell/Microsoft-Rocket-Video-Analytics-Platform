@@ -14,6 +14,7 @@ using PostProcessor;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using TFDetector;
 using Utils;
@@ -23,7 +24,7 @@ namespace VideoPipelineCore
 {
     class Program
     {
-        const int BUFFERSIZE = 50;
+        const int BUFFERSIZE = 90;
 
         static void Main(string[] args)
         {
@@ -64,7 +65,10 @@ namespace VideoPipelineCore
             Utils.Utils.cleanFolderAll();
 
             //create pipeline components (initialization based on pplConfig)
+
+            //-----FramedItem buffer for tracking item paths-----
             IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(51);
+
             //-----Decoder-----
             Decoder.Decoder decoder = new Decoder.Decoder(videoUrl, loop);
 
@@ -170,6 +174,22 @@ namespace VideoPipelineCore
                 videoTotalFrame = decoder.getTotalFrameNum() - 1; //skip the last frame which could be wrongly encoded from vlc capture
 
             long teleCountsBGS = 0, teleCountsCheapDNN = 0, teleCountsHeavyDNN = 0;
+
+            //-----Last minute prep-----
+            DateTime videoTimeStamp;
+            if( isVideoStream )
+            {
+                videoTimeStamp = DateTime.Now;
+            }
+            else
+            {
+                //TODO(iharwell): Find a portable option for pulling the "Media Created" property from a file for use here.
+                // videoTimeStamp = decoder.getTimeStamp();
+
+                videoTimeStamp = DateTime.Now;
+            }
+
+            double frameRate = decoder.getVideoFPS();
 
             //RUN PIPELINE 
             DateTime startTime = DateTime.Now;
@@ -282,6 +302,8 @@ namespace VideoPipelineCore
                                                             "test"); // Azure blob
                 }
 
+                //Merge IFrame items to conserve memory.
+                CompressIFrames( ItemList );
 
                 //display counts
                 if (ItemList != null && ItemList.Count>0)
@@ -291,20 +313,27 @@ namespace VideoPipelineCore
                     {
                         foreach ( IItemID ID in it.ItemIDs )
                         {
-                            if ( ID is ILineTriggeredItemID ltID )
+                            if ( ID is ILineTriggeredItemID ltID && ltID.TriggerLine!=null )
                             {
                                 if ( !kvpairs.ContainsKey( ltID.TriggerLine ) )
                                     kvpairs.Add( ltID.TriggerLine, "1" );
                                 break;
                             }
                         }
+                        it.Frame.SourceName = videoUrl;
+                        it.Frame.TimeStamp = videoTimeStamp.AddTicks( (long)( TimeSpan.TicksPerSecond * it.Frame.FrameIndex / frameRate ) );
                     }
                     FramePreProcessor.FrameDisplay.updateKVPairs(kvpairs);
 
+
+                    // Currently requires the use of a detection line filter, as it generates too many ItemPaths without it.
                     if( ItemList.Last().ItemIDs.Last().IdentificationMethod.CompareTo( nameof(BGSObjectDetector) ) != 0 )
                     {
-                        var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer( ItemList.Last(), framedItemBuffer, new PolyPredictor(), 0.3 );
-                        ItemPaths.Add( path );
+                        if ( ItemList.Last().ItemIDs.Last().IdentificationMethod.CompareTo( nameof( DetectionLine ) ) != 0 )
+                        {
+                            var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer( ItemList.Last(), framedItemBuffer, new PolyPredictor(), 0.3 );
+                            ItemPaths.Add( path );
+                        }
                     }
 
                     framedItemBuffer.Add( ItemList );
@@ -316,10 +345,13 @@ namespace VideoPipelineCore
 
 
                 //print out stats
-                double fps = 1000 * (double)(1) / (DateTime.Now - prevTime).TotalMilliseconds;
-                double avgFps = 1000 * (long)frameIndex / (DateTime.Now - startTime).TotalMilliseconds;
-                Console.WriteLine("{0} {1,-5} {2} {3,-5} {4} {5,-15} {6} {7,-10:N2} {8} {9,-10:N2}", 
-                                    "sFactor:", SAMPLING_FACTOR, "rFactor:", RESOLUTION_FACTOR, "FrameID:", frameIndex, "FPS:", fps, "avgFPS:", avgFps);
+                if ( ( frameIndex & 0xF ) == 0 )
+                {
+                    double fps = 1000 * (double)(1) / (DateTime.Now - prevTime).TotalMilliseconds;
+                    double avgFps = 1000 * (long)frameIndex / (DateTime.Now - startTime).TotalMilliseconds;
+                    Console.WriteLine( "{0} {1,-5} {2} {3,-5} {4} {5,-15} {6} {7,-10:N2} {8} {9,-10:N2}",
+                                        "sFactor:", SAMPLING_FACTOR, "rFactor:", RESOLUTION_FACTOR, "FrameID:", frameIndex, "FPS:", fps, "avgFPS:", avgFps );
+                }
                 prevTime = DateTime.Now;
             }
             for ( int i = 0; i < ItemPaths.Count; i++ )
@@ -327,6 +359,30 @@ namespace VideoPipelineCore
                 Console.WriteLine( "Item path length " + ( i + 1 ) + ": " + ItemPaths[i].FramedItems.Count );
             }
             Console.WriteLine("Done!");
+        }
+
+        private static void CompressIFrames( IList<IFramedItem> ItemList )
+        {
+            if( ItemList is null )
+            {
+                return;
+            }
+
+            for ( int i = 0; i < ItemList.Count; i++ )
+            {
+                int frameIndex = ItemList[i].Frame.FrameIndex;
+                for ( int j = i + 1; j < ItemList.Count; j++ )
+                {
+                    if( ItemList[j].Frame.FrameIndex == frameIndex )
+                    {
+                        if( !object.ReferenceEquals(ItemList[j].Frame, ItemList[i].Frame ) )
+                        {
+                            ItemList[j].Frame = ItemList[i].Frame;
+                        }
+                    }
+                }
+            }
+
         }
     }
 }

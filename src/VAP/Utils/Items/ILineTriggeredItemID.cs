@@ -19,5 +19,7 @@ namespace Utils.Items
         ///   The identifying index of the trigger line that resulted in this ID.
         /// </summary>
         int TriggerLineID { get; set; }
+
+        LineSegment TriggerSegment { get; set; }
     }
 }

@@ -49,7 +49,7 @@ namespace DarknetDetector
             {
                 IFramedItem ltDNNItem = ltDNNItemList[i];
                 var ltDNNID = ltDNNItem.ItemIDs.Last();
-                if ( ltDNNID.Confidence >= DNNConfig.CONFIDENCE_THRESHOLD || !( ltDNNID is LineTriggeredItemID ) )
+                if ( ltDNNID.Confidence >= DNNConfig.CONFIDENCE_THRESHOLD || !( ltDNNID is LineTriggeredItemID trigID && trigID.TriggerLine!=null ) )
                 {
                     continue;
                 }

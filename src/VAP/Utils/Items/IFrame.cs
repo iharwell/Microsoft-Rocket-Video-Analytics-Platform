@@ -10,6 +10,11 @@ namespace Utils.Items
     public interface IFrame
     {
         /// <summary>
+        ///   The foreground mask for this frame if one is available.
+        /// </summary>
+        byte[] ForegroundMask { get; set; }
+
+        /// <summary>
         ///   The pixel data of the raw frame.
         /// </summary>
         byte[] FrameData { get; set; }

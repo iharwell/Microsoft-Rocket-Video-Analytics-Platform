@@ -13,6 +13,10 @@ namespace MotionTracker
         {
             IItemPath itemPath = new ItemPath();
             itemPath.FramedItems.Add( framedID );
+            if( buffer.Count == 0 )
+            {
+                return itemPath;
+            }
             int givenIndex = framedID.Frame.FrameIndex;
             // Sort the contents of the buffer by frame index.
             var orgFrames = GroupByFrame(buffer);

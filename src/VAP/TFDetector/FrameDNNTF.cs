@@ -99,17 +99,21 @@ namespace TFDetector
             // output tf results
             if (saveImg)
             {
-                foreach (Item it in validObjects)
+                foreach (IFramedItem it in validObjects)
                 {
-                    string blobName_TF = $@"frame-{frameIndex}-TF-{it.Confidence}.jpg";
-                    string fileName_TF = @OutputFolder.OutputFolderFrameDNNTF + blobName_TF;
-                    File.WriteAllBytes(fileName_TF, it.TaggedImageData);
-                    File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_TF, it.TaggedImageData);
+                    int idIndex = it.ItemIDs.Count-1;
+                    IItemID id = it.ItemIDs[idIndex];
 
-                    using (Image image = Image.FromStream(new MemoryStream(it.TaggedImageData)))
+                    string blobName_TF = $@"frame-{frameIndex}-TF-{id.Confidence}.jpg";
+                    string fileName_TF = @OutputFolder.OutputFolderFrameDNNTF + blobName_TF;
+                    var taggedImage = it.TaggedImageData(idIndex, bboxColor);
+                    File.WriteAllBytes(fileName_TF, taggedImage );
+                    File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_TF, taggedImage );
+
+                    using (Image image = Image.FromStream(new MemoryStream( taggedImage ) ))
                     {
-                        image.Save(@OutputFolder.OutputFolderFrameDNNTF + $"frame-{frameIndex}-TF-{it.Confidence}.jpg", ImageFormat.Jpeg);
-                        image.Save(@OutputFolder.OutputFolderAll + $"frame-{frameIndex}-TF-{it.Confidence}.jpg", ImageFormat.Jpeg);
+                        image.Save(@OutputFolder.OutputFolderFrameDNNTF + $"frame-{frameIndex}-TF-{id.Confidence}.jpg", ImageFormat.Jpeg);
+                        image.Save(@OutputFolder.OutputFolderAll + $"frame-{frameIndex}-TF-{id.Confidence}.jpg", ImageFormat.Jpeg);
                     }
                 }
             }

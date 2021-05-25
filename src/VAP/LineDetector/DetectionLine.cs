@@ -207,6 +207,10 @@ namespace LineDetector
             (double frac, IFramedItem b) = getMaximumFractionContainedInAnyBox(boxes, mask);
             if (frac >= overlapFractionThreshold)
             {
+                IItemID existingID = b.ItemIDs.Last();
+                ILineTriggeredItemID id = new LineTriggeredItemID( existingID.BoundingBox, existingID.ObjectID, existingID.ObjName, existingID.Confidence, existingID.TrackID, nameof(DetectionLine) );
+                id.TriggerSegment = this.Line;
+                b.ItemIDs.Add( id );
                 return (true, b);
             }
             else

@@ -3,6 +3,7 @@
 
 ﻿using System;
 using System.Drawing;
+using Utils;
 using Utils.Items;
 
 namespace DNNDetector.Model
@@ -38,6 +39,7 @@ namespace DNNDetector.Model
         public byte[] TaggedImageData { get; set; }
         public byte[] CroppedImageData { get; set; }
         public string TriggerLine { get; set; }
+        public LineSegment TriggerSegment { get; set; }
         public int TriggerLineID { get; set; }
         public string IdentificationMethod { get; set; }
         public Rectangle BoundingBox

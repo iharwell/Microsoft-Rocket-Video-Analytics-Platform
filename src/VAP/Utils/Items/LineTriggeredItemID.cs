@@ -22,5 +22,8 @@ namespace Utils.Items
 
         /// <inheritdoc />
         public int TriggerLineID { get; set; }
+
+        /// <inheritdoc />
+        public LineSegment TriggerSegment { get; set; }
     }
 }
