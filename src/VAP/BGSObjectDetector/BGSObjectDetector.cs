@@ -3,9 +3,10 @@
 
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Drawing;
 using OpenCvSharp;
 using OpenCvSharp.Blob;
+using Utils.Items;
 
 namespace BGSObjectDetector
 {
@@ -67,12 +68,12 @@ namespace BGSObjectDetector
             bgs = new MOG2();
         }
 
-        public List<Box> DetectObjects(DateTime timestamp, Mat image, int frameIndex, out Mat fg)
+        public IList<IFramedItem> DetectObjects(DateTime timestamp, Mat image, int frameIndex, out Mat fg)
         {
             if (regionOfInterest != null)
                 bgs.SetRegionOfInterest(regionOfInterest);
 
-            Cv2.GaussianBlur(image, blurredFrame, Size.Zero, PRE_BGS_BLUR_SIGMA);
+            Cv2.GaussianBlur(image, blurredFrame, OpenCvSharp.Size.Zero, PRE_BGS_BLUR_SIGMA);
 
             // fgMask is the original foreground bitmap returned by opencv MOG2
             fgMask = bgs.DetectForeground(blurredFrame, frameIndex);
@@ -83,13 +84,17 @@ namespace BGSObjectDetector
             // pre-processing
             Cv2.Threshold(fgMask, fgWOShadows, 200, 255, ThresholdTypes.Binary);
             Cv2.MedianBlur(fgWOShadows, fgSmoothedMask2, MEDIAN_BLUR_SIZE);
-            Cv2.GaussianBlur(fgSmoothedMask2, fgSmoothedMask3, Size.Zero, GAUSSIAN_BLUR_SIGMA);
+            Cv2.GaussianBlur(fgSmoothedMask2, fgSmoothedMask3, OpenCvSharp.Size.Zero, GAUSSIAN_BLUR_SIGMA);
             Cv2.Threshold(fgSmoothedMask3, fgSmoothedMask4, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
 
             fg = fgSmoothedMask4;
 
             CvBlobs blobs = new CvBlobs();
             KeyPoint[] points = _blobDetector.Detect(fgSmoothedMask4);
+            IFrame frame = new Frame("", frameIndex);
+            frame.TimeStamp = timestamp;
+
+            frame.FrameData = Utils.Utils.ImageToByteBmp( OpenCvSharp.Extensions.BitmapConverter.ToBitmap( image ) );
             //blobs.FilterByArea(MIN_BLOB_SIZE, int.MaxValue);
 
             //// filter overlapping blobs
@@ -105,24 +110,25 @@ namespace BGSObjectDetector
             //    blobs.Remove(blobid);
 
             // adding text to boxes and foreground frame
-            List<Box> newBlobs = new List<Box>();
+            List<IFramedItem> newBlobs = new List<IFramedItem>();
             uint id = 0;
             foreach (var point in points)
             {
                 int x = (int)point.Pt.X;
                 int y = (int)point.Pt.Y;
                 int size = (int)point.Size;
+
                 Box box = new Box("", x - size, x + size, y - size, y + size, frameIndex, id);
+                IItemID itemID = new ItemID( new Rectangle(box.X0, box.Y0, box.Width, box.Height), 0, null, 0, (int)id, nameof(BGSObjectDetector) );
+                IFramedItem item = new FramedItem( frame, itemID );
                 id++;
-                newBlobs.Add(box);
+                newBlobs.Add(item);
 
                 Cv2.Rectangle(fgSmoothedMask4, new OpenCvSharp.Point(x - size, y - size), new OpenCvSharp.Point(x + size, y + size), new Scalar(255), 1);
                 Cv2.PutText(fgSmoothedMask4, box.ID.ToString(), new OpenCvSharp.Point(x, y - size), HersheyFonts.HersheyPlain, 1.0, new Scalar(255.0, 255.0, 255.0));
             }
             Cv2.PutText(fgSmoothedMask4, "frame: " + frameIndex, new OpenCvSharp.Point(10, 10), HersheyFonts.HersheyPlain, 1, new Scalar(255, 255, 255));
 
-            newBlobs.ForEach(b => b.Time = timestamp);
-            newBlobs.ForEach(b => b.Timestamp = frameIndex);
             return newBlobs;
         }
     }

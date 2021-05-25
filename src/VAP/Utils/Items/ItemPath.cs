@@ -10,17 +10,17 @@ namespace Utils.Items
     /// </summary>
     public class ItemPath : IItemPath
     {
-        protected ItemPath()
+        public ItemPath()
         {
-            FrameIndices = new List<int>();
             FramedItems = new List<IFramedItem>();
         }
 
-        public IList<int> FrameIndices { get; protected set; }
+        public int FrameIndex( int entryIndex )
+        {
+            return FramedItems[entryIndex].Frame.FrameIndex;
+        }
+
         public IList<IFramedItem> FramedItems { get; protected set; }
-
-
-        IList<int> IItemPath.FrameIndices => FrameIndices;
 
         IList<IFramedItem> IItemPath.FramedItems => FramedItems;
     }

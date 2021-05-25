@@ -12,7 +12,8 @@ using Utils.Config;
 using Wrapper.Yolo;
 using Wrapper.Yolo.Model;
 using Utils;
-
+using Utils.Items;
+using System.Drawing;
 
 namespace DarknetDetector
 {
@@ -37,7 +38,7 @@ namespace DarknetDetector
             frameDNNYolo = new FrameDNNDarknet(YOLOCONFIG, DNNMode.LT, lines);
         }
 
-        public List<Item> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, HashSet<string> category)
+        public IList<IFramedItem> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, HashSet<string> category, IList<IFramedItem> items)
         {
             // buffer frame
             frameBufferLtDNNYolo.Buffer(frame);
@@ -70,24 +71,29 @@ namespace DarknetDetector
                                 // object detected by cheap YOLO
                                 if (analyzedTrackingItems != null)
                                 {
-                                    List<Item> ltDNNItem = new List<Item>();
                                     foreach (YoloTrackingItem yoloTrackingItem in analyzedTrackingItems)
                                     {
-                                        Item item = Item(yoloTrackingItem);
-                                        item.RawImageData = imgByte;
-                                        item.TriggerLine = lane;
+                                        Rectangle bounds = new Rectangle( yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height );
+                                        LineTriggeredItemID item = new LineTriggeredItemID (bounds, yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, yoloTrackingItem.TrackId, nameof(FrameDNNDarknet) );
+                                        item.TriggerLine = lines[lineID].key;
                                         item.TriggerLineID = lineID;
-                                        item.Model = "Cheap";
-                                        ltDNNItem.Add(item);
+
+                                        if ( FramedItem.InsertIntoFramedItemList( items, item, out IFramedItem framedItem, frameIndexYolo ) )
+                                        {
+                                            var f = framedItem.Frame;
+                                            f.FrameIndex = frameIndexYolo;
+                                            f.SourceName = null;
+                                            f.FrameData = imgByte;
+                                        }
 
                                         // output cheap YOLO results
-                                        string blobName_Cheap = $@"frame-{frameIndex}-Cheap-{yoloTrackingItem.Confidence}.jpg";
+                                        string blobName_Cheap = $@"frame-{frameIndexYolo}-Cheap-{yoloTrackingItem.Confidence}.jpg";
                                         string fileName_Cheap = @OutputFolder.OutputFolderLtDNN + blobName_Cheap;
                                         File.WriteAllBytes(fileName_Cheap, yoloTrackingItem.TaggedImageData);
                                         File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, yoloTrackingItem.TaggedImageData);
                                     }
                                     updateCount(counts);
-                                    return ltDNNItem;
+                                    return items;
                                 }
                                 frameIndexYolo--;
                             }
@@ -97,7 +103,7 @@ namespace DarknetDetector
             }
             updateCount(counts);
 
-            return null;
+            return items;
         }
 
         Item Item(YoloTrackingItem yoloTrackingItem)
@@ -105,7 +111,7 @@ namespace DarknetDetector
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "");
 
-            item.TrackId = yoloTrackingItem.TrackId;
+            item.TrackID = yoloTrackingItem.TrackId;
             item.Index = yoloTrackingItem.Index;
             item.TaggedImageData = yoloTrackingItem.TaggedImageData;
             item.CroppedImageData = yoloTrackingItem.CroppedImageData;

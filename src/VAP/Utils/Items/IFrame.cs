@@ -23,5 +23,10 @@ namespace Utils.Items
         /// The index of this frame within the source feed.
         /// </summary>
         int FrameIndex { get; set; }
+
+        /// <summary>
+        /// The time that the frame was taken.
+        /// </summary>
+        DateTime TimeStamp { get; set; }
     }
 }

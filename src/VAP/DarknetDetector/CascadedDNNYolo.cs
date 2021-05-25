@@ -6,9 +6,13 @@ using DNNDetector.Model;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO;
+using System.Linq;
 using Utils;
 using Utils.Config;
+using Utils.Items;
 using Wrapper.Yolo;
 using Wrapper.Yolo.Model;
 
@@ -34,51 +38,57 @@ namespace DarknetDetector
             frameDNNYolo = new FrameDNNDarknet(YOLOCONFIG, DNNMode.CC, lines);
         }
 
-        public List<Item> Run(Mat frame, int frameIndex, List<Item> ltDNNItemList, List<(string key, LineSegment coordinates)> lines, HashSet<string> category)
+        public IList<IFramedItem> Run(Mat frame, int frameIndex, IList<IFramedItem> ltDNNItemList, List<(string key, LineSegment coordinates)> lines, HashSet<string> category)
         {
             if (ltDNNItemList == null)
             {
                 return null;
             }
 
-            List<Item> ccDNNItem = new List<Item>();
-
-            foreach (Item ltDNNItem in ltDNNItemList)
+            for ( int i = 0; i < ltDNNItemList.Count; i++ )
             {
-                if (ltDNNItem.Confidence >= DNNConfig.CONFIDENCE_THRESHOLD)
+                IFramedItem ltDNNItem = ltDNNItemList[i];
+                var ltDNNID = ltDNNItem.ItemIDs.Last();
+                if ( ltDNNID.Confidence >= DNNConfig.CONFIDENCE_THRESHOLD || !( ltDNNID is LineTriggeredItemID ) )
                 {
-                    ccDNNItem.Add(ltDNNItem);
                     continue;
                 }
                 else
                 {
+                    Debug.Assert( ltDNNID is LineTriggeredItemID );
                     List<YoloTrackingItem> analyzedTrackingItems = null;
-                    frameDNNYolo.SetTrackingPoint( lines[ltDNNItem.TriggerLineID].coordinates.MidPoint ); //only needs to check the last line in each row
-                    byte[] imgByte = ltDNNItem.RawImageData;
+                    byte[] imgByte = ltDNNItem.Frame.FrameData;
+                    int realFrameIndex = ltDNNItem.Frame.FrameIndex;
 
                     Console.WriteLine("** Calling Heavy");
-                    analyzedTrackingItems = frameDNNYolo.Detect(imgByte, category, ltDNNItem.TriggerLineID, System.Drawing.Brushes.Red, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL, frameIndex);
+
+                    if ( ltDNNID is LineTriggeredItemID lineTriggered )
+                    {
+                        frameDNNYolo.SetTrackingPoint( lines[lineTriggered.TriggerLineID].coordinates.MidPoint ); //only needs to check the last line in each row
+                        analyzedTrackingItems = frameDNNYolo.Detect(imgByte, category, lineTriggered.TriggerLineID, System.Drawing.Brushes.Red, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL, realFrameIndex );
+                    }
+                    else
+                    {
+                        return frameDNNYolo.Run( imgByte, realFrameIndex, lines, category, System.Drawing.Brushes.Red );
+                    }
 
                     // object detected by heavy YOLO
                     if (analyzedTrackingItems != null)
                     {
                         foreach (YoloTrackingItem yoloTrackingItem in analyzedTrackingItems)
                         {
-                            Item item = Item(yoloTrackingItem);
-                            item.RawImageData = imgByte;
-                            item.TriggerLine = ltDNNItem.TriggerLine;
-                            item.TriggerLineID = ltDNNItem.TriggerLineID;
-                            item.Model = "Heavy";
-                            ccDNNItem.Add(item);
-                            
+                            Rectangle bounds = new Rectangle( yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height );
+                            ItemID itemID = new ItemID( bounds, yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, yoloTrackingItem.Index, nameof( CascadedDNNDarknet) );
+                            ltDNNItem.ItemIDs.Add( itemID );
                             // output heavy YOLO results
-                            string blobName_Heavy = $@"frame-{frameIndex}-Heavy-{yoloTrackingItem.Confidence}.jpg";
+                            string blobName_Heavy = $@"frame-{realFrameIndex}-Heavy-{yoloTrackingItem.Confidence}.jpg";
                             string fileName_Heavy = @OutputFolder.OutputFolderCcDNN + blobName_Heavy;
-                            File.WriteAllBytes(fileName_Heavy, yoloTrackingItem.TaggedImageData);
-                            File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Heavy, yoloTrackingItem.TaggedImageData);
+                            var imgData = ltDNNItem.TaggedImageData(ltDNNItem.ItemIDs.Count - 1, Brushes.Red );
+                            File.WriteAllBytes(fileName_Heavy, imgData );
+                            File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Heavy, imgData );
 
-                            return ccDNNItem; // if we only return the closest object detected by heavy model
                         }
+                        return ltDNNItemList; // if we only return the closest object detected by heavy model
                     }
                     else
                     {
@@ -87,7 +97,7 @@ namespace DarknetDetector
                 }
             }
 
-            return ccDNNItem;
+            return ltDNNItemList;
         }
 
         Item Item(YoloTrackingItem yoloTrackingItem)
@@ -95,7 +105,7 @@ namespace DarknetDetector
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "");
 
-            item.TrackId = yoloTrackingItem.TrackId;
+            item.TrackID = yoloTrackingItem.TrackId;
             item.Index = yoloTrackingItem.Index;
             item.TaggedImageData = yoloTrackingItem.TaggedImageData;
             item.CroppedImageData = yoloTrackingItem.CroppedImageData;

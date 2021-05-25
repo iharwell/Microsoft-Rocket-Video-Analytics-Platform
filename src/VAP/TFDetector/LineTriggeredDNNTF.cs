@@ -10,6 +10,8 @@ using System.IO;
 using System.Linq;
 using Utils.Config;
 using Utils;
+using Utils.Items;
+using System.Drawing;
 
 namespace TFDetector
 {
@@ -27,7 +29,7 @@ namespace TFDetector
             frameDNNTF = new FrameDNNTF(lines);
         }
 
-        public List<Item> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, HashSet<string> category)
+        public IList<IFramedItem> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, HashSet<string> category, IList<IFramedItem> items)
         {
             // buffer frame
             frameBufferLtDNNTF.Buffer(frame);
@@ -46,7 +48,7 @@ namespace TFDetector
                             Mat[] frameBufferArray = frameBufferLtDNNTF.ToArray();
                             int frameIndexTF = frameIndex - 1;
                             DateTime start = DateTime.Now;
-                            List<Item> analyzedTrackingItems = null;
+                            IList<IFramedItem> analyzedTrackingItems = null;
 
                             while (frameIndex - frameIndexTF < DNNConfig.FRAME_SEARCH_RANGE)
                             {
@@ -58,23 +60,58 @@ namespace TFDetector
                                 // object detected by cheap model
                                 if (analyzedTrackingItems != null)
                                 {
-                                    List<Item> ltDNNItem = new List<Item>();
-                                    foreach (Item item in analyzedTrackingItems)
+                                    foreach (IFramedItem framedItemPre in analyzedTrackingItems)
                                     {
-                                        item.RawImageData = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameTF));
-                                        item.TriggerLine = lane;
-                                        item.TriggerLineID = lineID;
-                                        item.Model = "Cheap";
-                                        ltDNNItem.Add(item);
+                                        IItemID item = framedItemPre.ItemIDs[0];
+                                        LineTriggeredItemID item2 = new LineTriggeredItemID(item.BoundingBox, item.ObjectID, item.ObjName, item.Confidence, item.TrackID, nameof(FrameDNNTF) );
+                                        item2.TriggerLine = lane;
+                                        item2.TriggerLineID = lineID;
+                                        IFramedItem framedItem;
+
+                                        if ( items.Count == 0 || ( items.Count == 1 && items[0].Similarity( item.BoundingBox ) > 0 ) )
+                                        {
+                                            items[0].ItemIDs.Add( item2 );
+                                            framedItem = items[0];
+                                        }
+                                        else if ( items.Count == 1 )
+                                        {
+                                            framedItem = new FramedItem( items[0].Frame, item2);
+                                            items.Add( framedItem );
+                                        }
+                                        else
+                                        {
+                                            int bestIndex = 0;
+                                            double bestSimilarity = items[0].Similarity(item.BoundingBox);
+                                            for ( int i = 1; i < items.Count; i++ )
+                                            {
+                                                double sim = items[i].Similarity(item.BoundingBox);
+                                                if ( sim > bestSimilarity )
+                                                {
+                                                    bestIndex = i;
+                                                    bestSimilarity = sim;
+                                                }
+                                            }
+                                            if ( bestSimilarity > 0 )
+                                            {
+                                                items[bestIndex].ItemIDs.Add( item2 );
+                                                framedItem = items[bestIndex];
+                                            }
+                                            else
+                                            {
+                                                framedItem = new FramedItem( items[0].Frame, item2);
+                                                items.Add( framedItem );
+                                            }
+                                        }
 
                                         // output cheap TF results
                                         string blobName_Cheap = $@"frame-{frameIndex}-Cheap-{item.Confidence}.jpg";
                                         string fileName_Cheap = @OutputFolder.OutputFolderLtDNN + blobName_Cheap;
-                                        File.WriteAllBytes(fileName_Cheap, item.TaggedImageData);
-                                        File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, item.TaggedImageData);
+                                        var tagged = framedItem.TaggedImageData( framedItem.ItemIDs.Count - 1, System.Drawing.Brushes.Pink );
+                                        File.WriteAllBytes( fileName_Cheap, tagged );
+                                        File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, tagged );
                                     }
                                     updateCount(counts);
-                                    return ltDNNItem;
+                                    return items;
                                 }
                                 frameIndexTF--;
                             }

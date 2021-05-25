@@ -3,26 +3,50 @@
 
 ﻿using System;
 using System.Drawing;
+using Utils.Items;
 
 namespace DNNDetector.Model
 {
-    public class Item
+    public class Item : ILineTriggeredItemID
     {
         public string ObjName { get; set; }
         public double Confidence { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public int ObjId { get; set; }
-        public int TrackId { get; set; }
+        public int X
+        {
+            get => BoundingBox.X;
+            set => boundBox.X = value;
+        }
+        public int Y
+        {
+            get => BoundingBox.Y;
+            set => boundBox.Y = value;
+        }
+        public int Width
+        {
+            get => BoundingBox.Width;
+            set => boundBox.Width = value;
+        }
+        public int Height
+        {
+            get => BoundingBox.Width;
+            set => boundBox.Width = value;
+        }
+        public int ObjectID { get; set; }
+        public int TrackID { get; set; }
         public int Index { get; set; }
         public byte[] RawImageData { get; set; }
         public byte[] TaggedImageData { get; set; }
         public byte[] CroppedImageData { get; set; }
         public string TriggerLine { get; set; }
         public int TriggerLineID { get; set; }
-        public string Model { get; set; }
+        public string IdentificationMethod { get; set; }
+        public Rectangle BoundingBox
+        {
+            get => boundBox;
+            set => boundBox = value;
+        }
+
+        Rectangle boundBox;
 
         public Item(int x, int y, int width, int height, int catId, string catName, double confidence, int lineID, string lineName)
         {
@@ -30,7 +54,7 @@ namespace DNNDetector.Model
             this.Y = y;
             this.Width = width;
             this.Height = height;
-            this.ObjId = catId;
+            this.ObjectID = catId;
             this.ObjName = catName;
             this.Confidence = confidence;
             this.TriggerLineID = lineID;
@@ -43,7 +67,7 @@ namespace DNNDetector.Model
             this.Y = onnxYoloItem.Y;
             this.Width = onnxYoloItem.Width;
             this.Height = onnxYoloItem.Height;
-            this.ObjId = onnxYoloItem.ObjId;
+            this.ObjectID = onnxYoloItem.ObjId;
             this.ObjName = onnxYoloItem.ObjName;
             this.Confidence = onnxYoloItem.Confidence;
             this.TriggerLineID = onnxYoloItem.TriggerLineID;
@@ -64,7 +88,7 @@ namespace DNNDetector.Model
         public void Print()
         {
             Console.WriteLine("{0} {1,-5} {2} {3,-5} {4} {5,-5} {6} {7,-10} {8} {9,-10:N2}",
-                                    "Index:", Index, "ObjID:", ObjId, "TrackID:", TrackId, "Type:", ObjName, "Conf:", Confidence);
+                                    "Index:", Index, "ObjID:", ObjectID, "TrackID:", TrackID, "ObjName:", ObjName, "Conf:", Confidence);
         }
     }
 }

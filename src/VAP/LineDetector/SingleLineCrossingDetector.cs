@@ -4,6 +4,7 @@
 using BGSObjectDetector;
 using System.Collections.Generic;
 using System.Drawing;
+using Utils.Items;
 
 namespace LineDetector
 {
@@ -11,7 +12,7 @@ namespace LineDetector
     {
         DetectionLine line;
         bool occupancy;
-        Box bbox;
+        IFramedItem bbox;
         FallingEdgeCrossingDetector lineCrossingDetector;
         bool debug = false;
 
@@ -52,7 +53,7 @@ namespace LineDetector
         /// <returns>
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, Box b) notifyFrameArrival(int frameNo, List<Box> boxes, Bitmap mask)
+        public (bool crossingResult, IFramedItem b) notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
             (occupancy, bbox) = line.isOccupied(boxes, mask);
             bool crossingResult = lineCrossingDetector.notifyOccupancy(frameNo, occupancy);
@@ -130,7 +131,7 @@ namespace LineDetector
         /// Gets the bounding box of this detector's region of interest.
         /// </summary>
         /// <returns></returns>
-        public Box getBbox()
+        public IFramedItem getBbox()
         {
             return bbox;
         }

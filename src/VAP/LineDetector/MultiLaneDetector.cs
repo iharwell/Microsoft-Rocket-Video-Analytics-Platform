@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Utils;
+using Utils.Items;
+using Utils.ShapeTools;
 
 namespace LineDetector
 {
@@ -29,7 +31,7 @@ namespace LineDetector
         /// <param name="frameNo">The index of the frame to process.</param>
         /// <param name="boxes">A list of bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
-        public void notifyFrameArrival(int frameNo, List<Box> boxes, Bitmap mask)
+        public void notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
 
             foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)
@@ -91,7 +93,9 @@ namespace LineDetector
             {
                 if (entry.Key == laneID)
                 {
-                    return entry.Value.Bbox.Center;
+                    StatisticRectangle rect = new StatisticRectangle(entry.Value.Bbox.ItemIDs);
+
+                    return rect.Mean.Center();
                 }
             }
 

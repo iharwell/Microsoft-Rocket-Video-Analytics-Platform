@@ -28,8 +28,6 @@ namespace BGSObjectDetector
 
         public int Area { get { return Width * Height; } }
 
-        public bool IsEligibleToStartTrack { get; set; }
-
         public bool IsPointInterior(int x, int y)
         {
             System.Diagnostics.Debug.Assert(X0 < X1);
@@ -53,7 +51,7 @@ namespace BGSObjectDetector
         }
 
         //public Box(string objectCategory, int x0, int x1, int y0, int y1, int timestamp, uint id = 0) // old 
-        public Box(string objectCategory, int x0, int x1, int y0, int y1, int timestamp, uint id = 0, DateTime? time = null, bool isEligibleToStartTrack = true)
+        public Box(string objectCategory, int x0, int x1, int y0, int y1, int timestamp, uint id = 0, DateTime? time = null)
         {
             this.ObjectCategory = objectCategory;
 
@@ -66,8 +64,6 @@ namespace BGSObjectDetector
             //this.Y1 = y1;
 
             this.ID = id;
-
-            this.IsEligibleToStartTrack = isEligibleToStartTrack;
 
             // used for different similarity metrics
             this.hist = new float[256];

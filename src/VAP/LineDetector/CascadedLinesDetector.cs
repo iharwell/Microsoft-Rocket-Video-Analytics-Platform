@@ -4,6 +4,7 @@ using System.Drawing;
 
 using BGSObjectDetector;
 using Utils;
+using Utils.Items;
 
 namespace LineDetector
 {
@@ -18,7 +19,7 @@ namespace LineDetector
         int noLines;
         List<List<int>> CrossingEventTimeStampBuffers;
         int Count;
-        Box bbox;
+        IFramedItem bbox;
         int SUPRESSION_INTERVAL = 1;
         List<int> lastEventFrame;
         bool debug = false;
@@ -160,11 +161,11 @@ namespace LineDetector
         /// <param name="frameNo">The index of the frame to process.</param>
         /// <param name="boxes">A list of bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
-        public void notifyFrameArrival(int frameNo, List<Box> boxes, Bitmap mask)
+        public void notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
             for (int i = 0; i < noLines; i++)
             {
-                (bool val, Box b) = lineCrossingDetectors[i].notifyFrameArrival(frameNo, boxes, mask);
+                (bool val, IFramedItem b) = lineCrossingDetectors[i].notifyFrameArrival(frameNo, boxes, mask);
                 if (b != null) bbox = b;
                 if (val)
                 {
@@ -202,7 +203,7 @@ namespace LineDetector
         /// <summary>
         /// Gets the bounding box of the line used by this detector.
         /// </summary>
-        public Box Bbox
+        public IFramedItem Bbox
         {
             get
             {

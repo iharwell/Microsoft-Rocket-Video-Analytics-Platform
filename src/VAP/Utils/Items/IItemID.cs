@@ -14,7 +14,7 @@ namespace Utils.Items
         /// The item label as determined by the identification method of choice.
         /// </summary>
         /// <remarks>Set to null to indicate that no identification was performed.</remarks>
-        string Type { get; set; }
+        string ObjName { get; set; }
 
         int ObjectID { get; set; }
 
@@ -23,7 +23,7 @@ namespace Utils.Items
         /// <summary>
         /// The confidence of this identification as determined by the method of choice. 0 indicates extreme uncertainty, and 1 indicates extreme certainty.
         /// </summary>
-        /// <remarks>Returns a value of 1 if no identification is attempted.</remarks>
+        /// <remarks>Returns a value of 0 if no identification is attempted.</remarks>
         double Confidence { get; set; }
 
         /// <summary>

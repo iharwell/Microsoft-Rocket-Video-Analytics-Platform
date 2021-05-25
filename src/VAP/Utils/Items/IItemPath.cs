@@ -9,9 +9,9 @@ namespace Utils.Items
     public interface IItemPath
     {
         /// <summary>
-        /// A list of the frame indices that the item was seen in.
+        /// Gives the frame index for the framed item at the given index.
         /// </summary>
-        IList<int> FrameIndices { get; }
+        int FrameIndex( int entryIndex );
 
         /// <summary>
         /// A list of the <see cref="IFramedItem"/> objects with this item in all frames in which it was found.

@@ -2,6 +2,7 @@
 using System.Drawing;
 
 using BGSObjectDetector;
+using Utils.Items;
 
 namespace LineDetector
 {
@@ -22,7 +23,7 @@ namespace LineDetector
         /// <returns>
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and the bounding box of the crossing item.
         /// </returns>
-        (bool crossingResult, Box b) notifyFrameArrival(int frameNo, List<Box> boxes, Bitmap mask);
+        (bool crossingResult, IFramedItem b) notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask);
 
         /// <summary>
         /// Processes a frame upon arrival.

@@ -12,13 +12,14 @@ namespace Utils.Items
     {
         public override bool CanPredict( IItemPath path, int frameIndex )
         {
-            return path.FrameIndices.Count > 0;
+            return path.FramedItems.Count > 0;
         }
 
         public override Rectangle Predict( IItemPath path, int frameIndex )
         {
             int count = path.FramedItems.Count;
-
+            int order = Math.Min( 3, Math.Max( 0, count/4 ));
+            return PolyPredict( path, frameIndex, order );/*
             if( count >= 2 )
             {
                 return PolyPredict( path, frameIndex, Math.Min( 3, count - 1 ) );
@@ -26,15 +27,15 @@ namespace Utils.Items
             if ( path.FramedItems.Count == 1 )
             {
                 return StaticPredict( path, frameIndex );
-            }
+            }*/
             throw new InvalidOperationException( "The provided path is empty, so no prediction can be made." );
         }
 
         private Rectangle PolyPredict( IItemPath path, int frameIndex, int order )
         {
             // Linear Regression for each member of the rectangles.
-            var fEnum = from int n in path.FrameIndices
-                        select (double)n;
+            var fEnum = from item in path.FramedItems
+                        select (double)item.Frame.FrameIndex;
             double[] fVals = fEnum.ToArray();
 
             var meanRects = from IFramedItem fi in path.FramedItems
@@ -67,12 +68,12 @@ namespace Utils.Items
                                                      (float)Polynomial.Evaluate(frameIndex, widthCoefs),
                                                      (float)Polynomial.Evaluate(frameIndex, heightCoefs) );
 
-            return RectangleTools.RoundRectF( fPrediction );
+            return RectangleTools.RoundRectF( fPrediction.ScaleFromCenter(1 + 0.1/Math.Max(1,order)) );
         }
 
         private Rectangle StaticPredict( IItemPath path, int frameIndex )
         {
-            int givenIndex = path.FrameIndices[0];
+            int givenIndex = path.FrameIndex(0);
             var ids = path.FramedItems[0].ItemIDs;
 
             int indexDelta = frameIndex-givenIndex;
@@ -95,7 +96,7 @@ namespace Utils.Items
 
             var statRect = new StatisticRectangle( rectangles );
 
-            return statRect.Mean;
+            return statRect.Median;
         }
     }
 }

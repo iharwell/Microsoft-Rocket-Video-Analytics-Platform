@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Utils.Config;
+using Utils.Items;
 
 namespace AML.Client
 {
@@ -39,7 +40,7 @@ namespace AML.Client
             }
         }
 
-        public static async Task<List<bool>> Run(int frameIndex, List<Item> items, HashSet<string> category)
+        public static async Task<List<bool>> Run(int frameIndex, IList<IFramedItem> items, HashSet<string> category)
         {
             //could implement AML triggering criteria here, e.g., confidence
 
@@ -54,7 +55,7 @@ namespace AML.Client
             for (int itemIndex = 0; itemIndex < items.Count(); itemIndex++)
             {
                 MemoryStream mStream = new MemoryStream();
-                using (Image image = Image.FromStream(new MemoryStream(items[itemIndex].CroppedImageData)))
+                using ( Image image = Image.FromStream( new MemoryStream( items[itemIndex].CroppedImageData( items[itemIndex].ItemIDs.Count - 1 ) ) ) )
                 {
                     image.Save(mStream, ImageFormat.Png);
                     mStream.Position = 0;
@@ -93,8 +94,9 @@ namespace AML.Client
                                         // output AML results
                                         string blobName_AML = $@"frame-{frameIndex}-zAML-{key}-{kvp.Value}.jpg";
                                         string fileName_AML = @OutputFolder.OutputFolderAML + blobName_AML;
-                                        File.WriteAllBytes(fileName_AML, items[itemIndex].CroppedImageData);
-                                        File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_AML, items[itemIndex].CroppedImageData);
+                                        var cropped = items[itemIndex].CroppedImageData(items[itemIndex].ItemIDs.Count - 1);
+                                        File.WriteAllBytes(fileName_AML, cropped );
+                                        File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_AML, cropped );
 
                                         goto CheckNextItem;
                                     }

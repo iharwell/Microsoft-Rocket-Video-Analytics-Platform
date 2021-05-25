@@ -8,6 +8,7 @@ using DNNDetector;
 using DNNDetector.Config;
 using DNNDetector.Model;
 using LineDetector;
+using MotionTracker;
 using OpenCvSharp;
 using PostProcessor;
 using System;
@@ -16,11 +17,14 @@ using System.Configuration;
 using System.Linq;
 using TFDetector;
 using Utils;
+using Utils.Items;
 
 namespace VideoPipelineCore
 {
     class Program
     {
+        const int BUFFERSIZE = 50;
+
         static void Main(string[] args)
         {
             //parse arguments
@@ -55,12 +59,12 @@ namespace VideoPipelineCore
             //initialize pipeline settings
             int pplConfig = Convert.ToInt16(ConfigurationManager.AppSettings["PplConfig"]);
             bool loop = false;
-            bool displayRawVideo = true;
+            bool displayRawVideo = false;
             bool displayBGSVideo = false;
             Utils.Utils.cleanFolderAll();
 
             //create pipeline components (initialization based on pplConfig)
-
+            IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(51);
             //-----Decoder-----
             Decoder.Decoder decoder = new Decoder.Decoder(videoUrl, loop);
 
@@ -75,74 +79,74 @@ namespace VideoPipelineCore
 
             //-----LineTriggeredDNN (Darknet)-----
             LineTriggeredDNNDarknet ltDNNDarknet = null;
-            List<Item> ltDNNItemListDarknet = null;
+            IList<IFramedItem> ltDNNItemListDarknet = null;
             if (new int[] { 3, 4 }.Contains(pplConfig))
             {
                 ltDNNDarknet = new LineTriggeredDNNDarknet(lines);
-                ltDNNItemListDarknet = new List<Item>();
+                ltDNNItemListDarknet = new List<IFramedItem>();
             }
 
             //-----LineTriggeredDNN (TensorFlow)-----
             LineTriggeredDNNTF ltDNNTF = null;
-            List<Item> ltDNNItemListTF = null;
+            IList<IFramedItem> ltDNNItemListTF = null;
             if (new int[] { 5,6 }.Contains(pplConfig))
             {
                 ltDNNTF = new LineTriggeredDNNTF(lines);
-                ltDNNItemListTF = new List<Item>();
+                ltDNNItemListTF = new List<IFramedItem>();
             }
 
             //-----LineTriggeredDNN (ONNX)-----
             LineTriggeredDNNORTYolo ltDNNOnnx = null;
-            List<Item> ltDNNItemListOnnx = null;
+            IList<IFramedItem> ltDNNItemListOnnx = null;
             if (new int[] { 7 }.Contains(pplConfig))
             {
                 ltDNNOnnx = new LineTriggeredDNNORTYolo(Utils.Utils.ConvertLines(lines), "yolov3tiny");
-                ltDNNItemListOnnx = new List<Item>();
+                ltDNNItemListOnnx = new List<IFramedItem>();
             }
 
             //-----CascadedDNN (Darknet)-----
             CascadedDNNDarknet ccDNNDarknet = null;
-            List<Item> ccDNNItemListDarknet = null;
+            IList<IFramedItem> ccDNNItemListDarknet = null;
             if (new int[] { 3 }.Contains(pplConfig))
             {
                 ccDNNDarknet = new CascadedDNNDarknet(lines);
-                ccDNNItemListDarknet = new List<Item>();
+                ccDNNItemListDarknet = new List<IFramedItem>();
             }
 
             //-----CascadedDNN (ONNX)-----
             CascadedDNNORTYolo ccDNNOnnx = null;
-            List<Item> ccDNNItemListOnnx = null;
+            IList<IFramedItem> ccDNNItemListOnnx = null;
             if (new int[] { 7 }.Contains(pplConfig))
             {
                 ccDNNOnnx = new CascadedDNNORTYolo(Utils.Utils.ConvertLines(lines), "yolov3");
-                ccDNNItemListOnnx = new List<Item>();
+                ccDNNItemListOnnx = new List<IFramedItem>();
             }
 
             //-----DNN on every frame (Darknet)-----
             FrameDNNDarknet frameDNNDarknet = null;
-            List<Item> frameDNNDarknetItemList = null;
+            IList<IFramedItem> frameDNNDarknetItemList = null;
             if (new int[] { 1 }.Contains(pplConfig))
             {
                 frameDNNDarknet = new FrameDNNDarknet("YoloV3TinyCoco", Wrapper.Yolo.DNNMode.Frame, lines);
-                frameDNNDarknetItemList = new List<Item>();
+                frameDNNDarknetItemList = new List<IFramedItem>();
             }
 
             //-----DNN on every frame (TensorFlow)-----
             FrameDNNTF frameDNNTF = null;
-            List<Item> frameDNNTFItemList = null;
+            IList<IFramedItem> frameDNNTFItemList = null;
             if (new int[] { 2 }.Contains(pplConfig))
             {
                 frameDNNTF = new FrameDNNTF(lines);
-                frameDNNTFItemList = new List<Item>();
+                frameDNNTFItemList = new List<IFramedItem>();
             }
 
             //-----DNN on every frame (ONNX)-----
             FrameDNNOnnxYolo frameDNNOnnxYolo = null;
-            List<Item> frameDNNONNXItemList = null;
+            IList<IFramedItem> frameDNNONNXItemList = null;
             if (new int[] { 8 }.Contains(pplConfig))
             {
                 frameDNNOnnxYolo = new FrameDNNOnnxYolo(Utils.Utils.ConvertLines(lines), "yolov3", Wrapper.ORT.DNNMode.Frame);
-                frameDNNONNXItemList = new List<Item>();
+                frameDNNONNXItemList = new List<IFramedItem>();
             }
 
             //-----Call ML models deployed on Azure Machine Learning Workspace-----
@@ -157,7 +161,8 @@ namespace VideoPipelineCore
             }
 
             //-----Write to DB-----
-            List<Item> ItemList = null;
+            IList<IFramedItem> ItemList = null;
+            IList<IItemPath> ItemPaths = new List<IItemPath>();
 
             int frameIndex = 0;
             int videoTotalFrame = 0;
@@ -192,8 +197,12 @@ namespace VideoPipelineCore
 
                 //background subtractor
                 Mat fgmask = null;
-                List<Box> foregroundBoxes = bgs.DetectObjects(DateTime.Now, frame, frameIndex, out fgmask);
+                IList<IFramedItem> foregroundBoxes = bgs.DetectObjects(DateTime.Now, frame, frameIndex, out fgmask);
                 
+                if ( foregroundBoxes != null && foregroundBoxes.Count > 0 )
+                {
+                    //Console.WriteLine( "Foreground boxes exist." );
+                }
 
                 //line detector
                 if (new int[] { 0, 3, 4, 5, 6, 7 }.Contains(pplConfig))
@@ -205,17 +214,18 @@ namespace VideoPipelineCore
                 //cheap DNN
                 if (new int[] { 3, 4 }.Contains(pplConfig))
                 {
-                    ltDNNItemListDarknet = ltDNNDarknet.Run(frame, frameIndex, counts, lines, category);
-                    ItemList = ltDNNItemListDarknet;
+                    ltDNNItemListDarknet = ltDNNDarknet.Run(frame, frameIndex, counts, lines, category, foregroundBoxes);
+                    if ( ltDNNItemListDarknet != null && ltDNNItemListDarknet.Count > 0 )
+                        ItemList = ltDNNItemListDarknet;
                 }
                 else if (new int[] { 5, 6 }.Contains(pplConfig))
                 {
-                    ltDNNItemListTF = ltDNNTF.Run(frame, frameIndex, counts, lines, category);
+                    ltDNNItemListTF = ltDNNTF.Run(frame, frameIndex, counts, lines, category, foregroundBoxes);
                     ItemList = ltDNNItemListTF;
                 }
                 else if (new int[] { 7 }.Contains(pplConfig))
                 {
-                    ltDNNItemListOnnx = ltDNNOnnx.Run(frame, frameIndex, counts, Utils.Utils.ConvertLines(lines), Utils.Utils.CatHashSet2Dict(category), ref teleCountsCheapDNN, true);
+                    ltDNNItemListOnnx = ltDNNOnnx.Run(frame, frameIndex, counts, Utils.Utils.ConvertLines(lines), Utils.Utils.CatHashSet2Dict(category), ref teleCountsCheapDNN, foregroundBoxes, true);
                     ItemList = ltDNNItemListOnnx;
                 }
 
@@ -274,15 +284,34 @@ namespace VideoPipelineCore
 
 
                 //display counts
-                if (ItemList != null)
+                if (ItemList != null && ItemList.Count>0)
                 {
                     Dictionary<string, string> kvpairs = new Dictionary<string, string>();
-                    foreach (Item it in ItemList)
+                    foreach (IFramedItem it in ItemList)
                     {
-                        if (!kvpairs.ContainsKey(it.TriggerLine))
-                            kvpairs.Add(it.TriggerLine, "1");
+                        foreach ( IItemID ID in it.ItemIDs )
+                        {
+                            if ( ID is ILineTriggeredItemID ltID )
+                            {
+                                if ( !kvpairs.ContainsKey( ltID.TriggerLine ) )
+                                    kvpairs.Add( ltID.TriggerLine, "1" );
+                                break;
+                            }
+                        }
                     }
                     FramePreProcessor.FrameDisplay.updateKVPairs(kvpairs);
+
+                    if( ItemList.Last().ItemIDs.Last().IdentificationMethod.CompareTo( nameof(BGSObjectDetector) ) != 0 )
+                    {
+                        var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer( ItemList.Last(), framedItemBuffer, new PolyPredictor(), 0.3 );
+                        ItemPaths.Add( path );
+                    }
+
+                    framedItemBuffer.Add( ItemList );
+                    if ( framedItemBuffer.Count > BUFFERSIZE )
+                    {
+                        framedItemBuffer.RemoveAt( 0 );
+                    }
                 }
 
 
@@ -292,6 +321,10 @@ namespace VideoPipelineCore
                 Console.WriteLine("{0} {1,-5} {2} {3,-5} {4} {5,-15} {6} {7,-10:N2} {8} {9,-10:N2}", 
                                     "sFactor:", SAMPLING_FACTOR, "rFactor:", RESOLUTION_FACTOR, "FrameID:", frameIndex, "FPS:", fps, "avgFPS:", avgFps);
                 prevTime = DateTime.Now;
+            }
+            for ( int i = 0; i < ItemPaths.Count; i++ )
+            {
+                Console.WriteLine( "Item path length " + ( i + 1 ) + ": " + ItemPaths[i].FramedItems.Count );
             }
             Console.WriteLine("Done!");
         }

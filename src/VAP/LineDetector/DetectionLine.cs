@@ -4,9 +4,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-
+using System.Linq;
 using BGSObjectDetector;
 using Utils;
+using Utils.Items;
+using Utils.ShapeTools;
 
 namespace LineDetector
 {
@@ -93,7 +95,7 @@ namespace LineDetector
         /// Returns a value from 0 to 1 indicating the fraction of the line which
         /// overlaps the given mask with 0 indicating no overlap and 1 indicating complete overlap.
         /// </returns>
-        public double getFractionContainedInBox(Box b, Bitmap mask)
+        public double getFractionContainedInBox(RectangleF b, Bitmap mask)
         {
             double eta = 0;
             Size size = Line.P2Offset;
@@ -110,7 +112,7 @@ namespace LineDetector
 
                 totalPixelCount++;
 
-                bool isInside = b.IsPointInterior((int)currentX, (int)currentY);
+                bool isInside = b.Contains((int)currentX, (int)currentY);
 
                 if (mask.GetPixel((int)currentX, (int)currentY).ToArgb() == (~0) )
                 {
@@ -175,15 +177,17 @@ namespace LineDetector
         /// <param name="boxes">The list of <see cref="Box"/> objects to check, representing the bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
         /// <returns>Returns a <see cref="Tuple{double, Box}"/> containing both the maximum overlap fraction found, and the <see cref="Box"/> associated with that overlap.</returns>
-        public (double frac, Box b) getMaximumFractionContainedInAnyBox(List<Box> boxes, Bitmap mask)
+        public (double frac, IFramedItem b) getMaximumFractionContainedInAnyBox(IList<IFramedItem> boxes, Bitmap mask)
         {
             double maxOverlapFraction = 0;
-            Box maxB = null;
+            IFramedItem maxB = null;
             for (int boxNo = 0; boxNo < boxes.Count; boxNo++)
             {
-                Box b = boxes[boxNo];
-                if (b.Area < MIN_BOX_SIZE) continue;
-                double overlapFraction = getFractionContainedInBox(b, mask);
+                IFramedItem b = boxes[boxNo];
+                StatisticRectangle sr = new StatisticRectangle( from item in b.ItemIDs select item.BoundingBox );
+                double area = sr.Mean.Width * sr.Mean.Height;
+                if (area < MIN_BOX_SIZE) continue;
+                double overlapFraction = getFractionContainedInBox(sr.Mean, mask);
                 if (overlapFraction > maxOverlapFraction)
                 {
                     maxOverlapFraction = overlapFraction;
@@ -203,9 +207,9 @@ namespace LineDetector
         /// occupied, and the bounding box of the occupying item if so. If this line is
         /// unoccupied, the bounding box will be null.
         /// </returns>
-        public (bool occupied, Box box) isOccupied(List<Box> boxes, Bitmap mask)
+        public (bool occupied, IFramedItem box) isOccupied(IList<IFramedItem> boxes, Bitmap mask)
         {
-            (double frac, Box b) = getMaximumFractionContainedInAnyBox(boxes, mask);
+            (double frac, IFramedItem b) = getMaximumFractionContainedInAnyBox(boxes, mask);
             if (frac >= overlapFractionThreshold)
             {
                 return (true, b);

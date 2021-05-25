@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using Utils;
 using Utils.Config;
+using Utils.Items;
 using Wrapper.Yolo;
 using Wrapper.Yolo.Model;
 
@@ -99,25 +100,26 @@ namespace DarknetDetector
             }
         }
 
-        public List<Item> Run(byte[] imgByte, int frameIndex, List<(string key, LineSegment coordinates)> lines, HashSet<string> category, Brush bboxColor)
+        public IList<IFramedItem> Run(byte[] imgByte, int frameIndex, List<(string key, LineSegment coordinates)> lines, HashSet<string> category, Brush bboxColor)
         {
-            List<Item> frameDNNItem = new List<Item>();
+            List<IFramedItem> frameDNNItem = new List<IFramedItem>();
 
             IEnumerable<YoloTrackingItem> yoloItems = frameYoloTracking.Analyse(imgByte, category, bboxColor);
-
+            IFrame frame = new Frame("", frameIndex, imgByte);
             for (int lineID = 0; lineID < lines.Count; lineID++)
             {
                 frameYoloTracking.SetTrackingObject( lines[lineID].coordinates.MidPoint );
                 List<YoloTrackingItem> analyzedTrackingItems = OverlapVal(imgByte, yoloItems, lineID, bboxColor, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
                 if (analyzedTrackingItems == null) continue;
 
-                foreach (YoloTrackingItem yoloTrackingItem in analyzedTrackingItems)
+                foreach ( YoloTrackingItem yoloTrackingItem in analyzedTrackingItems )
                 {
-                    Item it = Item(yoloTrackingItem);
-                    it.RawImageData = imgByte;
-                    it.TriggerLineID = lineID;
-                    it.TriggerLine = lines[lineID].key;
-                    frameDNNItem.Add(it);
+                    Rectangle bounds = new Rectangle( yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height );
+                    LineTriggeredItemID item = new LineTriggeredItemID(bounds, yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, yoloTrackingItem.TrackId, nameof(YoloTracking) );
+
+                    item.TriggerLineID = lineID;
+                    item.TriggerLine = lines[lineID].key;
+                    frameDNNItem.Add( new FramedItem( frame, item ) );
 
                     //--------------output frameDNN results - one bbox per image--------------
                     string blobName_FrameDNN = $@"frame-{frameIndex}-FrameDNN-{yoloTrackingItem.Confidence}.jpg";
@@ -159,7 +161,7 @@ namespace DarknetDetector
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "");
 
-            item.TrackId = yoloTrackingItem.TrackId;
+            item.TrackID = yoloTrackingItem.TrackId;
             item.Index = yoloTrackingItem.Index;
             item.TaggedImageData = yoloTrackingItem.TaggedImageData;
             item.CroppedImageData = yoloTrackingItem.CroppedImageData;

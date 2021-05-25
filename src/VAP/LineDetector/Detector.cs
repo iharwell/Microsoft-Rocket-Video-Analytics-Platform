@@ -9,6 +9,7 @@ using OpenCvSharp;
 using Utils.Config;
 using BGSObjectDetector;
 using Utils;
+using Utils.Items;
 
 namespace LineDetector
 {
@@ -58,7 +59,7 @@ namespace LineDetector
         ///   <para>The first dictionary contains the number of items which cross the lines of interest, indexed by line name.</para>
         ///   <para>The second dictionary contains a boolean for each line indicating whether or not an item is present at that line.</para>
         /// </returns>
-        public (Dictionary<string, int>, Dictionary<string, bool>) updateLineResults(Mat frame, int frameIndex, Mat fgmask, List<Box> boxes)
+        public (Dictionary<string, int>, Dictionary<string, bool>) updateLineResults(Mat frame, int frameIndex, Mat fgmask, IList<IFramedItem> boxes)
         {
             if (frameIndex > START_DELAY)
             {

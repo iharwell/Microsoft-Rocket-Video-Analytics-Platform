@@ -21,6 +21,7 @@
     <ProjectReference Include="..\DNNDetector\DNNDetector.csproj" />
     <ProjectReference Include="..\FramePreProcessor\FramePreProcessor.csproj" />
     <ProjectReference Include="..\LineDetector\LineDetector.csproj" />
+    <ProjectReference Include="..\MotionTracker\MotionTracker.csproj" />
     <ProjectReference Include="..\PostProcessor\PostProcessor.csproj" />
     <ProjectReference Include="..\TFDetector\TFDetector.csproj" />
     <ProjectReference Include="..\Utils\Utils.csproj" />

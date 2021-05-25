@@ -54,6 +54,16 @@ namespace Utils
             LineSegment newLine = new LineSegment( new Point(line[0], line[1]), new Point(line[2], line[3]));
             return checkLineBboxOverlapRatio(newLine, bbox_x, bbox_y, bbox_w, bbox_h);
         }
+        public static float checkLineBboxOverlapRatio( int[] line, Rectangle bbox )
+        {
+            LineSegment newLine = new LineSegment( new Point(line[0], line[1]), new Point(line[2], line[3]));
+            return checkLineBboxOverlapRatio( newLine, bbox.X, bbox.Y, bbox.Width, bbox.Height );
+        }
+
+        public static float checkLineBboxOverlapRatio( LineSegment line, Rectangle bbox )
+        {
+            return checkLineBboxOverlapRatio( line, bbox.X, bbox.Y, bbox.Width, bbox.Height );
+        }
 
         public static float checkLineBboxOverlapRatio( LineSegment line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
         {

@@ -47,10 +47,10 @@ namespace Wrapper.Yolo
             List<YoloTrackingItem> validObjects = new List<YoloTrackingItem>();
             foreach (var obj in probableObject)
             {
-                var taggedImageData = this.DrawImage(imageData, obj, bboxColor);
-                var croppedImageData = this.CropImage(imageData, obj);
+                //var taggedImageData = this.DrawImage(imageData, obj, bboxColor);
+                //var croppedImageData = this.CropImage(imageData, obj);
 
-                validObjects.Add(new YoloTrackingItem(obj, this._index, taggedImageData, croppedImageData));
+                validObjects.Add(new YoloTrackingItem(obj, this._index, null, null));
                 this._index++;
             }
             return validObjects;

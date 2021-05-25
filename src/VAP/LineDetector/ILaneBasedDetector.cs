@@ -7,6 +7,7 @@ using System.Drawing;
 
 using BGSObjectDetector;
 using Utils;
+using Utils.Items;
 
 namespace LineDetector
 {
@@ -21,7 +22,7 @@ namespace LineDetector
         /// <param name="frameNo">The index of the frame to process.</param>
         /// <param name="boxes">A list of bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
-        void notifyFrameArrival(int frameNo, List<Box> boxes, Bitmap mask);
+        void notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask);
 
         /// <summary>
         /// Processes a frame upon arrival.
@@ -66,9 +67,9 @@ namespace LineDetector
         void setCount(int value);
 
         /// <summary>
-        /// Gets the bounding box of the line used by this detector.
+        /// Gets the bounding box of the item that triggered this detector in the latest frame.
         /// </summary>
-        Box Bbox { get; }
+        IFramedItem Bbox { get; }
 
         /// <summary>
         /// Gets a <c>Dictionary</c> of the parameters used by this detector, stored by name.
