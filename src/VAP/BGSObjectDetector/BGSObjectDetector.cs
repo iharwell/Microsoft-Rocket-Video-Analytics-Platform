@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OpenCvSharp;
-using OpenCvSharp.Blob;
 using Utils.Items;
 
 namespace BGSObjectDetector
@@ -89,7 +88,7 @@ namespace BGSObjectDetector
 
             fg = fgSmoothedMask4;
 
-            CvBlobs blobs = new CvBlobs();
+            //CvBlobs blobs = new CvBlobs();
             KeyPoint[] points = _blobDetector.Detect(fgSmoothedMask4);
             IFrame frame = new Frame("", frameIndex);
             frame.TimeStamp = timestamp;

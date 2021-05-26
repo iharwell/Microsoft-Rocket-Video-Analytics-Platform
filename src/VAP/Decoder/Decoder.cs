@@ -60,7 +60,7 @@ namespace Decoder
         public int getTotalFrameNum()
         {
             int length;
-            length = (int)Math.Floor(capture.Get(CaptureProperty.FrameCount));
+            length = (int)Math.Floor(capture.Get(VideoCaptureProperties.FrameCount));
 
             return length;
         }
@@ -68,7 +68,7 @@ namespace Decoder
         public double getVideoFPS()
         {
             double framerate;
-            framerate = capture.Get(CaptureProperty.Fps);
+            framerate = capture.Get( VideoCaptureProperties.Fps);
 
             return framerate;
         }
