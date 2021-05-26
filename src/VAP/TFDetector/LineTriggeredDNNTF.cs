@@ -66,41 +66,10 @@ namespace TFDetector
                                         LineTriggeredItemID item2 = new LineTriggeredItemID(item.BoundingBox, item.ObjectID, item.ObjName, item.Confidence, item.TrackID, nameof(FrameDNNTF) );
                                         item2.TriggerLine = lane;
                                         item2.TriggerLineID = lineID;
-                                        IFramedItem framedItem;
-
-                                        if ( items.Count == 0 || ( items.Count == 1 && items[0].Similarity( item.BoundingBox ) > 0 ) )
+                                        if ( item2.InsertIntoFramedItemList(items, out IFramedItem framedItem, frameIndexTF) )
                                         {
-                                            items[0].ItemIDs.Add( item2 );
-                                            framedItem = items[0];
-                                        }
-                                        else if ( items.Count == 1 )
-                                        {
-                                            framedItem = new FramedItem( items[0].Frame, item2);
-                                            items.Add( framedItem );
-                                        }
-                                        else
-                                        {
-                                            int bestIndex = 0;
-                                            double bestSimilarity = items[0].Similarity(item.BoundingBox);
-                                            for ( int i = 1; i < items.Count; i++ )
-                                            {
-                                                double sim = items[i].Similarity(item.BoundingBox);
-                                                if ( sim > bestSimilarity )
-                                                {
-                                                    bestIndex = i;
-                                                    bestSimilarity = sim;
-                                                }
-                                            }
-                                            if ( bestSimilarity > 0 )
-                                            {
-                                                items[bestIndex].ItemIDs.Add( item2 );
-                                                framedItem = items[bestIndex];
-                                            }
-                                            else
-                                            {
-                                                framedItem = new FramedItem( items[0].Frame, item2);
-                                                items.Add( framedItem );
-                                            }
+                                            framedItem.Frame.FrameData = Utils.Utils.ImageToByteBmp( OpenCvSharp.Extensions.BitmapConverter.ToBitmap( frameTF ) );
+                                            framedItem.Frame.FrameIndex = frameIndexTF;
                                         }
 
                                         // output cheap TF results
@@ -121,7 +90,7 @@ namespace TFDetector
             }
             updateCount(counts);
 
-            return null;
+            return items;
         }
 
         void updateCount(Dictionary<string, int> counts)
