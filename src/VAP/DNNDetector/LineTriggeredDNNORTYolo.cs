@@ -58,7 +58,7 @@ namespace DNNDetector
                                 Console.WriteLine("** Calling DNN on " + (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexOnnxYolo)));
                                 Mat frameOnnx = frameBufferArray[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexOnnxYolo)];
 
-                                analyzedTrackingItems = frameDNNOnnxYolo.Run(frameOnnx, (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexOnnxYolo)), category, System.Drawing.Brushes.Pink, lineID, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
+                                analyzedTrackingItems = frameDNNOnnxYolo.Run(frameOnnx, (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexOnnxYolo)), category, System.Drawing.Color.Pink, lineID, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
                                 teleCountsCheapDNN++;
                                 // object detected by cheap model
                                 if (analyzedTrackingItems != null)
@@ -120,9 +120,9 @@ namespace DNNDetector
                                         {
                                             string blobName_Cheap = $@"frame-{frameIndex}-DNN-{item.Confidence}.jpg";
                                             string fileName_Cheap = @OutputFolder.OutputFolderLtDNN + blobName_Cheap;
-                                            var taggedImage = framedItem.TaggedImageData(framedItem.ItemIDs.Count-1, System.Drawing.Brushes.Pink);
-                                            File.WriteAllBytes(fileName_Cheap, taggedImage );
-                                            File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, taggedImage );
+                                            var taggedImage = framedItem.TaggedImageData(framedItem.ItemIDs.Count-1, System.Drawing.Color.Pink);
+                                            Utils.Utils.WriteAllBytes(fileName_Cheap, taggedImage );
+                                            Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, taggedImage );
                                         }
                                     }
                                     updateCount(counts);

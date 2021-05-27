@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
+using OpenCvSharp;
 using Utils.ShapeTools;
 
 namespace Utils.Items
@@ -54,10 +55,11 @@ namespace Utils.Items
         public IList<IItemID> ItemIDs { get; }
 
         /// <inheritdoc />
-        public byte[] CroppedImageData( int itemIDIndex )
+        public Mat CroppedImageData( int itemIDIndex )
         {
+            /*
             var item = ItemIDs[itemIDIndex];
-            using ( var memoryStream = new MemoryStream( Frame.FrameData ) )
+            using ( var memoryStream = new MemoryStream( Utils.ImageToByteBmp( OpenCvSharp.Extensions.BitmapConverter.ToBitmap( Frame.FrameData ) ) ) )
             using ( var image = Image.FromStream( memoryStream ) )
             {
                 Rectangle cropRect = new Rectangle(item.BoundingBox.X,
@@ -73,32 +75,20 @@ namespace Utils.Items
                     return memoryStream2.ToArray();
                 }
             }
+            */
+            Rectangle bbox = ItemIDs[itemIDIndex].BoundingBox;
+            return new Mat( Frame.FrameData, ToRect( bbox ) );
         }
 
         /// <inheritdoc />
-        public byte[] TaggedImageData( int itemIDIndex, Color tagColor )
+        public Mat TaggedImageData( int itemIDIndex, Color tagColor )
         {
-            return TaggedImageData( itemIDIndex, new SolidBrush( tagColor ) );
-        }
+            Mat output = Frame.FrameData.Clone();
+            var color = new Scalar( tagColor.B, tagColor.G, tagColor.R );
 
-        /// <inheritdoc />
-        public byte[] TaggedImageData( int itemIDIndex, Brush tagColor )
-        {
-            var item = ItemIDs[itemIDIndex];
-            using ( var memoryStream = new MemoryStream( Frame.FrameData ) )
-            using ( var image = Image.FromStream( memoryStream ) )
-            using ( var canvas = Graphics.FromImage( image ) )
-            using ( var pen = new Pen( tagColor, 3 ) )
-            {
-                canvas.DrawRectangle( pen, item.BoundingBox.X, item.BoundingBox.Y, item.BoundingBox.Width, item.BoundingBox.Height );
-                canvas.Flush();
-
-                using ( var memoryStream2 = new MemoryStream() )
-                {
-                    image.Save( memoryStream2, ImageFormat.Bmp );
-                    return memoryStream2.ToArray();
-                }
-            }
+            Cv2.Rectangle( output, ToRect( ItemIDs[itemIDIndex].BoundingBox ), color, 3 );
+            return output;
+            //return TaggedImageData( itemIDIndex, new SolidBrush( tagColor ) );
         }
 
         /// <inheritdoc />
@@ -166,6 +156,13 @@ namespace Utils.Items
                 framedItems.Add( framedItem );
                 return true;
             }
+        }
+
+        private static Rect ToRect( Rectangle r )
+        {
+            OpenCvSharp.Point p = new OpenCvSharp.Point( r.X, r.Y );
+            OpenCvSharp.Size s = new OpenCvSharp.Size(r.Height, r.Width);
+            return new Rect( p, s );
         }
     }
 }

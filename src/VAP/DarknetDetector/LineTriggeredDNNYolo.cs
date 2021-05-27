@@ -64,9 +64,9 @@ namespace DarknetDetector
                             {
                                 Console.WriteLine("** Calling Cheap on " + (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)));
                                 Mat frameYolo = frameBufferArray[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
-                                byte[] imgByte = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameYolo));
+                                // byte[] imgByte = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameYolo));
 
-                                analyzedTrackingItems = frameDNNYolo.Detect(imgByte, category, lineID, System.Drawing.Brushes.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE, frameIndexYolo);
+                                analyzedTrackingItems = frameDNNYolo.Detect( frameYolo, category, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE, frameIndexYolo);
 
                                 // object detected by cheap YOLO
                                 if (analyzedTrackingItems != null)
@@ -83,7 +83,7 @@ namespace DarknetDetector
                                             var f = framedItem.Frame;
                                             f.FrameIndex = frameIndexYolo;
                                             f.SourceName = null;
-                                            f.FrameData = imgByte;
+                                            f.FrameData = frameYolo;
                                         }
 
                                         // output cheap YOLO results

@@ -30,7 +30,7 @@ namespace Wrapper.Yolo
             this._trackingObject = trackingObject;
         }
 
-        public List<YoloTrackingItem> Analyse(byte[] imageData, HashSet<string> category, Brush bboxColor)
+        public List<YoloTrackingItem> Analyse(byte[] imageData, HashSet<string> category, Color bboxColor )
         {
             var items = this._yoloWrapper.Track(imageData);
             if (items == null || items.Count() == 0)

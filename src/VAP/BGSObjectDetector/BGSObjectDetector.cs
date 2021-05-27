@@ -93,7 +93,8 @@ namespace BGSObjectDetector
             IFrame frame = new Frame("", frameIndex);
             frame.TimeStamp = timestamp;
 
-            frame.FrameData = Utils.Utils.ImageToByteBmp( OpenCvSharp.Extensions.BitmapConverter.ToBitmap( image ) );
+            frame.FrameData = image;
+            //frame.FrameData = Utils.Utils.ImageToByteBmp( OpenCvSharp.Extensions.BitmapConverter.ToBitmap( image ) );
             //blobs.FilterByArea(MIN_BLOB_SIZE, int.MaxValue);
 
             //// filter overlapping blobs

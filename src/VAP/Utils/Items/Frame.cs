@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenCvSharp;
 
 namespace Utils.Items
 {
@@ -34,7 +35,7 @@ namespace Utils.Items
         }
 
         /// <inheritdoc cref="Frame(string, int, byte[], DateTime)" />
-        public Frame( string sourceName, int frameIndex, byte[] frameData )
+        public Frame( string sourceName, int frameIndex, Mat frameData )
         {
             SourceName = sourceName;
             FrameIndex = frameIndex;
@@ -56,7 +57,7 @@ namespace Utils.Items
         /// <param name="timeStamp">
         ///   The timestamp of the frame.
         /// </param>
-        public Frame( string sourceName, int frameIndex, byte[] frameData, DateTime timeStamp )
+        public Frame( string sourceName, int frameIndex, Mat frameData, DateTime timeStamp )
         {
             SourceName = sourceName;
             FrameIndex = frameIndex;
@@ -65,10 +66,10 @@ namespace Utils.Items
         }
 
         /// <inheritdoc />
-        public byte[] FrameData { get; set; }
+        public Mat FrameData { get; set; }
 
         /// <inheritdoc />
-        public byte[] ForegroundMask { get; set; }
+        public Mat ForegroundMask { get; set; }
 
         /// <inheritdoc />
         public string SourceName { get; set; }

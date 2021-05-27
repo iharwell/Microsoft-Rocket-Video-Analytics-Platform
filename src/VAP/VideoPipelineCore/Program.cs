@@ -266,7 +266,7 @@ namespace VideoPipelineCore
                 //frameDNN with Darknet Yolo
                 if (new int[] { 1 }.Contains(pplConfig))
                 {
-                    frameDNNDarknetItemList = frameDNNDarknet.Run(Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frame)), frameIndex, lines, category, System.Drawing.Brushes.Pink);
+                    frameDNNDarknetItemList = frameDNNDarknet.Run(frame, frameIndex, lines, category, System.Drawing.Color.Pink);
                     ItemList = frameDNNDarknetItemList;
                 }
 
@@ -274,7 +274,7 @@ namespace VideoPipelineCore
                 //frame DNN TF
                 if (new int[] { 2 }.Contains(pplConfig))
                 {
-                    frameDNNTFItemList = frameDNNTF.Run(frame, frameIndex, category, System.Drawing.Brushes.Pink, 0.2);
+                    frameDNNTFItemList = frameDNNTF.Run(frame, frameIndex, category, System.Drawing.Color.Pink, 0.2);
                     ItemList = frameDNNTFItemList;
                 }
 
@@ -282,7 +282,7 @@ namespace VideoPipelineCore
                 //frame DNN ONNX Yolo
                 if (new int[] { 8 }.Contains(pplConfig))
                 {
-                    frameDNNONNXItemList = frameDNNOnnxYolo.Run(frame, frameIndex, Utils.Utils.CatHashSet2Dict(category), System.Drawing.Brushes.Pink, 0, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL, true);
+                    frameDNNONNXItemList = frameDNNOnnxYolo.Run(frame, frameIndex, Utils.Utils.CatHashSet2Dict(category), System.Drawing.Color.Pink, 0, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL, true);
                     ItemList = frameDNNONNXItemList;
                 }
 

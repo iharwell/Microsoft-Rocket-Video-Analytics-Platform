@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenCvSharp;
 
 namespace Utils.Items
 {
@@ -12,12 +13,12 @@ namespace Utils.Items
         /// <summary>
         ///   The foreground mask for this frame if one is available.
         /// </summary>
-        byte[] ForegroundMask { get; set; }
+        Mat ForegroundMask { get; set; }
 
         /// <summary>
         ///   The pixel data of the raw frame.
         /// </summary>
-        byte[] FrameData { get; set; }
+        Mat FrameData { get; set; }
 
         /// <summary>
         ///   The name of the video feed that this frame is from.

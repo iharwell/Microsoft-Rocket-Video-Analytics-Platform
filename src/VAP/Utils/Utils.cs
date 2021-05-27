@@ -7,28 +7,36 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-
+using OpenCvSharp;
+using Point = System.Drawing.Point;
 namespace Utils
 {
     public class Utils
     {
-        public static void cleanFolder(string folder)
+        public static void cleanFolder( string folder )
         {
-            Directory.CreateDirectory(folder);
+            Directory.CreateDirectory( folder );
             DirectoryInfo di = new DirectoryInfo(folder);
-            foreach (FileInfo file in di.GetFiles()) file.Delete();
+            foreach ( FileInfo file in di.GetFiles() ) file.Delete();
         }
 
         public static void cleanFolderAll()
         {
-            cleanFolder(Config.OutputFolder.OutputFolderAll);
-            cleanFolder(Config.OutputFolder.OutputFolderBGSLine);
-            cleanFolder(Config.OutputFolder.OutputFolderLtDNN);
-            cleanFolder(Config.OutputFolder.OutputFolderCcDNN);
-            cleanFolder(Config.OutputFolder.OutputFolderAML);
-            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNDarknet);
-            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNTF);
-            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNONNX);
+            cleanFolder( Config.OutputFolder.OutputFolderAll );
+            cleanFolder( Config.OutputFolder.OutputFolderBGSLine );
+            cleanFolder( Config.OutputFolder.OutputFolderLtDNN );
+            cleanFolder( Config.OutputFolder.OutputFolderCcDNN );
+            cleanFolder( Config.OutputFolder.OutputFolderAML );
+            cleanFolder( Config.OutputFolder.OutputFolderFrameDNNDarknet );
+            cleanFolder( Config.OutputFolder.OutputFolderFrameDNNTF );
+            cleanFolder( Config.OutputFolder.OutputFolderFrameDNNONNX );
+        }
+
+        public static byte[] MatToByteBmp( Mat image )
+        {
+            // known good:
+            // return ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(image));
+            return image.ToBytes( ".bmp" );
         }
 
         public static byte[] ImageToByteBmp(Image imageIn)
@@ -112,7 +120,7 @@ namespace Utils
             }
         }
 
-        public static byte[] DrawImage(byte[] imageData, int x, int y, int w, int h, Brush color, string annotation = "")
+        public static byte[] DrawImage(byte[] imageData, int x, int y, int w, int h, Color color, string annotation = "")
         {
             using (var memoryStream = new MemoryStream(imageData))
             using (var image = Image.FromStream(memoryStream))
@@ -120,7 +128,7 @@ namespace Utils
             using (var pen = new Pen(color, 3))
             {
                 canvas.DrawRectangle(pen, x, y, w, h);
-                canvas.DrawString(annotation, new Font("Arial", 16), color, new PointF(x, y - 20));
+                canvas.DrawString(annotation, new Font("Arial", 16), new SolidBrush( color ), new PointF(x, y - 20));
                 canvas.Flush();
 
                 using (var memoryStream2 = new MemoryStream())
@@ -168,6 +176,14 @@ namespace Utils
                 catDict.Add(c, 0);
             }
             return catDict;
+        }
+
+        public static void WriteAllBytes( string path, Mat data )
+        {
+            Stream s = new FileStream(path, FileMode.OpenOrCreate);
+            data.WriteToStream( s, ".bmp" );
+            s.Flush();
+            s.Close();
         }
     }
 }

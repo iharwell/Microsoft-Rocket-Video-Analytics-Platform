@@ -55,11 +55,13 @@ namespace AML.Client
             for (int itemIndex = 0; itemIndex < items.Count(); itemIndex++)
             {
                 MemoryStream mStream = new MemoryStream();
-                using ( Image image = Image.FromStream( new MemoryStream( items[itemIndex].CroppedImageData( items[itemIndex].ItemIDs.Count - 1 ) ) ) )
+                items[itemIndex].CroppedImageData( items[itemIndex].ItemIDs.Count - 1 ).WriteToStream(mStream);
+                mStream.Position = 0;
+                /*using ( Image image = Image.FromStream( new MemoryStream( items[itemIndex].CroppedImageData( items[itemIndex].ItemIDs.Count - 1 ) ) ) )
                 {
                     image.Save(mStream, ImageFormat.Png);
                     mStream.Position = 0;
-                }
+                }*/
 
                 using (mStream)
                 {
@@ -95,8 +97,8 @@ namespace AML.Client
                                         string blobName_AML = $@"frame-{frameIndex}-zAML-{key}-{kvp.Value}.jpg";
                                         string fileName_AML = @OutputFolder.OutputFolderAML + blobName_AML;
                                         var cropped = items[itemIndex].CroppedImageData(items[itemIndex].ItemIDs.Count - 1);
-                                        File.WriteAllBytes(fileName_AML, cropped );
-                                        File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_AML, cropped );
+                                        Utils.Utils.WriteAllBytes(fileName_AML, cropped );
+                                        Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_AML, cropped );
 
                                         goto CheckNextItem;
                                     }

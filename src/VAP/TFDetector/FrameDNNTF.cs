@@ -34,14 +34,14 @@ namespace TFDetector
             _lines = lines;
         }
 
-        public IList<IFramedItem> Run(Mat frameTF, int frameIndex, HashSet<string> category, Brush bboxColor, double min_score_for_linebbox_overlap, bool saveImg = true)
+        public IList<IFramedItem> Run(Mat frameTF, int frameIndex, HashSet<string> category, Color bboxColor, double min_score_for_linebbox_overlap, bool saveImg = true)
         {
             _imageWidth = frameTF.Width;
             _imageHeight = frameTF.Height;
             _category = category;
             imageByteArray = Utils.Utils.ImageToByteJpeg(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameTF));
 
-            IFrame frame = new Frame( "", frameIndex, imageByteArray );
+            IFrame frame = new Frame( "", frameIndex, frameTF );
 
             float[,,] boxes;
             float[,] scores, classes;
@@ -107,14 +107,10 @@ namespace TFDetector
                     string blobName_TF = $@"frame-{frameIndex}-TF-{id.Confidence}.jpg";
                     string fileName_TF = @OutputFolder.OutputFolderFrameDNNTF + blobName_TF;
                     var taggedImage = it.TaggedImageData(idIndex, bboxColor);
-                    File.WriteAllBytes(fileName_TF, taggedImage );
-                    File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_TF, taggedImage );
-
-                    using (Image image = Image.FromStream(new MemoryStream( taggedImage ) ))
-                    {
-                        image.Save(@OutputFolder.OutputFolderFrameDNNTF + $"frame-{frameIndex}-TF-{id.Confidence}.jpg", ImageFormat.Jpeg);
-                        image.Save(@OutputFolder.OutputFolderAll + $"frame-{frameIndex}-TF-{id.Confidence}.jpg", ImageFormat.Jpeg);
-                    }
+                    Utils.Utils.WriteAllBytes(fileName_TF, taggedImage );
+                    Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_TF, taggedImage );
+                    Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderFrameDNNTF + $"frame-{frameIndex}-TF-{id.Confidence}.jpg", taggedImage);
+                    Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + $"frame-{frameIndex}-TF-{id.Confidence}.jpg", taggedImage );
                 }
             }
 

@@ -47,7 +47,7 @@ namespace DNNDetector
                     IList<IFramedItem> analyzedTrackingItems = null;
                     ILineTriggeredItemID ltID = (from IItemID id in ltDNNItem.ItemIDs where id is ILineTriggeredItemID select (ILineTriggeredItemID)id ).Last();
                     Console.WriteLine("** Calling Heavy DNN **");
-                    analyzedTrackingItems = frameDNNOnnxYolo.Run(Cv2.ImDecode(ltDNNItem.Frame.FrameData, ImreadModes.Color), frameIndex, category, System.Drawing.Brushes.Yellow, ltID.TriggerLineID, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
+                    analyzedTrackingItems = frameDNNOnnxYolo.Run(Cv2.ImDecode(ltDNNItem.Frame.FrameData, ImreadModes.Color), frameIndex, category, System.Drawing.Color.Yellow, ltID.TriggerLineID, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
                     teleCountsHeavyDNN++;
 
                     // object detected by heavy YOLO
@@ -110,9 +110,19 @@ namespace DNNDetector
                             {
                                 string blobName_Heavy = $@"frame-{frameIndex}-Heavy-{item.Confidence}.jpg";
                                 string fileName_Heavy = @OutputFolder.OutputFolderCcDNN + blobName_Heavy;
-                                var taggedImageData = framed.TaggedImageData(framed.ItemIDs.Count-1, System.Drawing.Brushes.Yellow );
-                                File.WriteAllBytes(fileName_Heavy,taggedImageData);
-                                File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Heavy, taggedImageData);
+                                var taggedImageData = framed.TaggedImageData(framed.ItemIDs.Count-1, System.Drawing.Color.Yellow );
+                                /*File.WriteAllBytes(fileName_Heavy,taggedImageData);
+                                File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Heavy, taggedImageData);*/
+
+
+                                Stream s = new FileStream(fileName_Heavy, FileMode.OpenOrCreate);
+                                Stream s2 = new FileStream(@OutputFolder.OutputFolderAll + blobName_Heavy, FileMode.OpenOrCreate);
+                                taggedImageData.WriteToStream( s, ".bmp" );
+                                taggedImageData.WriteToStream( s2, ".bmp" );
+                                s.Flush();
+                                s2.Flush();
+                                s.Close();
+                                s2.Close();
                             }
 
                             return ccDNNItem; // if we only return the closest object detected by heavy model

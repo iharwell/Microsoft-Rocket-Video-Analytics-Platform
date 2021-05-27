@@ -31,14 +31,14 @@ namespace DNNDetector
             onnxWrapper = new ORTWrapper($@"..\..\..\..\..\..\modelOnnx\{modelName}ort.onnx", mode);
         }
 
-        public IList<IFramedItem> Run(Mat frameOnnx, int frameIndex, Dictionary<string, int> category, Brush bboxColor, int lineID, double min_score_for_linebbox_overlap, bool savePictures = false)
+        public IList<IFramedItem> Run(Mat frameOnnx, int frameIndex, Dictionary<string, int> category, Color bboxColor, int lineID, double min_score_for_linebbox_overlap, bool savePictures = false)
         {
             _imageWidth = frameOnnx.Width;
             _imageHeight = frameOnnx.Height;
             _category = category;
             imageByteArray = Utils.Utils.ImageToByteJpeg(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameOnnx)); // Todo: feed in bmp
 
-            IFrame frame = new Frame("", frameIndex, imageByteArray);
+            IFrame frame = new Frame("", frameIndex, frameOnnx);
 
             List<ORTItem> boundingBoxes = onnxWrapper.UseApi(
                     OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameOnnx),
@@ -112,12 +112,15 @@ namespace DNNDetector
                 foreach (IItemID it in validObjects)
                 {
                     IFramedItem fitem = new FramedItem( frame, it );
-                    using (Image image = Image.FromStream(new MemoryStream(fitem.TaggedImageData(0,bboxColor))))
+                    var tagged = fitem.TaggedImageData( 0, bboxColor );
+                    tagged.SaveImage( @OutputFolder.OutputFolderFrameDNNONNX + $"frame-{frameIndex}-ONNX-{it.Confidence}.jpg" );
+                    tagged.SaveImage( @OutputFolder.OutputFolderAll + $"frame-{frameIndex}-ONNX-{it.Confidence}.jpg" );
+                    /*using (Image image = Image.FromStream(new MemoryStream(fitem.TaggedImageData(0,bboxColor))))
                     {
 
                         image.Save(@OutputFolder.OutputFolderFrameDNNONNX + $"frame-{frameIndex}-ONNX-{it.Confidence}.jpg", ImageFormat.Jpeg);
                         image.Save(@OutputFolder.OutputFolderAll + $"frame-{frameIndex}-ONNX-{it.Confidence}.jpg", ImageFormat.Jpeg);
-                    }
+                    }*/
                 }
                 //byte[] imgBboxes = DrawAllBb(frameIndex, Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameOnnx)),
                 //        validObjects, Brushes.Pink);
@@ -149,7 +152,7 @@ namespace DNNDetector
             return x * x;
         }
 
-        public static byte[] DrawAllBb(int frameIndex, byte[] imgByte, List<Item> items, Brush bboxColor)
+        public static byte[] DrawAllBb(int frameIndex, byte[] imgByte, List<Item> items, Color bboxColor)
         {
             byte[] canvas = new byte[imgByte.Length];
             canvas = imgByte;

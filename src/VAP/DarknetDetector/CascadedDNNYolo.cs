@@ -57,7 +57,7 @@ namespace DarknetDetector
                 {
                     Debug.Assert( ltDNNID is LineTriggeredItemID );
                     List<YoloTrackingItem> analyzedTrackingItems = null;
-                    byte[] imgByte = ltDNNItem.Frame.FrameData;
+                    Mat imgByte = ltDNNItem.Frame.FrameData;
                     int realFrameIndex = ltDNNItem.Frame.FrameIndex;
 
                     Console.WriteLine("** Calling Heavy");
@@ -65,11 +65,11 @@ namespace DarknetDetector
                     if ( ltDNNID is LineTriggeredItemID lineTriggered )
                     {
                         frameDNNYolo.SetTrackingPoint( lines[lineTriggered.TriggerLineID].coordinates.MidPoint ); //only needs to check the last line in each row
-                        analyzedTrackingItems = frameDNNYolo.Detect(imgByte, category, lineTriggered.TriggerLineID, System.Drawing.Brushes.Red, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL, realFrameIndex );
+                        analyzedTrackingItems = frameDNNYolo.Detect(imgByte, category, lineTriggered.TriggerLineID, System.Drawing.Color.Red, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL, realFrameIndex );
                     }
                     else
                     {
-                        return frameDNNYolo.Run( imgByte, realFrameIndex, lines, category, System.Drawing.Brushes.Red );
+                        return frameDNNYolo.Run( imgByte, realFrameIndex, lines, category, System.Drawing.Color.Red );
                     }
 
                     // object detected by heavy YOLO
@@ -83,9 +83,9 @@ namespace DarknetDetector
                             // output heavy YOLO results
                             string blobName_Heavy = $@"frame-{realFrameIndex}-Heavy-{yoloTrackingItem.Confidence}.jpg";
                             string fileName_Heavy = @OutputFolder.OutputFolderCcDNN + blobName_Heavy;
-                            var imgData = ltDNNItem.TaggedImageData(ltDNNItem.ItemIDs.Count - 1, Brushes.Red );
-                            File.WriteAllBytes(fileName_Heavy, imgData );
-                            File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Heavy, imgData );
+                            var imgData = ltDNNItem.TaggedImageData(ltDNNItem.ItemIDs.Count - 1, Color.Red );
+                            Utils.Utils.WriteAllBytes(fileName_Heavy, imgData );
+                            Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Heavy, imgData );
 
                         }
                         return ltDNNItemList; // if we only return the closest object detected by heavy model

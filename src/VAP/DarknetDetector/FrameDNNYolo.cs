@@ -3,6 +3,7 @@
 
 using DNNDetector.Config;
 using DNNDetector.Model;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,7 +14,7 @@ using Utils.Config;
 using Utils.Items;
 using Wrapper.Yolo;
 using Wrapper.Yolo.Model;
-
+using Point = System.Drawing.Point;
 namespace DarknetDetector
 {
     public class FrameDNNDarknet
@@ -52,14 +53,15 @@ namespace DarknetDetector
             frameYoloTracking.SetTrackingObject(trackingObject);
         }
 
-        public List<YoloTrackingItem> Detect(byte[] imgByte, HashSet<string> category, int lineID, Brush bboxColor, double min_score_for_linebbox_overlap, int frameIndex = 0)
+        public List<YoloTrackingItem> Detect(Mat imgByte, HashSet<string> category, int lineID, Color bboxColor, double min_score_for_linebbox_overlap, int frameIndex = 0)
         {
-            IEnumerable<YoloTrackingItem> yoloItems = frameYoloTracking.Analyse(imgByte, category, bboxColor);
+            byte[] imgBuffer = imgByte.ToBytes(".bmp");
+            IEnumerable<YoloTrackingItem> yoloItems = frameYoloTracking.Analyse(imgBuffer, category, bboxColor);
             
-            return OverlapVal(imgByte, yoloItems, lineID, bboxColor, min_score_for_linebbox_overlap);
+            return OverlapVal( imgBuffer, yoloItems, lineID, bboxColor, min_score_for_linebbox_overlap);
         }
 
-        List<YoloTrackingItem> OverlapVal(byte[] imgByte, IEnumerable<YoloTrackingItem> yoloItems, int lineID, Brush bboxColor, double min_score_for_linebbox_overlap)
+        List<YoloTrackingItem> OverlapVal(byte[] imgByte, IEnumerable<YoloTrackingItem> yoloItems, int lineID, Color bboxColor, double min_score_for_linebbox_overlap)
         {
             var image = Image.FromStream(new MemoryStream(imgByte)); // to filter out bbox larger than the frame
 
@@ -100,12 +102,14 @@ namespace DarknetDetector
             }
         }
 
-        public IList<IFramedItem> Run(byte[] imgByte, int frameIndex, List<(string key, LineSegment coordinates)> lines, HashSet<string> category, Brush bboxColor)
+        public IList<IFramedItem> Run(Mat imgMat, int frameIndex, List<(string key, LineSegment coordinates)> lines, HashSet<string> category, Color bboxColor )
         {
             List<IFramedItem> frameDNNItem = new List<IFramedItem>();
 
+            byte[] imgByte = Utils.Utils.MatToByteBmp(imgMat);
+
             IEnumerable<YoloTrackingItem> yoloItems = frameYoloTracking.Analyse(imgByte, category, bboxColor);
-            IFrame frame = new Frame("", frameIndex, imgByte);
+            IFrame frame = new Frame("", frameIndex, imgMat);
             for (int lineID = 0; lineID < lines.Count; lineID++)
             {
                 frameYoloTracking.SetTrackingObject( lines[lineID].coordinates.MidPoint );
@@ -145,7 +149,7 @@ namespace DarknetDetector
         }
 
 
-        private void DrawAllBb(int frameIndex, byte[] imgByte, List<YoloTrackingItem> items, Brush bboxColor)
+        private void DrawAllBb(int frameIndex, byte[] imgByte, List<YoloTrackingItem> items, Color bboxColor)
         {
             byte[] canvas = new byte[imgByte.Length];
             canvas = imgByte;
