@@ -164,5 +164,21 @@ namespace Utils.Items
             OpenCvSharp.Size s = new OpenCvSharp.Size(r.Height, r.Width);
             return new Rect( p, s );
         }
+
+        public static IList<IFramedItem> MergeIntoFramedItemList( IList<IFramedItem> source, ref IList<IFramedItem> target )
+        {
+            //TODO(iharwell): Add algorithm to merge IFramedItems based on very high similarity scores.
+            if( target is null )
+            {
+                target = source;
+            }
+
+            for ( int i = 0; i < source.Count; i++ )
+            {
+                target.Add( source[i] );
+            }
+
+            return target;
+        }
     }
 }

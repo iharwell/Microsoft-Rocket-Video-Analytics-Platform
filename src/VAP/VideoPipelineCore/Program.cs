@@ -358,7 +358,7 @@ namespace VideoPipelineCore
             {
                 Console.WriteLine( "Item path length " + ( i + 1 ) + ": " + ItemPaths[i].FramedItems.Count );
             }
-            Console.WriteLine("Done!");
+           Console.WriteLine("Done!");
         }
 
         private static void CompressIFrames( IList<IFramedItem> ItemList )

@@ -80,7 +80,7 @@ namespace Utils.Items
         ///   <see langword="true" /> if a new <see cref="IFramedItem" /> was created to add the
         ///   item; <see langword="false" /> if the item was appended to an existing entry.
         /// </returns>
-        public static bool InsertIntoFramedItemList( this IItemID itemID, IList<IFramedItem> framedItems,  out IFramedItem framedItem, int frameIndex = -1 )
+        public static bool InsertIntoFramedItemList( this IItemID itemID, IList<IFramedItem> framedItems, out IFramedItem framedItem, int frameIndex = -1 )
         {
             int bestIndex = 0;
             double bestSimilarity = double.NegativeInfinity;
