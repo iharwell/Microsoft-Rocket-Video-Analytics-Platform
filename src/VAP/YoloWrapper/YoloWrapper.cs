@@ -19,11 +19,11 @@ namespace Wrapper.Yolo
         private const string YoloLibraryGpuLt = @"x64\yolo_cpp_dll_gpu_lt.dll";
         private const string YoloLibraryGpuCc = @"x64\yolo_cpp_dll_gpu_cc.dll";
 
-        private Dictionary<int, string> _objectType = new Dictionary<int, string>();
-        private ImageAnalyzer _imageAnalyzer = new ImageAnalyzer();
+        private readonly Dictionary<int, string> _objectType = new Dictionary<int, string>();
+        private readonly ImageAnalyzer _imageAnalyzer = new ImageAnalyzer();
 
-        public DetectionSystem DetectionSystem = DetectionSystem.Unknown;
-        public DNNMode DnnMode = DNNMode.Unknown;
+        public DetectionSystem _detectionSystem = DetectionSystem.Unknown;
+        public DNNMode _dnnMode = DNNMode.Unknown;
         public EnvironmentReport EnvironmentReport { get; private set; }
 
         #region DllImport Cpu
@@ -103,7 +103,7 @@ namespace Wrapper.Yolo
 
         public YoloWrapper(YoloConfiguration yoloConfiguration, DNNMode dnnMode)
         {
-            this.DnnMode = dnnMode;
+            this._dnnMode = dnnMode;
             this.Initialize(yoloConfiguration.ConfigFile, yoloConfiguration.WeightsFile, yoloConfiguration.NamesFile, 0);
         }
 
@@ -114,13 +114,13 @@ namespace Wrapper.Yolo
 
         public void Dispose()
         {
-            switch (this.DetectionSystem)
+            switch (this._detectionSystem)
             {
                 case DetectionSystem.CPU:
                     DisposeYoloCpu();
                     break;
                 case DetectionSystem.GPU:
-                    switch (this.DnnMode)
+                    switch (this._dnnMode)
                     {
                         case DNNMode.Frame:
                         case DNNMode.LT:
@@ -147,21 +147,21 @@ namespace Wrapper.Yolo
             //    throw new DllNotFoundException("Microsoft Visual C++ 2017 Redistributable (x64)");
             //}
 
-            this.DetectionSystem = DetectionSystem.CPU;
+            this._detectionSystem = DetectionSystem.CPU;
             if (this.EnvironmentReport.CudaExists && this.EnvironmentReport.CudnnExists)
             {
-                this.DetectionSystem = DetectionSystem.GPU;
+                this._detectionSystem = DetectionSystem.GPU;
             }
 
             int deviceCount;
             StringBuilder deviceName;
-            switch (this.DetectionSystem)
+            switch (this._detectionSystem)
             {
                 case DetectionSystem.CPU:
                     InitializeYoloCpu(configurationFilename, weightsFilename, 0);
                     break;
                 case DetectionSystem.GPU:
-                    switch (this.DnnMode)
+                    switch (this._dnnMode)
                     {
                         case DNNMode.Frame:
                         case DNNMode.LT:
@@ -244,13 +244,13 @@ namespace Wrapper.Yolo
 
             var container = new BboxContainer();
             var count = 0;
-            switch (this.DetectionSystem)
+            switch (this._detectionSystem)
             {
                 case DetectionSystem.CPU:
                     count = DetectImageCpu(filepath, ref container);
                     break;
                 case DetectionSystem.GPU:
-                    switch (this.DnnMode)
+                    switch (this._dnnMode)
                     {
                         case DNNMode.Frame:
                         case DNNMode.LT:
@@ -280,13 +280,13 @@ namespace Wrapper.Yolo
 
             var container = new BboxContainer();
             var count = 0;
-            switch (this.DetectionSystem)
+            switch (this._detectionSystem)
             {
                 case DetectionSystem.CPU:
                     count = TrackImageCpu(filepath, (float)0.3, (float)0.2, ref container);
                     break;
                 case DetectionSystem.GPU:
-                    switch (this.DnnMode)
+                    switch (this._dnnMode)
                     {
                         case DNNMode.Frame:
                         case DNNMode.LT:
@@ -323,13 +323,13 @@ namespace Wrapper.Yolo
                 // Copy the array to unmanaged memory.
                 Marshal.Copy(imageData, 0, pnt, imageData.Length);
                 var count = 0;
-                switch (this.DetectionSystem)
+                switch (this._detectionSystem)
                 {
                     case DetectionSystem.CPU:
                         count = DetectImageCpu(pnt, imageData.Length, ref container);
                         break;
                     case DetectionSystem.GPU:
-                        switch (this.DnnMode)
+                        switch (this._dnnMode)
                         {
                             case DNNMode.Frame:
                             case DNNMode.LT:
@@ -376,13 +376,13 @@ namespace Wrapper.Yolo
                 // Copy the array to unmanaged memory.
                 Marshal.Copy(imageData, 0, pnt, imageData.Length);
                 var count = 0;
-                switch (this.DetectionSystem)
+                switch (this._detectionSystem)
                 {
                     case DetectionSystem.CPU:
                         count = TrackImageCpu(pnt, imageData.Length, (float)0.3, (float)0.2, ref container);
                         break;
                     case DetectionSystem.GPU:
-                        switch (this.DnnMode)
+                        switch (this._dnnMode)
                         {
                             case DNNMode.Frame:
                             case DNNMode.LT:

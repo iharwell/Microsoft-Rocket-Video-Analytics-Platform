@@ -21,30 +21,30 @@ namespace LineDetector
 
         public static double DEFAULT_OCCUPANCY_THRESHOLD = 0.9; // default threhsold
 
-        private LineSegment lineSegment;
+        private LineSegment _lineSegment;
 
         public LineSegment Line
         {
-            get => lineSegment;
-            set => lineSegment = value;
+            get => _lineSegment;
+            set => _lineSegment = value;
         }
 
         /// <summary>
         /// The first point of the line.
         /// </summary>
-        public Point p1
+        public Point P1
         {
-            get => lineSegment.P1;
-            set => lineSegment.P1 = value;
+            get => _lineSegment.P1;
+            set => _lineSegment.P1 = value;
         }
 
         /// <summary>
         /// The second point of the line.
         /// </summary>
-        public Point p2
+        public Point P2
         {
-            get => lineSegment.P2;
-            set => lineSegment.P2 = value;
+            get => _lineSegment.P2;
+            set => _lineSegment.P2 = value;
         }
 
         public string LineName { get; set; }
@@ -52,21 +52,21 @@ namespace LineDetector
         /// <summary>
         /// The step size used to determine occupancy.
         /// </summary>
-        public double increment { get; set; }
+        public double Increment { get; set; }
 
         /// <summary>
         /// The overlap threshold used to determine occupancy.
         /// </summary>
-        public double overlapFractionThreshold { get; set; } = DEFAULT_OCCUPANCY_THRESHOLD;
+        public double OverlapFractionThreshold { get; set; } = DEFAULT_OCCUPANCY_THRESHOLD;
 
         /// <inheritdoc cref="DetectionLine(int, int, int, int, double)"/>
         public DetectionLine(int a, int b, int c, int d, string lineName)
         {
-            p1 = new Point(a, b);
-            p2 = new Point(c, d);
+            P1 = new Point(a, b);
+            P2 = new Point(c, d);
             LineName = lineName;
-            double length = lineSegment.Length;
-            increment = 1 / (2 * length);
+            double length = _lineSegment.Length;
+            Increment = 1 / (2 * length);
         }
 
         /// <summary>
@@ -79,12 +79,12 @@ namespace LineDetector
         /// <param name="l_threshold">The overlap acceptance threshold used for a positive detection.</param>
         public DetectionLine(int a, int b, int c, int d, double l_threshold, string lineName)
         {
-            p1 = new Point(a, b);
-            p2 = new Point(c, d);
+            P1 = new Point(a, b);
+            P2 = new Point(c, d);
             LineName = lineName;
-            double length = lineSegment.Length;
-            increment = 1 / (2 * length);
-            overlapFractionThreshold = l_threshold;
+            double length = _lineSegment.Length;
+            Increment = 1 / (2 * length);
+            OverlapFractionThreshold = l_threshold;
         }
 
         /// <summary>
@@ -97,12 +97,12 @@ namespace LineDetector
         /// the given mask, from 0 indicating no overlap to 1 indicating
         /// complete overlap.
         /// </returns>
-        public double getFractionContainedInBox(RectangleF b, Bitmap mask)
+        public double GetFractionContainedInBox(Bitmap mask)
         {
             double eta = 0;
             Size size = Line.P2Offset;
-            double currentX = p1.X + eta * size.Width;
-            double currentY = p1.Y + eta * size.Height;
+            double currentX = P1.X + eta * size.Width;
+            double currentY = P1.Y + eta * size.Height;
             double lastX = -1;
             double lastY = -1;
             int totalPixelCount = 0;
@@ -114,7 +114,7 @@ namespace LineDetector
 
                 totalPixelCount++;
 
-                bool isInside = b.Contains((int)currentX, (int)currentY);
+                // bool isInside = b.Contains((int)currentX, (int)currentY);
 
                 if (mask.GetPixel((int)currentX, (int)currentY).ToArgb() == (~0))
                 {
@@ -122,9 +122,9 @@ namespace LineDetector
                 }
 
                 lastX = currentX; lastY = currentY;
-                eta += increment;
-                currentX = p1.X + eta * size.Width;
-                currentY = p1.Y + eta * size.Height;
+                eta += Increment;
+                currentX = P1.X + eta * size.Width;
+                currentY = P1.Y + eta * size.Height;
             } while (eta <= 1);
 
             double fraction = (double)overlapCount / (double)totalPixelCount;
@@ -141,12 +141,12 @@ namespace LineDetector
         /// the given mask, from 0 indicating no overlap to 1 indicating
         /// complete overlap.
         /// </returns>
-        public double getFractionContainedInBox(RectangleF b, OpenCvSharp.Mat mask)
+        public double GetFractionContainedInBox(OpenCvSharp.Mat mask)
         {
             double eta = 0;
             Size size = Line.P2Offset;
-            double currentX = p1.X + eta * size.Width;
-            double currentY = p1.Y + eta * size.Height;
+            double currentX = P1.X + eta * size.Width;
+            double currentY = P1.Y + eta * size.Height;
             double lastX = -1;
             double lastY = -1;
             int totalPixelCount = 0;
@@ -159,7 +159,7 @@ namespace LineDetector
 
                 totalPixelCount++;
 
-                bool isInside = b.Contains((int)currentX, (int)currentY);
+                // bool isInside = b.Contains((int)currentX, (int)currentY);
                 byte v = mask.Get<byte>((int)currentY, (int)currentX);
                 if (v == 255)
                 {
@@ -168,9 +168,9 @@ namespace LineDetector
 
                 lastX = currentX;
                 lastY = currentY;
-                eta += increment;
-                currentX = p1.X + eta * size.Width;
-                currentY = p1.Y + eta * size.Height;
+                eta += Increment;
+                currentX = P1.X + eta * size.Width;
+                currentY = P1.Y + eta * size.Height;
             } while (eta <= 1);
 
             double fraction = (double)overlapCount / (double)totalPixelCount;
@@ -186,12 +186,12 @@ namespace LineDetector
         /// the given mask, from 0 indicating no overlap to 1 indicating
         /// complete overlap.
         /// </returns>
-        public double getFractionInForeground(Bitmap mask)
+        public double GetFractionInForeground(Bitmap mask)
         {
             double eta = 0;
             Size size = Line.P2Offset;
-            double currentX = p1.X + eta * size.Width;
-            double currentY = p1.Y + eta * size.Height;
+            double currentX = P1.X + eta * size.Width;
+            double currentY = P1.Y + eta * size.Height;
             double lastX = -1;
             double lastY = -1;
             int totalPixelCount = 0;
@@ -209,21 +209,21 @@ namespace LineDetector
                 }
 
                 lastX = currentX; lastY = currentY;
-                eta += increment;
-                currentX = p1.X + eta * size.Width;
-                currentY = p1.Y + eta * size.Height;
+                eta += Increment;
+                currentX = P1.X + eta * size.Width;
+                currentY = P1.Y + eta * size.Height;
             } while (eta <= 1);
 
             double fraction = (double)overlapCount / (double)totalPixelCount;
             return fraction;
         }
 
-        public double getFractionInForeground(Mat mask)
+        public double GetFractionInForeground(Mat mask)
         {
             double eta = 0;
             Size size = Line.P2Offset;
-            double currentX = p1.X + eta * size.Width;
-            double currentY = p1.Y + eta * size.Height;
+            double currentX = P1.X + eta * size.Width;
+            double currentY = P1.Y + eta * size.Height;
             double lastX = -1;
             double lastY = -1;
             int totalPixelCount = 0;
@@ -244,9 +244,9 @@ namespace LineDetector
 
                 lastX = currentX;
                 lastY = currentY;
-                eta += increment;
-                currentX = p1.X + eta * size.Width;
-                currentY = p1.Y + eta * size.Height;
+                eta += Increment;
+                currentX = P1.X + eta * size.Width;
+                currentY = P1.Y + eta * size.Height;
             } while (eta <= 1);
 
             double fraction = (double)overlapCount / (double)totalPixelCount;
@@ -259,7 +259,7 @@ namespace LineDetector
         /// <param name="boxes">The list of <see cref="Box"/> objects to check, representing the bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
         /// <returns>Returns a tuple containing both the maximum overlap fraction found, and the <see cref="Box"/> associated with that overlap.</returns>
-        public (double frac, IFramedItem b) getMaximumFractionContainedInAnyBox(IList<IFramedItem> boxes, Bitmap mask)
+        public (double frac, IFramedItem b) GetMaximumFractionContainedInAnyBox(IList<IFramedItem> boxes, Bitmap mask)
         {
             double maxOverlapFraction = 0;
             IFramedItem maxB = null;
@@ -269,7 +269,7 @@ namespace LineDetector
                 StatisticRectangle sr = new StatisticRectangle(from item in b.ItemIDs select item.BoundingBox);
                 double area = sr.Mean.Width * sr.Mean.Height;
                 if (area < MIN_BOX_SIZE) continue;
-                double overlapFraction = getFractionContainedInBox(sr.Mean, mask);
+                double overlapFraction = GetFractionContainedInBox(mask);
                 if (overlapFraction > maxOverlapFraction)
                 {
                     maxOverlapFraction = overlapFraction;
@@ -285,7 +285,7 @@ namespace LineDetector
         /// <param name="boxes">The list of <see cref="Box"/> objects to check, representing the bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
         /// <returns>Returns a tuple containing both the maximum overlap fraction found, and the <see cref="Box"/> associated with that overlap.</returns>
-        public (double frac, IFramedItem b) getMaximumFractionContainedInAnyBox(IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
+        public (double frac, IFramedItem b) GetMaximumFractionContainedInAnyBox(IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
         {
             double maxOverlapFraction = 0;
             IFramedItem maxB = null;
@@ -296,7 +296,7 @@ namespace LineDetector
                 double area = sr.Mean.Width * sr.Mean.Height;
                 if (area < MIN_BOX_SIZE)
                     continue;
-                double overlapFraction = getFractionContainedInBox(sr.Mean, mask);
+                double overlapFraction = GetFractionContainedInBox(mask);
                 if (overlapFraction > maxOverlapFraction)
                 {
                     maxOverlapFraction = overlapFraction;
@@ -316,16 +316,18 @@ namespace LineDetector
         /// occupied, and the bounding box of the occupying item if so. If this line is
         /// unoccupied, the bounding box will be null.
         /// </returns>
-        public (bool occupied, IFramedItem box) isOccupied(IList<IFramedItem> boxes, Bitmap mask)
+        public (bool occupied, IFramedItem box) IsOccupied(IList<IFramedItem> boxes, Bitmap mask)
         {
-            (double frac, IFramedItem b) = getMaximumFractionContainedInAnyBox(boxes, mask);
-            if (frac >= overlapFractionThreshold)
+            (double frac, IFramedItem b) = GetMaximumFractionContainedInAnyBox(boxes, mask);
+            if (frac >= OverlapFractionThreshold)
             {
                 IItemID existingID = b.ItemIDs.Last();
-                ILineTriggeredItemID id = new LineTriggeredItemID( existingID.BoundingBox, existingID.ObjectID, existingID.ObjName, existingID.Confidence, existingID.TrackID, nameof(DetectionLine) );
-                id.TriggerSegment = this.Line;
-                id.TriggerLine = LineName;
-                b.ItemIDs.Add( id );
+                ILineTriggeredItemID id = new LineTriggeredItemID(existingID.BoundingBox, existingID.ObjectID, existingID.ObjName, existingID.Confidence, existingID.TrackID, nameof(DetectionLine))
+                {
+                    TriggerSegment = this.Line,
+                    TriggerLine = LineName
+                };
+                b.ItemIDs.Add(id);
 
                 return (true, b);
             }
@@ -345,9 +347,9 @@ namespace LineDetector
         /// occupied, and the bounding box of the occupying item if so. If this line is
         /// unoccupied, the bounding box will be null.
         /// </returns>
-        public (bool occupied, IFramedItem box) isOccupied( IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
+        public (bool occupied, IFramedItem box) IsOccupied(IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
         {
-            return isOccupied( boxes, mask, null );
+            return IsOccupied(boxes, mask, null);
         }
 
         /// <summary>
@@ -360,17 +362,19 @@ namespace LineDetector
         /// occupied, and the bounding box of the occupying item if so. If this line is
         /// unoccupied, the bounding box will be null.
         /// </returns>
-        public (bool occupied, IFramedItem box) isOccupied( IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature )
+        public (bool occupied, IFramedItem box) IsOccupied(IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature)
         {
-            (double frac, IFramedItem b) = getMaximumFractionContainedInAnyBox( boxes, mask );
-            if ( frac >= overlapFractionThreshold )
+            (double frac, IFramedItem b) = GetMaximumFractionContainedInAnyBox(boxes, mask);
+            if (frac >= OverlapFractionThreshold)
             {
                 IItemID existingID = b.ItemIDs.Last();
-                ILineTriggeredItemID id = new LineTriggeredItemID( existingID.BoundingBox, existingID.ObjectID, existingID.ObjName, existingID.Confidence, existingID.TrackID, nameof(DetectionLine) );
-                id.TriggerSegment = this.Line;
-                id.TriggerLine = LineName;
-                id.SourceObject = signature;
-                b.ItemIDs.Add( id );
+                ILineTriggeredItemID id = new LineTriggeredItemID(existingID.BoundingBox, existingID.ObjectID, existingID.ObjName, existingID.Confidence, existingID.TrackID, nameof(DetectionLine))
+                {
+                    TriggerSegment = this.Line,
+                    TriggerLine = LineName,
+                    SourceObject = signature
+                };
+                b.ItemIDs.Add(id);
                 return (true, b);
             }
             else
@@ -384,10 +388,10 @@ namespace LineDetector
         /// </summary>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
         /// <returns>Returns true if the line is occupied, and false otherwise.</returns>
-        public bool isOccupied(Bitmap mask)
+        public bool IsOccupied(Bitmap mask)
         {
-            double frac = getFractionInForeground(mask);
-            if (frac >= overlapFractionThreshold)
+            double frac = GetFractionInForeground(mask);
+            if (frac >= OverlapFractionThreshold)
             {
                 return true;
             }
@@ -399,7 +403,7 @@ namespace LineDetector
 
         public override string ToString()
         {
-            return p1.X + "\t" + p1.Y + "\t" + p2.X + "\t" + p2.Y + "\t" + overlapFractionThreshold;
+            return P1.X + "\t" + P1.Y + "\t" + P2.X + "\t" + P2.Y + "\t" + OverlapFractionThreshold;
         }
     }
 }

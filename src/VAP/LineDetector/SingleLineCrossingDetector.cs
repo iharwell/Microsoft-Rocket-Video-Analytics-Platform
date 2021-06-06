@@ -10,17 +10,17 @@ namespace LineDetector
 {
     public class SingleLineCrossingDetector : ISingleLineCrossingDetector
     {
-        private DetectionLine line;
-        private bool occupancy;
-        private IFramedItem bbox;
-        private FallingEdgeCrossingDetector lineCrossingDetector;
-        private bool debug = false;
+        private readonly DetectionLine _line;
+        private bool _occupancy;
+        private IFramedItem _bbox;
+        private readonly FallingEdgeCrossingDetector _lineCrossingDetector;
+        private bool _debug = false;
 
         /// <inheritdoc cref="SingleLineCrossingDetector(int, int, int, int, double, int)"/>
         public SingleLineCrossingDetector(int a, int b, int c, int d, string lineName)
         {
-            line = new DetectionLine(a, b, c, d, lineName);
-            lineCrossingDetector = new FallingEdgeCrossingDetector(1);
+            _line = new DetectionLine(a, b, c, d, lineName);
+            _lineCrossingDetector = new FallingEdgeCrossingDetector(1);
         }
 
         /// <summary>
@@ -37,8 +37,8 @@ namespace LineDetector
         /// <param name="sFactor">The frame rate sampling factor.</param>
         public SingleLineCrossingDetector(int a, int b, int c, int d, double threshold, int sFactor, string lineName)
         {
-            line = new DetectionLine(a, b, c, d, threshold, lineName );
-            lineCrossingDetector = new FallingEdgeCrossingDetector(sFactor);
+            _line = new DetectionLine(a, b, c, d, threshold, lineName);
+            _lineCrossingDetector = new FallingEdgeCrossingDetector(sFactor);
         }
 
         /// <summary>
@@ -54,11 +54,11 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival( int frameNo, IList<IFramedItem> boxes, Bitmap mask)
+        public (bool crossingResult, IFramedItem b) notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
-            (occupancy, bbox) = line.isOccupied(boxes, mask);
-            bool crossingResult = lineCrossingDetector.notifyOccupancy(frameNo, occupancy);
-            return (crossingResult, bbox);
+            (_occupancy, _bbox) = _line.IsOccupied(boxes, mask);
+            bool crossingResult = _lineCrossingDetector.notifyOccupancy(frameNo, _occupancy);
+            return (crossingResult, _bbox);
         }
 
         /// <summary>
@@ -74,9 +74,9 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
+        public (bool crossingResult, IFramedItem b) notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
         {
-            return notifyFrameArrival( frame, frameNo, boxes, mask, null );
+            return notifyFrameArrival(frame, frameNo, boxes, mask, null);
         }
 
         /// <summary>
@@ -92,29 +92,31 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature )
+        public (bool crossingResult, IFramedItem b) notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature)
         {
-            (occupancy, bbox) = line.isOccupied( boxes, mask, signature );
-            bool crossingResult = lineCrossingDetector.notifyOccupancy(frameNo, occupancy);
-            if( bbox != null && bbox.ItemIDs[bbox.ItemIDs.Count - 1] is ITriggeredItem trig )
+            (_occupancy, _bbox) = _line.IsOccupied(boxes, mask, signature);
+            bool crossingResult = _lineCrossingDetector.notifyOccupancy(frameNo, _occupancy);
+            if (_bbox != null && _bbox.ItemIDs[_bbox.ItemIDs.Count - 1] is ITriggeredItem trig)
             {
                 trig.FurtherAnalysisTriggered = crossingResult;
             }
-            if( crossingResult && bbox == null )
+            if (crossingResult && _bbox == null)
             {
-                ILineTriggeredItemID item = new LineTriggeredItemID( line.Line.BoundingBox, 0, null, 0, 0, nameof(SingleLineCrossingDetector) );
-                item.SourceObject = signature;
-                //item.TriggerLine = this.line.LineName;
-                item.FurtherAnalysisTriggered = true;
-                bbox = new FramedItem( frame, item );
+                ILineTriggeredItemID item = new LineTriggeredItemID(_line.Line.BoundingBox, 0, null, 0, 0, nameof(SingleLineCrossingDetector))
+                {
+                    SourceObject = signature,
+                    //item.TriggerLine = this.line.LineName;
+                    FurtherAnalysisTriggered = true
+                };
+                _bbox = new FramedItem(frame, item);
 
-                boxes.Add( bbox );
+                boxes.Add(_bbox);
             }
             /*if ( !crossingResult && bbox != null && bbox.ItemIDs[bbox.ItemIDs.Count-1].SourceObject == signature )
             {
                 bbox.ItemIDs.RemoveAt( bbox.ItemIDs.Count - 1 );
             }*/
-            return (crossingResult, bbox);
+            return (crossingResult, _bbox);
         }
 
         /// <summary>
@@ -128,8 +130,8 @@ namespace LineDetector
         /// <returns>Returns a boolean indicating whether a crossing was detected.</returns>
         public bool notifyFrameArrival(int frameNo, Bitmap mask)
         {
-            occupancy = line.isOccupied(mask);
-            bool crossingResult = lineCrossingDetector.notifyOccupancy(frameNo, occupancy);
+            _occupancy = _line.IsOccupied(mask);
+            bool crossingResult = _lineCrossingDetector.notifyOccupancy(frameNo, _occupancy);
             return crossingResult;
         }
 
@@ -138,7 +140,7 @@ namespace LineDetector
         /// </summary>
         public OCCUPANCY_STATE getState()
         {
-            return lineCrossingDetector.getState();
+            return _lineCrossingDetector.getState();
         }
 
         /// <summary>
@@ -146,8 +148,8 @@ namespace LineDetector
         /// </summary>
         public void setDebug()
         {
-            debug = true;
-            lineCrossingDetector.setDebug();
+            _debug = true;
+            _lineCrossingDetector.setDebug();
         }
 
         /// <summary>
@@ -155,9 +157,9 @@ namespace LineDetector
         /// </summary>
         public List<double> getLineOccupancyHistory()
         {
-            if (debug)
+            if (_debug)
             {
-                return lineCrossingDetector.getLineOccupancyHistory();
+                return _lineCrossingDetector.getLineOccupancyHistory();
             }
             else
             {
@@ -173,7 +175,7 @@ namespace LineDetector
         /// </returns>
         public bool getOccupancy()
         {
-            return occupancy;
+            return _occupancy;
         }
 
         /// <summary>
@@ -181,23 +183,23 @@ namespace LineDetector
         /// </summary>
         public DetectionLine getDetectionLine()
         {
-            return line;
+            return _line;
         }
 
         /// <summary>
         /// Gets the bounding box of this detector's region of interest.
         /// </summary>
-        public IFramedItem getBbox()
+        public IFramedItem GetBbox()
         {
-            return bbox;
+            return _bbox;
         }
 
         /// <summary>
         /// Gets the coordinates of the line used by this detector.
         /// </summary>
-        public (Point p1, Point p2) getLineCoor()
+        public (Point p1, Point p2) GetLineCoor()
         {
-            return (getDetectionLine().p1, getDetectionLine().p2);
+            return (getDetectionLine().P1, getDetectionLine().P2);
         }
     }
 }

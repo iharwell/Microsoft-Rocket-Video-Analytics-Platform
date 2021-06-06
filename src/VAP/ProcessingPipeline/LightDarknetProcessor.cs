@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -10,21 +13,21 @@ namespace ProcessingPipeline
 {
     public class LightDarknetProcessor : IProcessor
     {
-        DarknetDetector.LineTriggeredDNNDarknet darknet;
+        private readonly DarknetDetector.LineTriggeredDNNDarknet _darknet;
 
-        public LightDarknetProcessor( List<(string key, LineSegment coordinates)> lines )
-            : this( lines, null, Color.Pink, false )
+        public LightDarknetProcessor(List<(string key, LineSegment coordinates)> lines)
+            : this(lines, null, Color.Pink, false)
         { }
 
-        public LightDarknetProcessor( List<(string key, LineSegment coordinates)> lines, ISet<string> categories, Color color, bool display )
+        public LightDarknetProcessor(List<(string key, LineSegment coordinates)> lines, ISet<string> categories, Color color, bool display)
         {
-            darknet = new DarknetDetector.LineTriggeredDNNDarknet( lines );
+            _darknet = new DarknetDetector.LineTriggeredDNNDarknet(lines);
             LineSegments = new Dictionary<string, LineSegment>();
-            for ( int i = 0; i < lines.Count; i++ )
+            for (int i = 0; i < lines.Count; i++)
             {
-                LineSegments.Add( lines[i].key, lines[i].coordinates );
+                LineSegments.Add(lines[i].key, lines[i].coordinates);
             }
-            if ( categories == null )
+            if (categories == null)
             {
                 Categories = new HashSet<string>();
             }
@@ -36,17 +39,17 @@ namespace ProcessingPipeline
             DisplayOutput = display;
 
         }
-        public LightDarknetProcessor( IDictionary<string, LineSegment> lines, ISet<string> categories, Color color, bool display )
+        public LightDarknetProcessor(IDictionary<string, LineSegment> lines, ISet<string> categories, Color color, bool display)
         {
             List<(string key, LineSegment coordinates)> llist = new List<(string key, LineSegment coordinates)>();
-            foreach( var entry in lines )
+            foreach (var entry in lines)
             {
-                llist.Add( (entry.Key, entry.Value) );
+                llist.Add((entry.Key, entry.Value));
             }
 
-            darknet = new DarknetDetector.LineTriggeredDNNDarknet( llist );
+            _darknet = new DarknetDetector.LineTriggeredDNNDarknet(llist);
             LineSegments = lines;
-            if ( categories == null )
+            if (categories == null)
             {
                 Categories = new HashSet<string>();
             }
@@ -64,28 +67,28 @@ namespace ProcessingPipeline
         public ISet<string> Categories { get; set; }
         public bool DisplayOutput { get; set; }
 
-        public bool Run( IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage )
+        public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
-            Dictionary<string,int> counts = new Dictionary<string, int>();
+            Dictionary<string, int> counts = new Dictionary<string, int>();
 
             List<(string key, LineSegment coordinates)> lines = new List<(string key, LineSegment coordinates)>();
-            foreach ( var entry in LineSegments)
+            foreach (var entry in LineSegments)
             {
-                lines.Add( (entry.Key, entry.Value) );
-                counts.Add( entry.Key, 0 );
+                lines.Add((entry.Key, entry.Value));
+                counts.Add(entry.Key, 0);
             }
 
-            for ( int i = 0; i < items.Count; i++ )
+            for (int i = 0; i < items.Count; i++)
             {
-                var ItemIDs = items[i].ItemIDs;
-                for ( int j = 0; j < items[i].ItemIDs.Count; j++ )
+                var itemIDs = items[i].ItemIDs;
+                for (int j = 0; j < items[i].ItemIDs.Count; j++)
                 {
-                    if( object.ReferenceEquals( ItemIDs[j].SourceObject, previousStage ) )
+                    if (object.ReferenceEquals(itemIDs[j].SourceObject, previousStage))
                     {
-                        Debug.Assert( ItemIDs[j] is ILineTriggeredItemID );
-                        ILineTriggeredItemID ltid = ItemIDs[j] as ILineTriggeredItemID;
+                        Debug.Assert(itemIDs[j] is ILineTriggeredItemID);
+                        ILineTriggeredItemID ltid = itemIDs[j] as ILineTriggeredItemID;
 
-                        if( counts.ContainsKey( ltid.TriggerLine ) )
+                        if (counts.ContainsKey(ltid.TriggerLine))
                         {
                             counts[ltid.TriggerLine] = counts[ltid.TriggerLine] + 1;
                         }
@@ -97,11 +100,11 @@ namespace ProcessingPipeline
                 }
             }
 
-            var res = darknet.Run( frame, counts, lines, Categories, items, this );
+            var res = _darknet.Run(frame, counts, lines, Categories, items, this);
 
-            for ( int i = res.Count-1; i > 0; --i )
+            for (int i = res.Count - 1; i > 0; --i)
             {
-                if ( res[i].ItemIDs[res[i].ItemIDs.Count - 1].SourceObject == this )
+                if (res[i].ItemIDs[res[i].ItemIDs.Count - 1].SourceObject == this)
                 {
                     return true;
                 }

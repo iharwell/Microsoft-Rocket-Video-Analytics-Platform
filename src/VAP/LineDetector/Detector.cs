@@ -20,15 +20,15 @@ namespace LineDetector
         /// <summary>
         /// The initial delay to allow for the background subtractor to kick in, N_FRAMES_TO_LEARN in MOG2.cs
         /// </summary>
-        public int START_DELAY = 120;
+        public int StartDelay { get; set; } = 120;
 
 
-        public MultiLaneDetector multiLaneDetector;
+        public MultiLaneDetector _multiLaneDetector;
 
-        private Dictionary<string, int> counts = new Dictionary<string, int>();
-        private Dictionary<string, int> counts_prev = new Dictionary<string, int>();
-        private Dictionary<string, bool> occupancy = new Dictionary<string, bool>();
-        private Dictionary<string, bool> occupancy_prev = new Dictionary<string, bool>();
+        private Dictionary<string, int> _counts = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _counts_prev = new Dictionary<string, int>();
+        private Dictionary<string, bool> _occupancy = new Dictionary<string, bool>();
+        private readonly Dictionary<string, bool> _occupancy_prev = new Dictionary<string, bool>();
 
         /// <summary>
         /// Constructs a <see cref="Detector"/> object with the provided 
@@ -39,9 +39,9 @@ namespace LineDetector
         /// <param name="displayBGS">True to display a separate image each frame with the current frame number, the lines used, and the changes from the previous frame.</param>
         public Detector(int sFactor, double rFactor, string linesFile, bool displayBGS)
         {
-            Dictionary<string, ILineBasedDetector> lineBasedDetectors = LineSets.readLineSet_LineDetector_FromTxtFile(linesFile, sFactor, rFactor);
+            Dictionary<string, ILineBasedDetector> lineBasedDetectors = LineSets.ReadLineSet_LineDetector_FromTxtFile(linesFile, sFactor, rFactor);
 
-            multiLaneDetector = (lineBasedDetectors != null) ? new MultiLaneDetector(lineBasedDetectors) : null;
+            _multiLaneDetector = (lineBasedDetectors != null) ? new MultiLaneDetector(lineBasedDetectors) : null;
 
             this.DISPLAY_BGS = displayBGS;
             Console.WriteLine(linesFile);
@@ -59,21 +59,23 @@ namespace LineDetector
         ///   <para>The first dictionary contains the number of items which cross the lines of interest, indexed by line name.</para>
         ///   <para>The second dictionary contains a boolean for each line indicating whether or not an item is present at that line.</para>
         /// </returns>
-        public (Dictionary<string, int>, Dictionary<string, bool>) updateLineResults(Mat frame, int frameIndex, Mat fgmask, IList<IFramedItem> boxes, object sourceObject = null )
+        public (Dictionary<string, int>, Dictionary<string, bool>) UpdateLineResults(Mat frame, int frameIndex, Mat fgmask, IList<IFramedItem> boxes, object sourceObject = null)
         {
-            if (frameIndex > START_DELAY)
+            if (frameIndex > StartDelay)
             {
-                IFrame fr = new Frame( null, frameIndex, frame );
-                fr.ForegroundMask = fgmask;
+                IFrame fr = new Frame(null, frameIndex, frame)
+                {
+                    ForegroundMask = fgmask
+                };
                 //Bitmap fgmaskBit = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(fgmask);
 
                 //multiLaneDetector.notifyFrameArrival( frameIndex, boxes, fgmaskBit );
-                multiLaneDetector.notifyFrameArrival( fr, frameIndex, boxes, fgmask, sourceObject );
+                _multiLaneDetector.notifyFrameArrival(fr, frameIndex, boxes, fgmask, sourceObject);
 
                 // bgs visualization with lines
                 if (DISPLAY_BGS)
                 {
-                    List<(string key, LineSegment coordinates)> lines = this.multiLaneDetector.getAllLines();
+                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.getAllLines();
                     for (int i = 0; i < lines.Count; i++)
                     {
                         System.Drawing.Point p1 = lines[i].coordinates.P1;
@@ -84,28 +86,28 @@ namespace LineDetector
                     //Cv2.WaitKey(1);
                 }
             }
-            counts = multiLaneDetector.getCounts();
+            _counts = _multiLaneDetector.getCounts();
 
-            if (counts_prev.Count != 0)
+            if (_counts_prev.Count != 0)
             {
-                foreach (string lane in counts.Keys)
+                foreach (string lane in _counts.Keys)
                 {
-                    int diff = Math.Abs(counts[lane] - counts_prev[lane]);
+                    int diff = Math.Abs(_counts[lane] - _counts_prev[lane]);
                     if (diff > 0) //object detected by BGS-based counter
                     {
-                        Console.WriteLine($"Line: {lane}\tCounts: {counts[lane]}");
-                        string blobName_BGS = $@"frame-{frameIndex}-BGS-{lane}-{counts[lane]}.jpg";
+                        Console.WriteLine($"Line: {lane}\tCounts: {_counts[lane]}");
+                        string blobName_BGS = $@"frame-{frameIndex}-BGS-{lane}-{_counts[lane]}.jpg";
                         string fileName_BGS = @OutputFolder.OutputFolderBGSLine + blobName_BGS;
                         frame.SaveImage(fileName_BGS);
                         frame.SaveImage(@OutputFolder.OutputFolderAll + blobName_BGS);
                     }
                 }
             }
-            updateCount(counts);
+            UpdateCount(_counts);
 
             //occupancy
-            occupancy = multiLaneDetector.getOccupancy();
-            foreach (string lane in occupancy.Keys)
+            _occupancy = _multiLaneDetector.getOccupancy();
+            foreach (string lane in _occupancy.Keys)
             {
                 //output frames that have line occupied by objects
                 //if (frameIndex > 1)
@@ -118,22 +120,22 @@ namespace LineDetector
                 //        frame.SaveImage(@OutputFolder.OutputFolderAll + blobName_BGS);
                 //    }
                 //}
-                updateCount(lane, occupancy);
+                UpdateCount(lane, _occupancy);
             }
 
-            return (counts, occupancy);
+            return (_counts, _occupancy);
         }
 
-        public IList<IFramedItem> updateLineResults( IFrame frame, IList<IFramedItem> boxes, object signature )
+        public IList<IFramedItem> UpdateLineResults(IFrame frame, IList<IFramedItem> boxes, object signature)
         {
-            if ( frame.FrameIndex > START_DELAY )
+            if (frame.FrameIndex > StartDelay)
             {
-                multiLaneDetector.notifyFrameArrival( frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature );
+                _multiLaneDetector.notifyFrameArrival(frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature);
 
                 // bgs visualization with lines
                 if (DISPLAY_BGS)
                 {
-                    List<(string key, LineSegment coordinates)> lines = this.multiLaneDetector.getAllLines();
+                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.getAllLines();
                     for (int i = 0; i < lines.Count; i++)
                     {
                         System.Drawing.Point p1 = lines[i].coordinates.P1;
@@ -144,28 +146,28 @@ namespace LineDetector
                     Cv2.WaitKey(1);
                 }
             }
-            counts = multiLaneDetector.getCounts();
+            _counts = _multiLaneDetector.getCounts();
 
-            if (counts_prev.Count != 0)
+            if (_counts_prev.Count != 0)
             {
-                foreach (string lane in counts.Keys)
+                foreach (string lane in _counts.Keys)
                 {
-                    int diff = Math.Abs(counts[lane] - counts_prev[lane]);
+                    int diff = Math.Abs(_counts[lane] - _counts_prev[lane]);
                     if (diff > 0) //object detected by BGS-based counter
                     {
-                        Console.WriteLine($"Line: {lane}\tCounts: {counts[lane]}");
-                        string blobName_BGS = $@"frame-{frame.FrameIndex}-BGS-{lane}-{counts[lane]}.jpg";
+                        Console.WriteLine($"Line: {lane}\tCounts: {_counts[lane]}");
+                        string blobName_BGS = $@"frame-{frame.FrameIndex}-BGS-{lane}-{_counts[lane]}.jpg";
                         string fileName_BGS = @OutputFolder.OutputFolderBGSLine + blobName_BGS;
                         frame.FrameData.SaveImage(fileName_BGS);
                         frame.FrameData.SaveImage(@OutputFolder.OutputFolderAll + blobName_BGS);
                     }
                 }
             }
-            updateCount(counts);
+            UpdateCount(_counts);
 
             //occupancy
-            occupancy = multiLaneDetector.getOccupancy();
-            foreach (string lane in occupancy.Keys)
+            _occupancy = _multiLaneDetector.getOccupancy();
+            foreach (string lane in _occupancy.Keys)
             {
                 //output frames that have line occupied by objects
                 //if (frameIndex > 1)
@@ -178,7 +180,7 @@ namespace LineDetector
                 //        frame.SaveImage(@OutputFolder.OutputFolderAll + blobName_BGS);
                 //    }
                 //}
-                updateCount(lane, occupancy);
+                UpdateCount(lane, _occupancy);
             }
 
             return boxes;
@@ -186,48 +188,48 @@ namespace LineDetector
             throw new NotImplementedException();
             //return (counts, occupancy);
         }
-        public (Dictionary<string, int>, Dictionary<string, bool>) updateLineResults2( IFrame frame, IList<IFramedItem> boxes, object signature )
+        public (Dictionary<string, int>, Dictionary<string, bool>) UpdateLineResults2(IFrame frame, IList<IFramedItem> boxes, object signature)
         {
-            if ( frame.FrameIndex > START_DELAY )
+            if (frame.FrameIndex > StartDelay)
             {
-                multiLaneDetector.notifyFrameArrival( frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature );
+                _multiLaneDetector.notifyFrameArrival(frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature);
 
                 // bgs visualization with lines
-                if ( DISPLAY_BGS )
+                if (DISPLAY_BGS)
                 {
-                    List<(string key, LineSegment coordinates)> lines = this.multiLaneDetector.getAllLines();
-                    for ( int i = 0; i < lines.Count; i++ )
+                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.getAllLines();
+                    for (int i = 0; i < lines.Count; i++)
                     {
                         System.Drawing.Point p1 = lines[i].coordinates.P1;
                         System.Drawing.Point p2 = lines[i].coordinates.P2;
-                        Cv2.Line( frame.ForegroundMask, p1.X, p1.Y, p2.X, p2.Y, new Scalar( 255, 0, 255, 255 ), 5 );
+                        Cv2.Line(frame.ForegroundMask, p1.X, p1.Y, p2.X, p2.Y, new Scalar(255, 0, 255, 255), 5);
                     }
-                    Cv2.ImShow( "BGS Output", frame.ForegroundMask );
-                    Cv2.WaitKey( 1 );
+                    Cv2.ImShow("BGS Output", frame.ForegroundMask);
+                    Cv2.WaitKey(1);
                 }
             }
-            counts = multiLaneDetector.getCounts();
+            _counts = _multiLaneDetector.getCounts();
 
-            if ( counts_prev.Count != 0 )
+            if (_counts_prev.Count != 0)
             {
-                foreach ( string lane in counts.Keys )
+                foreach (string lane in _counts.Keys)
                 {
-                    int diff = Math.Abs(counts[lane] - counts_prev[lane]);
-                    if ( diff > 0 ) //object detected by BGS-based counter
+                    int diff = Math.Abs(_counts[lane] - _counts_prev[lane]);
+                    if (diff > 0) //object detected by BGS-based counter
                     {
-                        Console.WriteLine( $"Line: {lane}\tCounts: {counts[lane]}" );
-                        string blobName_BGS = $@"frame-{frame.FrameIndex}-BGS-{lane}-{counts[lane]}.jpg";
+                        Console.WriteLine($"Line: {lane}\tCounts: {_counts[lane]}");
+                        string blobName_BGS = $@"frame-{frame.FrameIndex}-BGS-{lane}-{_counts[lane]}.jpg";
                         string fileName_BGS = @OutputFolder.OutputFolderBGSLine + blobName_BGS;
-                        frame.FrameData.SaveImage( fileName_BGS );
-                        frame.FrameData.SaveImage( @OutputFolder.OutputFolderAll + blobName_BGS );
+                        frame.FrameData.SaveImage(fileName_BGS);
+                        frame.FrameData.SaveImage(@OutputFolder.OutputFolderAll + blobName_BGS);
                     }
                 }
             }
-            updateCount( counts );
+            UpdateCount(_counts);
 
             //occupancy
-            occupancy = multiLaneDetector.getOccupancy();
-            foreach ( string lane in occupancy.Keys )
+            _occupancy = _multiLaneDetector.getOccupancy();
+            foreach (string lane in _occupancy.Keys)
             {
                 //output frames that have line occupied by objects
                 //if (frameIndex > 1)
@@ -240,32 +242,34 @@ namespace LineDetector
                 //        frame.SaveImage(@OutputFolder.OutputFolderAll + blobName_BGS);
                 //    }
                 //}
-                updateCount( lane, occupancy );
+                UpdateCount(lane, _occupancy);
             }
-            return (counts, occupancy);
+            return (_counts, _occupancy);
         }
 
+        /*
         private bool occupancyChanged(string lane)
         {
             bool diff = false;
-            if (occupancy_prev.Count != 0)
+            if (_occupancy_prev.Count != 0)
             {
-                diff = occupancy[lane] != occupancy_prev[lane];
+                diff = _occupancy[lane] != _occupancy_prev[lane];
             }
 
             return diff;
         }
+        */
 
-        private void updateCount(string lane, Dictionary<string, bool> counts)
+        private void UpdateCount(string lane, Dictionary<string, bool> counts)
         {
-            occupancy_prev[lane] = counts[lane];
+            _occupancy_prev[lane] = counts[lane];
         }
 
-        private void updateCount(Dictionary<string, int> counts)
+        private void UpdateCount(Dictionary<string, int> counts)
         {
             foreach (string dir in counts.Keys)
             {
-                counts_prev[dir] = counts[dir];
+                _counts_prev[dir] = counts[dir];
             }
         }
     }

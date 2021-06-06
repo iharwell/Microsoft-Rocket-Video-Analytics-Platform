@@ -28,7 +28,7 @@ namespace LineDetector
         ///     <item><description>The overlap fraction threshold.</description></item>
         ///   </list>
         /// </remarks>
-        public static Dictionary<string, ILineBasedDetector> readLineSet_LineDetector_FromTxtFile(string fileName, int sFactor, double imageScaling)
+        public static Dictionary<string, ILineBasedDetector> ReadLineSet_LineDetector_FromTxtFile(string fileName, int sFactor, double imageScaling)
         {
             Dictionary<string, ILineBasedDetector> ret = new Dictionary<string, ILineBasedDetector>();
             try
@@ -54,14 +54,14 @@ namespace LineDetector
                         int y2 = (int)(Convert.ToInt32(fields[5 + 0 * 5]) * imageScaling);
                         double threshold = Convert.ToDouble(fields[6 + 0 * 5]);
                         SingleLineCrossingDetector lineDetector;
-                        if ( noLines == 1)
+                        if (noLines == 1)
                         {
-                            lineDetector = new SingleLineCrossingDetector(x1, y1, x2, y2, threshold, sFactor, directionName );
+                            lineDetector = new SingleLineCrossingDetector(x1, y1, x2, y2, threshold, sFactor, directionName);
 
                         }
                         else
                         {
-                            lineDetector = new SingleLineCrossingDetector(x1, y1, x2, y2, threshold, sFactor, directionName+i );
+                            lineDetector = new SingleLineCrossingDetector(x1, y1, x2, y2, threshold, sFactor, directionName + i);
                         }
 
                         lineDetectors.Add(lineDetector);

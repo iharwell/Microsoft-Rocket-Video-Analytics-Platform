@@ -18,7 +18,7 @@ namespace ProcessingPipeline
             BoundingBoxColor = bbColor;
 
             detector = new Detector( samplingFactor, resFactor, lineFile, display );
-            var lines = detector.multiLaneDetector.getAllLines();
+            var lines = detector._multiLaneDetector.getAllLines();
             LineSegments = new Dictionary<string, LineSegment>();
 
             for ( int i = 0; i < lines.Count; i++ )
@@ -41,7 +41,7 @@ namespace ProcessingPipeline
         {
             if ( items is null || items.Count == 0 )
             {
-                detector.updateLineResults( frame, items, this );
+                detector.UpdateLineResults( frame, items, this );
                 if ( items.Count > 0 )
                 {
                     return true;
@@ -49,7 +49,7 @@ namespace ProcessingPipeline
                 return false;
             }
 
-            detector.updateLineResults( frame, items, this );
+            detector.UpdateLineResults( frame, items, this );
 
             for ( int i = items.Count - 1; i >= 0; --i )
             {

@@ -18,21 +18,21 @@ namespace AML.Client
 {
     public class AMLCaller
     {
-        private static string Host;
-        private static bool UseSSL;
-        private static string Auth;
-        private static string AksServiceName;
-        private static string InputName = "Placeholder:0";
-        private static string OutputName = "classifier/resnet_v1_50/predictions/Softmax:0";
+        private static string s_host;
+        private static bool s_useSSL;
+        private static string s_auth;
+        private static string s_aksServiceName;
+        private static readonly string s_inputName = "Placeholder:0";
+        private static readonly string s_outputName = "classifier/resnet_v1_50/predictions/Softmax:0";
 
         public AMLCaller(string host, bool useSSL, string auth, string aksServiceName)
         {
             try
             {
-                Host = host;
-                UseSSL = useSSL;
-                Auth = auth;
-                AksServiceName = aksServiceName;
+                s_host = host;
+                s_useSSL = useSSL;
+                s_auth = auth;
+                s_aksServiceName = aksServiceName;
             }
             catch (Exception e)
             {
@@ -49,7 +49,7 @@ namespace AML.Client
                 return null;
             }
 
-            var client = new ScoringClient(Host, UseSSL ? 443 : 80, UseSSL, Auth, AksServiceName);
+            var client = new ScoringClient(s_host, s_useSSL ? 443 : 80, s_useSSL, s_auth, s_aksServiceName);
             List<bool> amlResult = new List<bool>();
 
             for (int itemIndex = 0; itemIndex < items.Count(); itemIndex++)
@@ -65,11 +65,11 @@ namespace AML.Client
 
                 using (mStream)
                 {
-                    IScoringRequest request = new ImageRequest(InputName, mStream);
+                    IScoringRequest request = new ImageRequest(s_inputName, mStream);
                     var stopWatch = System.Diagnostics.Stopwatch.StartNew();
                     try
                     {
-                        var result = await client.ScoreAsync<float[,]>(request, output_name: OutputName);
+                        var result = await client.ScoreAsync<float[,]>(request, output_name: s_outputName);
                         var latency = stopWatch.Elapsed;
                         for (int i = 0; i < result.GetLength(0); i++)
                         {
@@ -118,11 +118,11 @@ CheckNextItem:;
             return amlResult;
         }
 
-        private static Dictionary<int, string> _classes;
+        private static Dictionary<int, string> s_classes;
 
         private static string GetLabel(int classId)
         {
-            if (_classes == null)
+            if (s_classes == null)
             {
                 var assembly = typeof(AMLCaller).GetTypeInfo().Assembly;
                 var result = assembly.GetManifestResourceStream("AML.Client.imagenet-classes.json");
@@ -130,10 +130,10 @@ CheckNextItem:;
                 var streamReader = new StreamReader(result);
                 var classesJson = streamReader.ReadToEnd();
 
-                _classes = JsonConvert.DeserializeObject<Dictionary<int, string>>(classesJson);
+                s_classes = JsonConvert.DeserializeObject<Dictionary<int, string>>(classesJson);
             }
 
-            return _classes[classId];
+            return s_classes[classId];
         }
     }
 }
