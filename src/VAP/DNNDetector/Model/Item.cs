@@ -48,7 +48,7 @@ namespace DNNDetector.Model
             set => boundBox = value;
         }
 
-        Rectangle boundBox;
+        private Rectangle boundBox;
 
         public Item(int x, int y, int width, int height, int catId, string catName, double confidence, int lineID, string lineName)
         {

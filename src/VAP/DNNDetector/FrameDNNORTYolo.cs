@@ -22,8 +22,8 @@ namespace DNNDetector
         private static List<Tuple<string, int[]>> _lines;
         private static Dictionary<string, int> _category;
 
-        ORTWrapper onnxWrapper;
-        byte[] imageByteArray;
+        private ORTWrapper onnxWrapper;
+        private byte[] imageByteArray;
 
         public FrameDNNOnnxYolo(List<Tuple<string, int[]>> lines, string modelName, DNNMode mode)
         {

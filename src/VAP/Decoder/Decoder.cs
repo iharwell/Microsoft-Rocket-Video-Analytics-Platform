@@ -8,12 +8,12 @@ namespace Decoder
 {
     public class Decoder
     {
-        VideoCapture capture = null;
-        string inputURL;
+        private VideoCapture capture = null;
+        private string inputURL;
 
-        bool toLoop;
+        private bool toLoop;
 
-        int objTotal, objDirA, objDirB;
+        private int objTotal, objDirA, objDirB;
 
         public Decoder(string input, bool loop)
         {

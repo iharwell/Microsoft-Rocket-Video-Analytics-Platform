@@ -20,9 +20,9 @@ namespace DarknetDetector
 {
     public class CascadedDNNDarknet
     {
-        static string YOLOCONFIG = "YoloV3Coco"; // "cheap" yolo config folder name
-        FrameDNNDarknet frameDNNYolo;
-        FrameBuffer frameBufferCcDNN;
+        private static string YOLOCONFIG = "YoloV3Coco"; // "cheap" yolo config folder name
+        private FrameDNNDarknet frameDNNYolo;
+        private FrameBuffer frameBufferCcDNN;
 
         public CascadedDNNDarknet(double rFactor)
         {
@@ -100,7 +100,7 @@ namespace DarknetDetector
             return ltDNNItemList;
         }
 
-        Item Item(YoloTrackingItem yoloTrackingItem)
+        private Item Item(YoloTrackingItem yoloTrackingItem)
         {
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "");

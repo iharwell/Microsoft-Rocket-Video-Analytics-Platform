@@ -18,12 +18,12 @@ namespace AML.Client
 {
     public class AMLCaller
     {
-        static string Host;
-        static bool UseSSL;
-        static string Auth;
-        static string AksServiceName;
-        static string InputName = "Placeholder:0";
-        static string OutputName = "classifier/resnet_v1_50/predictions/Softmax:0";
+        private static string Host;
+        private static bool UseSSL;
+        private static string Auth;
+        private static string AksServiceName;
+        private static string InputName = "Placeholder:0";
+        private static string OutputName = "classifier/resnet_v1_50/predictions/Softmax:0";
 
         public AMLCaller(string host, bool useSSL, string auth, string aksServiceName)
         {

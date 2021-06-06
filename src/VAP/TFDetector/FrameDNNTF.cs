@@ -25,9 +25,9 @@ namespace TFDetector
         private static List<(string key, LineSegment coordinates)> _lines;
         private static HashSet<string> _category;
 
-        TFWrapper tfWrapper = new TFWrapper();
-        byte[] imageByteArray;
-        Brush bboxColor = Brushes.Green;
+        private TFWrapper tfWrapper = new TFWrapper();
+        private byte[] imageByteArray;
+        private Brush bboxColor = Brushes.Green;
 
         public FrameDNNTF(List<(string key, LineSegment coordinates)> lines)
         {
@@ -117,7 +117,7 @@ namespace TFDetector
             return (validObjects.Count == 0 ? null : validObjects);
         }
 
-        IList<IFramedItem> ValidateItems(float[,,] boxes, float[,] scores, float[,] classes, double minScore, IFrame frame)
+        private IList<IFramedItem> ValidateItems(float[,,] boxes, float[,] scores, float[,] classes, double minScore, IFrame frame)
         {
             List<IFramedItem> frameDNNItem = new List<IFramedItem>();
             var x = boxes.GetLength(0);

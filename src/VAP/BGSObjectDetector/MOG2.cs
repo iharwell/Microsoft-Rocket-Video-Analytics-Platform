@@ -5,14 +5,14 @@
 
 namespace BGSObjectDetector
 {
-    class MOG2
+    internal class MOG2
     {
-        BackgroundSubtractorMOG2 fgDetector = BackgroundSubtractorMOG2.Create(500, 10); //try sweeping (also set it higher than 25)
-        Mat regionOfInterest = null;
-        Mat fgMask0 = new Mat();
-        Mat fgMask = new Mat();
+        private BackgroundSubtractorMOG2 fgDetector = BackgroundSubtractorMOG2.Create(500, 10); //try sweeping (also set it higher than 25)
+        private Mat regionOfInterest = null;
+        private Mat fgMask0 = new Mat();
+        private Mat fgMask = new Mat();
 
-        int N_FRAMES_TO_LEARN = 120; // Why do we need this?
+        private int N_FRAMES_TO_LEARN = 120; // Why do we need this?
 
         public MOG2()
         {

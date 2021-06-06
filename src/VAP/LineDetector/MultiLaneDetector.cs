@@ -14,7 +14,7 @@ namespace LineDetector
     // corresponds to LineCrossingBasedMultiLaneCounter.cs
     public class MultiLaneDetector
     {
-        Dictionary<string, ILineBasedDetector> laneDetector;
+        private Dictionary<string, ILineBasedDetector> laneDetector;
 
         /// <summary>
         ///   Creates a <see cref="MultiLaneDetector" /> object using the provided set of named

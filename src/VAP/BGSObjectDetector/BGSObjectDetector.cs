@@ -11,24 +11,24 @@ namespace BGSObjectDetector
 {
     public class BGSObjectDetector
     {
-        MOG2 bgs;
+        private MOG2 bgs;
 
-        Mat blurredFrame = new Mat();
-        Mat fgMask = new Mat();
-        Mat fgWOShadows = new Mat();
-        Mat fgSmoothedMask2 = new Mat();
-        Mat fgSmoothedMask3 = new Mat();
-        Mat fgSmoothedMask4 = new Mat();
+        private Mat blurredFrame = new Mat();
+        private Mat fgMask = new Mat();
+        private Mat fgWOShadows = new Mat();
+        private Mat fgSmoothedMask2 = new Mat();
+        private Mat fgSmoothedMask3 = new Mat();
+        private Mat fgSmoothedMask4 = new Mat();
 
-        Mat regionOfInterest = null;
+        private Mat regionOfInterest = null;
 
-        int PRE_BGS_BLUR_SIGMA = 2;
-        int MEDIAN_BLUR_SIZE = 5;
-        int GAUSSIAN_BLUR_SIGMA = 4;
-        int GAUSSIAN_BLUR_THRESHOLD = 50;
-        static int MIN_BLOB_SIZE = 30;
+        private int PRE_BGS_BLUR_SIGMA = 2;
+        private int MEDIAN_BLUR_SIZE = 5;
+        private int GAUSSIAN_BLUR_SIGMA = 4;
+        private int GAUSSIAN_BLUR_THRESHOLD = 50;
+        private static int MIN_BLOB_SIZE = 30;
 
-        static SimpleBlobDetector.Params detectorParams = new SimpleBlobDetector.Params
+        private static SimpleBlobDetector.Params detectorParams = new SimpleBlobDetector.Params
         {
             //MinDistBetweenBlobs = 10, // 10 pixels between blobs
             //MinRepeatability = 1,
@@ -58,7 +58,7 @@ namespace BGSObjectDetector
             //FilterByColor = true,
             //BlobColor = 255 // to extract light blobs
         };
-        SimpleBlobDetector _blobDetector = SimpleBlobDetector.Create(detectorParams);
+        private SimpleBlobDetector _blobDetector = SimpleBlobDetector.Create(detectorParams);
 
         //public BGSObjectDetector(MOG2 bgs)
         public BGSObjectDetector()

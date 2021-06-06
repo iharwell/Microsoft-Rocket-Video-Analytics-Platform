@@ -18,10 +18,10 @@ namespace DNNDetector
     //Todo: merge it with LineTriggeredDNNYolo
     public class LineTriggeredDNNORTYolo
     {
-        Dictionary<string, int> counts_prev = new Dictionary<string, int>();
+        private Dictionary<string, int> counts_prev = new Dictionary<string, int>();
 
-        FrameDNNOnnxYolo frameDNNOnnxYolo;
-        FrameBuffer frameBufferLtDNNOnnxYolo;
+        private FrameDNNOnnxYolo frameDNNOnnxYolo;
+        private FrameBuffer frameBufferLtDNNOnnxYolo;
 
         public LineTriggeredDNNORTYolo(List<Tuple<string, int[]>> lines, string modelName)
         {
@@ -138,7 +138,7 @@ namespace DNNDetector
             return null;
         }
 
-        void updateCount(Dictionary<string, int> counts)
+        private void updateCount(Dictionary<string, int> counts)
         {
             foreach (string dir in counts.Keys)
             {

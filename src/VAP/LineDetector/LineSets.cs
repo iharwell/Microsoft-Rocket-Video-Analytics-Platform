@@ -7,7 +7,7 @@ using System.IO;
 
 namespace LineDetector
 {
-    class LineSets
+    internal class LineSets
     {
         /// <summary>
         /// Reads a line set from the provided CSV text file.

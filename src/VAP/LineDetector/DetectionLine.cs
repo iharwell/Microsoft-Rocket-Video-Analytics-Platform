@@ -21,7 +21,7 @@ namespace LineDetector
 
         public static double DEFAULT_OCCUPANCY_THRESHOLD = 0.9; // default threhsold
 
-        LineSegment lineSegment;
+        private LineSegment lineSegment;
 
         public LineSegment Line
         {

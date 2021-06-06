@@ -23,7 +23,7 @@ namespace PostProcessor
     public class DataPersistence
     {
         //string blobUri_BGS = null;
-        static AzureBlobProcessor blobProcessor = new AzureBlobProcessor();
+        private static AzureBlobProcessor blobProcessor = new AzureBlobProcessor();
         
         // force precise initialization
         static DataPersistence() { }

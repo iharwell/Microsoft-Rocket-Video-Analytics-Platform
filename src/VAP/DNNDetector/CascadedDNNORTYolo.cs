@@ -17,7 +17,7 @@ namespace DNNDetector
 {
     public class CascadedDNNORTYolo
     {
-        FrameDNNOnnxYolo frameDNNOnnxYolo;
+        private FrameDNNOnnxYolo frameDNNOnnxYolo;
 
         public CascadedDNNORTYolo(List<Tuple<string, int[]>> lines, string modelName)
         {

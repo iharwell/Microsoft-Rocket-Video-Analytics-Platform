@@ -19,10 +19,10 @@ namespace DarknetDetector
 {
     public class LineTriggeredDNNDarknet
     {
-        static string YOLOCONFIG = "YoloV3TinyCoco"; // "cheap" yolo config folder name
-        FrameDNNDarknet frameDNNYolo;
-        FrameBuffer frameBufferLtDNNYolo;
-        Dictionary<string, int> counts_prev = new Dictionary<string, int>();
+        private static string YOLOCONFIG = "YoloV3TinyCoco"; // "cheap" yolo config folder name
+        private FrameDNNDarknet frameDNNYolo;
+        private FrameBuffer frameBufferLtDNNYolo;
+        private Dictionary<string, int> counts_prev = new Dictionary<string, int>();
 
         public LineTriggeredDNNDarknet(double rFactor)
         {
@@ -106,7 +106,7 @@ namespace DarknetDetector
             return items;
         }
 
-        Item Item(YoloTrackingItem yoloTrackingItem)
+        private Item Item(YoloTrackingItem yoloTrackingItem)
         {
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "");
@@ -119,7 +119,7 @@ namespace DarknetDetector
             return item;
         }
 
-        void updateCount(Dictionary<string, int> counts)
+        private void updateCount(Dictionary<string, int> counts)
         {
             foreach (string dir in counts.Keys)
             {

@@ -9,7 +9,7 @@ namespace Wrapper.TF
     /// <summary>
 	/// Allows to add graphic elements to the existing image.
 	/// </summary>
-    class ImageEditor : IDisposable
+    internal class ImageEditor : IDisposable
     {
         private Graphics _graphics;
         private Image _image;

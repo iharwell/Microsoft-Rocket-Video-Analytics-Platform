@@ -9,10 +9,10 @@ using OpenCvSharp;
 
 namespace TFDetector
 {
-    class FrameBuffer
+    internal class FrameBuffer
     {
-        Queue<Mat> frameBuffer;
-        int bSize;
+        private Queue<Mat> frameBuffer;
+        private int bSize;
 
         public FrameBuffer(int size)
         {

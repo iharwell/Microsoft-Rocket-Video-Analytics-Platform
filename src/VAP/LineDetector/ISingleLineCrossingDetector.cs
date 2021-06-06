@@ -10,7 +10,7 @@ namespace LineDetector
     /// <summary>
     /// Interface for a line crossing detector that uses a single line for detection.
     /// </summary>
-    interface ISingleLineCrossingDetector
+    internal interface ISingleLineCrossingDetector
     {
         //notify the arrival of a frame to the detector
         //return true if there is a crossing event detected

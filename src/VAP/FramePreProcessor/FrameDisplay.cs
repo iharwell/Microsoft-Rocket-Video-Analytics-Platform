@@ -11,8 +11,8 @@ namespace FramePreProcessor
 {
     public class FrameDisplay
     {
-        static Dictionary<string, string> displayKVpairs = new Dictionary<string, string>();
-        static Dictionary<string, string> prev_displayKVpairs = new Dictionary<string, string>();
+        private static Dictionary<string, string> displayKVpairs = new Dictionary<string, string>();
+        private static Dictionary<string, string> prev_displayKVpairs = new Dictionary<string, string>();
 
         public static void display(Mat resizedFrame)
         {

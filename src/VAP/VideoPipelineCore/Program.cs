@@ -22,11 +22,11 @@ using Utils.Items;
 
 namespace VideoPipelineCore
 {
-    class Program
+    internal class Program
     {
-        const int BUFFERSIZE = 90;
+        private const int BUFFERSIZE = 90;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             //parse arguments
             if (args.Length < 4)

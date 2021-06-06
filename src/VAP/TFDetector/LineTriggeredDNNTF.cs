@@ -18,9 +18,9 @@ namespace TFDetector
     public class LineTriggeredDNNTF
     {
         //static string TFCONFIG = "";
-        FrameDNNTF frameDNNTF;
-        FrameBuffer frameBufferLtDNNTF;
-        Dictionary<string, int> counts_prev = new Dictionary<string, int>();
+        private FrameDNNTF frameDNNTF;
+        private FrameBuffer frameBufferLtDNNTF;
+        private Dictionary<string, int> counts_prev = new Dictionary<string, int>();
 
         public LineTriggeredDNNTF(List<(string key, LineSegment coordinates)> lines)
         {
@@ -93,7 +93,7 @@ namespace TFDetector
             return items;
         }
 
-        void updateCount(Dictionary<string, int> counts)
+        private void updateCount(Dictionary<string, int> counts)
         {
             foreach (string dir in counts.Keys)
             {

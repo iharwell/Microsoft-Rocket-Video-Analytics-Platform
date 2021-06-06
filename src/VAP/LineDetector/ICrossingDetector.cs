@@ -18,7 +18,7 @@
     /// <summary>
     /// Interface for a crossing detector that fires as a function of occupancy.
     /// </summary>
-    interface ICrossingDetector
+    internal interface ICrossingDetector
     {
         /// <summary>
         /// Notifies the detector of a new occupancy state at a given frame.

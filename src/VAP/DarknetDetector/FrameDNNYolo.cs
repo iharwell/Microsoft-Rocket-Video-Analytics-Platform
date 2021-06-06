@@ -19,9 +19,9 @@ namespace DarknetDetector
 {
     public class FrameDNNDarknet
     {
-        YoloWrapper frameYolo;
-        YoloTracking frameYoloTracking;
-        List<(string key, LineSegment coordinates)> _lines;
+        private YoloWrapper frameYolo;
+        private YoloTracking frameYoloTracking;
+        private List<(string key, LineSegment coordinates)> _lines;
 
         //distance-based validation
         public FrameDNNDarknet(string modelConfig, DNNMode dnnMode, double rFactor)
@@ -61,7 +61,7 @@ namespace DarknetDetector
             return OverlapVal( imgBuffer, yoloItems, lineID, bboxColor, min_score_for_linebbox_overlap);
         }
 
-        List<YoloTrackingItem> OverlapVal(byte[] imgByte, IEnumerable<YoloTrackingItem> yoloItems, int lineID, Color bboxColor, double min_score_for_linebbox_overlap)
+        private List<YoloTrackingItem> OverlapVal(byte[] imgByte, IEnumerable<YoloTrackingItem> yoloItems, int lineID, Color bboxColor, double min_score_for_linebbox_overlap)
         {
             var image = Image.FromStream(new MemoryStream(imgByte)); // to filter out bbox larger than the frame
 
@@ -160,7 +160,7 @@ namespace DarknetDetector
             File.WriteAllBytes(@OutputFolder.OutputFolderAll + $"frame-{frameIndex}.jpg", canvas);
         }
 
-        Item Item(YoloTrackingItem yoloTrackingItem)
+        private Item Item(YoloTrackingItem yoloTrackingItem)
         {
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "");
