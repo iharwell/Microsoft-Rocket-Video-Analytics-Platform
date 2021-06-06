@@ -105,7 +105,7 @@ namespace LineDetector
                 ILineTriggeredItemID item = new LineTriggeredItemID(_line.Line.BoundingBox, 0, null, 0, 0, nameof(SingleLineCrossingDetector))
                 {
                     SourceObject = signature,
-                    //item.TriggerLine = this.line.LineName;
+                    TriggerLine = this._line.LineName,
                     FurtherAnalysisTriggered = true
                 };
                 _bbox = new FramedItem(frame, item);
