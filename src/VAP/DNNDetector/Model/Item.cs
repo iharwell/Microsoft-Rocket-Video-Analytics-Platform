@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Drawing;
 using Utils;
 using Utils.Items;

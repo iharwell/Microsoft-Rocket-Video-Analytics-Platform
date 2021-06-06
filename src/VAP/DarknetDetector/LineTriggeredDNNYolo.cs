@@ -54,7 +54,7 @@ namespace DarknetDetector
                         {
                             // call yolo for crosscheck
                             int lineID = Array.IndexOf(counts.Keys.ToArray(), lane);
-                            frameDNNYolo.SetTrackingPoint( lines[lineID].coordinates.MidPoint ); //only needs to check the last line in each row
+                            frameDNNYolo.SetTrackingPoint(lines[lineID].coordinates.MidPoint); //only needs to check the last line in each row
                             Mat[] frameBufferArray = frameBufferLtDNNYolo.ToArray();
                             int frameIndexYolo = frameIndex - 1;
                             DateTime start = DateTime.Now;
@@ -66,19 +66,19 @@ namespace DarknetDetector
                                 Mat frameYolo = frameBufferArray[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
                                 // byte[] imgByte = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameYolo));
 
-                                analyzedTrackingItems = frameDNNYolo.Detect( frameYolo, category, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE, frameIndexYolo);
+                                analyzedTrackingItems = frameDNNYolo.Detect(frameYolo, category, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE, frameIndexYolo);
 
                                 // object detected by cheap YOLO
                                 if (analyzedTrackingItems != null)
                                 {
                                     foreach (YoloTrackingItem yoloTrackingItem in analyzedTrackingItems)
                                     {
-                                        Rectangle bounds = new Rectangle( yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height );
-                                        LineTriggeredItemID item = new LineTriggeredItemID (bounds, yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, yoloTrackingItem.TrackId, nameof(FrameDNNDarknet) );
+                                        Rectangle bounds = new Rectangle(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height);
+                                        LineTriggeredItemID item = new LineTriggeredItemID(bounds, yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, yoloTrackingItem.TrackId, nameof(FrameDNNDarknet));
                                         item.TriggerLine = lines[lineID].key;
                                         item.TriggerLineID = lineID;
 
-                                        if ( item.InsertIntoFramedItemList( items, out IFramedItem framedItem, frameIndexYolo ) )
+                                        if (item.InsertIntoFramedItemList(items, out IFramedItem framedItem, frameIndexYolo))
                                         {
                                             var f = framedItem.Frame;
                                             f.FrameIndex = frameIndexYolo;

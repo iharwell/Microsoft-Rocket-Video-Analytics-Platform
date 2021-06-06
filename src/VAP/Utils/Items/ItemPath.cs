@@ -16,7 +16,7 @@ namespace Utils.Items
         }
 
         /// <inheritdoc />
-        public virtual int FrameIndex( int entryIndex )
+        public virtual int FrameIndex(int entryIndex)
         {
             return FramedItems[entryIndex].Frame.FrameIndex;
         }

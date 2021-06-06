@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -29,7 +29,7 @@ namespace Wrapper.Yolo
                 return false;
             }
 
-            foreach(var imageFormat in this._imageFormats)
+            foreach (var imageFormat in this._imageFormats)
             {
                 if (imageData.Take(imageFormat.Value.Length).SequenceEqual(imageFormat.Value))
                 {

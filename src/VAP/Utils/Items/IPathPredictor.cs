@@ -23,7 +23,7 @@ namespace Utils.Items
         /// <returns>
         ///   Returns true if the location of the object can be predicted, and false otherwise.
         /// </returns>
-        bool CanPredict( IItemPath path, int frameIndex );
+        bool CanPredict(IItemPath path, int frameIndex);
 
         /// <summary>
         ///   Predicts the location of the item at the provided frame index.
@@ -37,7 +37,7 @@ namespace Utils.Items
         /// <returns>
         ///   Returns the predicted bounding box of the item at the given frame index.
         /// </returns>
-        Rectangle Predict( IItemPath path, int frameIndex );
+        Rectangle Predict(IItemPath path, int frameIndex);
 
         /// <summary>
         ///   Attempts to predict the location of the item at the provided frame index.
@@ -54,6 +54,6 @@ namespace Utils.Items
         /// <returns>
         ///   Returns true if the prediction was successful, and false otherwise.
         /// </returns>
-        bool TryPredict( IItemPath path, int frameIndex, out Rectangle? prediction );
+        bool TryPredict(IItemPath path, int frameIndex, out Rectangle? prediction);
     }
 }

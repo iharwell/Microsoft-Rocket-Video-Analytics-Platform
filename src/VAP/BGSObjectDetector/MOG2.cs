@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using OpenCvSharp;
+using OpenCvSharp;
 
 namespace BGSObjectDetector
 {

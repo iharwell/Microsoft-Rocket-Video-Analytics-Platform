@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using OpenCvSharp;
 
 namespace Decoder
@@ -53,7 +53,7 @@ namespace Decoder
                     capture.Read(sourceMat);
                 }
             }
- 
+
             return sourceMat;
         }
 
@@ -68,7 +68,7 @@ namespace Decoder
         public double getVideoFPS()
         {
             double framerate;
-            framerate = capture.Get( VideoCaptureProperties.Fps);
+            framerate = capture.Get(VideoCaptureProperties.Fps);
 
             return framerate;
         }

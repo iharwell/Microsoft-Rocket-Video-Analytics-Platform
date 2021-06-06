@@ -21,26 +21,26 @@ namespace Utils.Items
         ///   Returns a value no greater than 1, with greater numbers representing a closer match
         ///   and positive values indicating some degree of overlap.
         /// </returns>
-        public static double Similarity( this IFramedItem item, Rectangle rect )
+        public static double Similarity(this IFramedItem item, Rectangle rect)
         {
             StatisticRectangle sr = new StatisticRectangle(item.ItemIDs);
-            if ( sr.Median.X <= rect.Right && rect.X <= sr.Median.Right && sr.Median.Y <= rect.Bottom && rect.Y <= sr.Median.Bottom )
+            if (sr.Median.X <= rect.Right && rect.X <= sr.Median.Right && sr.Median.Y <= rect.Bottom && rect.Y <= sr.Median.Bottom)
             {
                 // There is some overlap, so we will give a positive similarity score.
-                double ovX = Math.Max( rect.X, sr.Median.X );
-                double ovY = Math.Max( rect.Y, sr.Median.Y );
-                double ovW = Math.Min( rect.Right, sr.Median.Right ) - ovX;
-                double ovH = Math.Min( rect.Bottom, sr.Median.Bottom ) - ovY;
-                RectangleF overlap = new RectangleF( (float)ovX, (float)ovY, (float)ovW, (float)ovH );
+                double ovX = Math.Max(rect.X, sr.Median.X);
+                double ovY = Math.Max(rect.Y, sr.Median.Y);
+                double ovW = Math.Min(rect.Right, sr.Median.Right) - ovX;
+                double ovH = Math.Min(rect.Bottom, sr.Median.Bottom) - ovY;
+                RectangleF overlap = new RectangleF((float)ovX, (float)ovY, (float)ovW, (float)ovH);
 
-                double overlapArea = ovW*ovH;
-                double srArea = sr.Median.Width*sr.Median.Height;
-                double rectArea = rect.Width*rect.Height;
+                double overlapArea = ovW * ovH;
+                double srArea = sr.Median.Width * sr.Median.Height;
+                double rectArea = rect.Width * rect.Height;
                 /*
                 double overlapPercentRect = overlapArea/(rect.Width*rect.Height);
                 double overlapPercentMean = overlapArea/(sr.Median.Width *sr.Median.Height);
                 return overlapPercentRect * overlapPercentMean;*/
-                return ( overlapArea ) / ( srArea + rectArea - overlapArea );
+                return (overlapArea) / (srArea + rectArea - overlapArea);
             }
             else
             {
@@ -53,7 +53,7 @@ namespace Utils.Items
                 double sizeFactor = Math.Max(sr.Median.Width, rect.Width) / Math.Min(sr.Median.Width, rect.Width)
                                   * Math.Max(sr.Median.Height, rect.Height) / Math.Min(sr.Median.Height, rect.Height);
 
-                return -( normalizedDistance1 * normalizedDistance2 ) * sizeFactor;
+                return -(normalizedDistance1 * normalizedDistance2) * sizeFactor;
             }
         }
 
@@ -80,34 +80,34 @@ namespace Utils.Items
         ///   <see langword="true" /> if a new <see cref="IFramedItem" /> was created to add the
         ///   item; <see langword="false" /> if the item was appended to an existing entry.
         /// </returns>
-        public static bool InsertIntoFramedItemList( this IItemID itemID, IList<IFramedItem> framedItems, out IFramedItem framedItem, int frameIndex = -1 )
+        public static bool InsertIntoFramedItemList(this IItemID itemID, IList<IFramedItem> framedItems, out IFramedItem framedItem, int frameIndex = -1)
         {
             int bestIndex = 0;
             double bestSimilarity = double.NegativeInfinity;
-            for ( int i = 0; i < framedItems.Count; i++ )
+            for (int i = 0; i < framedItems.Count; i++)
             {
                 IFramedItem fItem = framedItems[i];
                 double sim = double.NegativeInfinity;
-                if ( frameIndex >= 0 && fItem.Frame.FrameIndex == frameIndex )
+                if (frameIndex >= 0 && fItem.Frame.FrameIndex == frameIndex)
                 {
-                    sim = fItem.Similarity( itemID.BoundingBox );
-                    if ( sim > bestSimilarity )
+                    sim = fItem.Similarity(itemID.BoundingBox);
+                    if (sim > bestSimilarity)
                     {
                         bestIndex = i;
                         bestSimilarity = sim;
                     }
                 }
             }
-            if ( bestSimilarity > 0 )
+            if (bestSimilarity > 0)
             {
                 framedItem = framedItems[bestIndex];
-                framedItem.ItemIDs.Add( itemID );
+                framedItem.ItemIDs.Add(itemID);
                 return false;
             }
             else
             {
-                framedItem = new FramedItem( new Frame(), itemID );
-                framedItems.Add( framedItem );
+                framedItem = new FramedItem(new Frame(), itemID);
+                framedItems.Add(framedItem);
                 return true;
             }
         }

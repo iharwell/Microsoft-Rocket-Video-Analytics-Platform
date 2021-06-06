@@ -57,7 +57,8 @@ namespace DNNDetector
             {
                 var overlapItems = preValidItems.Select(
                     o =>
-                        new { 
+                        new
+                        {
                             Overlap = Utils.Utils.checkLineBboxOverlapRatio(_lines[lineID].Item2, o.X, o.Y, o.Width, o.Height),
                             Bbox_x = o.X + o.Width,
                             Bbox_y = o.Y + o.Height,
@@ -76,7 +77,7 @@ namespace DNNDetector
                 foreach (var item in overlapItems)
                 {
                     Rectangle rect = item.Item.BoundingBox;
-                    LineTriggeredItemID fitem = new LineTriggeredItemID( rect, item.Item.ObjectID, item.Item.ObjName, item.Item.Confidence, _index, nameof(ORTWrapper) );
+                    LineTriggeredItemID fitem = new LineTriggeredItemID(rect, item.Item.ObjectID, item.Item.ObjName, item.Item.Confidence, _index, nameof(ORTWrapper));
                     fitem.TriggerLine = _lines[lineID].Item1;
                     fitem.TriggerLineID = lineID;
                     validObjects.Add(fitem);
@@ -98,10 +99,10 @@ namespace DNNDetector
                     validObjects.Add(item.Item);*/
 
                     Rectangle rect = item.Item.BoundingBox;
-                    LineTriggeredItemID fitem = new LineTriggeredItemID( rect, item.Item.ObjectID, item.Item.ObjName, item.Item.Confidence, _index, nameof(ORTWrapper) );
+                    LineTriggeredItemID fitem = new LineTriggeredItemID(rect, item.Item.ObjectID, item.Item.ObjName, item.Item.Confidence, _index, nameof(ORTWrapper));
                     fitem.TriggerLine = _lines[lineID].Item1;
                     fitem.TriggerLineID = lineID;
-                    validObjects.Add( fitem );
+                    validObjects.Add(fitem);
                     _index++;
                 }
             }
@@ -111,10 +112,10 @@ namespace DNNDetector
             {
                 foreach (IItemID it in validObjects)
                 {
-                    IFramedItem fitem = new FramedItem( frame, it );
-                    var tagged = fitem.TaggedImageData( 0, bboxColor );
-                    tagged.SaveImage( @OutputFolder.OutputFolderFrameDNNONNX + $"frame-{frameIndex}-ONNX-{it.Confidence}.jpg" );
-                    tagged.SaveImage( @OutputFolder.OutputFolderAll + $"frame-{frameIndex}-ONNX-{it.Confidence}.jpg" );
+                    IFramedItem fitem = new FramedItem(frame, it);
+                    var tagged = fitem.TaggedImageData(0, bboxColor);
+                    tagged.SaveImage(@OutputFolder.OutputFolderFrameDNNONNX + $"frame-{frameIndex}-ONNX-{it.Confidence}.jpg");
+                    tagged.SaveImage(@OutputFolder.OutputFolderAll + $"frame-{frameIndex}-ONNX-{it.Confidence}.jpg");
                     /*using (Image image = Image.FromStream(new MemoryStream(fitem.TaggedImageData(0,bboxColor))))
                     {
 
@@ -126,16 +127,16 @@ namespace DNNDetector
                 //        validObjects, Brushes.Pink);
             }
 
-            if ( validObjects.Count == 0 )
+            if (validObjects.Count == 0)
             {
                 return null;
             }
             else
             {
                 List<IFramedItem> framedItems = new List<IFramedItem>();
-                foreach ( IItemID item in validObjects )
+                foreach (IItemID item in validObjects)
                 {
-                    framedItems.Add( new FramedItem( frame, item ) );
+                    framedItems.Add(new FramedItem(frame, item));
                 }
                 return framedItems;
             }

@@ -11,17 +11,17 @@ namespace Utils.Items
     public abstract class PathPredictor : IPathPredictor
     {
         /// <inheritdoc />
-        public abstract bool CanPredict( IItemPath path, int frameIndex );
+        public abstract bool CanPredict(IItemPath path, int frameIndex);
 
         /// <inheritdoc />
-        public abstract Rectangle Predict( IItemPath path, int frameIndex );
+        public abstract Rectangle Predict(IItemPath path, int frameIndex);
 
         /// <inheritdoc />
-        public virtual bool TryPredict( IItemPath path, int frameIndex, out Rectangle? prediction )
+        public virtual bool TryPredict(IItemPath path, int frameIndex, out Rectangle? prediction)
         {
-            if (CanPredict(path,frameIndex))
+            if (CanPredict(path, frameIndex))
             {
-                prediction = Predict( path, frameIndex );
+                prediction = Predict(path, frameIndex);
                 return true;
             }
             prediction = null;

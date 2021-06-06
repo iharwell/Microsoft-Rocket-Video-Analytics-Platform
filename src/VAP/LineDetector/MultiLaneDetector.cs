@@ -63,12 +63,12 @@ namespace LineDetector
         ///   A mask detailing the precise layout of items in the frame using black to indicate
         ///   vacant space, and white to indicate occupied space.
         /// </param>
-        public void notifyFrameArrival( int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
+        public void notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
         {
 
-            foreach ( KeyValuePair<string, ILineBasedDetector> entry in laneDetector )
+            foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)
             {
-                entry.Value.notifyFrameArrival( frameNo, boxes, mask );
+                entry.Value.notifyFrameArrival(frameNo, boxes, mask);
             }
         }
 

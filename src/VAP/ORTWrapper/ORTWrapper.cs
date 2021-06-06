@@ -102,7 +102,7 @@ namespace Wrapper.ORT
             RGBtoBGR(bitmap);
             int iw = bitmap.Width, ih = bitmap.Height, w = 416, h = 416, nw, nh;
 
-            float scale = Math.Min((float)w/iw, (float)h/ih);
+            float scale = Math.Min((float)w / iw, (float)h / ih);
             nw = (int)(iw * scale);
             nh = (int)(ih * scale);
 

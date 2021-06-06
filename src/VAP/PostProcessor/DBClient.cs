@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using PostProcessor.Model;
+using PostProcessor.Model;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -18,7 +18,7 @@ namespace PostProcessor
         private static readonly string DBServer = ConfigurationManager.AppSettings["DBServer"];
         private static readonly string DBCred = ConfigurationManager.AppSettings["DBCred"];
         private static readonly string DBName = ConfigurationManager.AppSettings["DBName"];
-        
+
         private static readonly HttpClient client = new HttpClient();
 
         public static async Task<Camera> GetDocumentCamera(string id)

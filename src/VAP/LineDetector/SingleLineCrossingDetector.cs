@@ -74,9 +74,9 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival( int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
+        public (bool crossingResult, IFramedItem b) notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
         {
-            (occupancy, bbox) = line.isOccupied( boxes, mask );
+            (occupancy, bbox) = line.isOccupied(boxes, mask);
             bool crossingResult = lineCrossingDetector.notifyOccupancy(frameNo, occupancy);
             return (crossingResult, bbox);
         }

@@ -28,14 +28,14 @@ namespace Utils.Items
         ///   This constructor does not set up any frame data. This must be added manually, and is
         ///   highly recommended to avoid breaking some algorithms that depend on it being present.
         /// </remarks>
-        public Frame( string sourceName, int frameIndex )
+        public Frame(string sourceName, int frameIndex)
         {
             SourceName = sourceName;
             FrameIndex = frameIndex;
         }
 
         /// <inheritdoc cref="Frame(string, int, byte[], DateTime)" />
-        public Frame( string sourceName, int frameIndex, Mat frameData )
+        public Frame(string sourceName, int frameIndex, Mat frameData)
         {
             SourceName = sourceName;
             FrameIndex = frameIndex;
@@ -57,7 +57,7 @@ namespace Utils.Items
         /// <param name="timeStamp">
         ///   The timestamp of the frame.
         /// </param>
-        public Frame( string sourceName, int frameIndex, Mat frameData, DateTime timeStamp )
+        public Frame(string sourceName, int frameIndex, Mat frameData, DateTime timeStamp)
         {
             SourceName = sourceName;
             FrameIndex = frameIndex;

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -14,7 +14,7 @@ namespace Wrapper.Yolo
     public class YoloTracking
     {
         private YoloWrapper _yoloWrapper;
-        private Point _trackingObject = new Point (0, 0);
+        private Point _trackingObject = new Point(0, 0);
         private int _maxDistance;
         public int _index;
 
@@ -30,7 +30,7 @@ namespace Wrapper.Yolo
             this._trackingObject = trackingObject;
         }
 
-        public List<YoloTrackingItem> Analyse(byte[] imageData, HashSet<string> category, Color bboxColor )
+        public List<YoloTrackingItem> Analyse(byte[] imageData, HashSet<string> category, Color bboxColor)
         {
             var items = this._yoloWrapper.Track(imageData);
             if (items == null || items.Count() == 0)
@@ -110,7 +110,7 @@ namespace Wrapper.Yolo
             using (var memoryStream = new MemoryStream(imageData))
             using (var image = Image.FromStream(memoryStream))
             {
-                Rectangle cropRect = new Rectangle(item.X, item.Y, Math.Min(image.Width-item.X, item.Width), Math.Min(image.Height-item.Y, item.Height));
+                Rectangle cropRect = new Rectangle(item.X, item.Y, Math.Min(image.Width - item.X, item.Width), Math.Min(image.Height - item.Y, item.Height));
                 Bitmap bmpImage = new Bitmap(image);
                 Image croppedImage = bmpImage.Clone(cropRect, bmpImage.PixelFormat);
 

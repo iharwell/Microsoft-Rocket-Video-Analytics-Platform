@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using AML.Client;
+using AML.Client;
 using BGSObjectDetector;
 using DarknetDetector;
 using DNNDetector;
@@ -93,7 +93,7 @@ namespace VideoPipelineCore
             //-----LineTriggeredDNN (TensorFlow)-----
             LineTriggeredDNNTF ltDNNTF = null;
             IList<IFramedItem> ltDNNItemListTF = null;
-            if (new int[] { 5,6 }.Contains(pplConfig))
+            if (new int[] { 5, 6 }.Contains(pplConfig))
             {
                 ltDNNTF = new LineTriggeredDNNTF(lines);
                 ltDNNItemListTF = new List<IFramedItem>();
@@ -177,7 +177,7 @@ namespace VideoPipelineCore
 
             //-----Last minute prep-----
             DateTime videoTimeStamp;
-            if( isVideoStream )
+            if (isVideoStream)
             {
                 videoTimeStamp = DateTime.Now;
             }
@@ -207,7 +207,7 @@ namespace VideoPipelineCore
                 //decoder
                 Mat frame = decoder.getNextFrame();
 
-                
+
                 //frame pre-processor
                 frame = FramePreProcessor.PreProcessor.returnFrame(frame, frameIndex, SAMPLING_FACTOR, RESOLUTION_FACTOR, displayRawVideo);
                 frameIndex++;
@@ -218,8 +218,8 @@ namespace VideoPipelineCore
                 //background subtractor
                 Mat fgmask = null;
                 IList<IFramedItem> foregroundBoxes = bgs.DetectObjects(DateTime.Now, frame, frameIndex, out fgmask);
-                
-                if ( foregroundBoxes != null && foregroundBoxes.Count > 0 )
+
+                if (foregroundBoxes != null && foregroundBoxes.Count > 0)
                 {
                     //Console.WriteLine( "Foreground boxes exist." );
                 }
@@ -235,7 +235,7 @@ namespace VideoPipelineCore
                 if (new int[] { 3, 4 }.Contains(pplConfig))
                 {
                     ltDNNItemListDarknet = ltDNNDarknet.Run(frame, frameIndex, counts, lines, category, foregroundBoxes);
-                    if ( ltDNNItemListDarknet != null && ltDNNItemListDarknet.Count > 0 )
+                    if (ltDNNItemListDarknet != null && ltDNNItemListDarknet.Count > 0)
                         ItemList = ltDNNItemListDarknet;
                 }
                 else if (new int[] { 5, 6 }.Contains(pplConfig))
@@ -303,79 +303,79 @@ namespace VideoPipelineCore
                 }
 
                 //Merge IFrame items to conserve memory.
-                CompressIFrames( ItemList );
+                CompressIFrames(ItemList);
 
                 //display counts
-                if (ItemList != null && ItemList.Count>0)
+                if (ItemList != null && ItemList.Count > 0)
                 {
                     Dictionary<string, string> kvpairs = new Dictionary<string, string>();
                     foreach (IFramedItem it in ItemList)
                     {
-                        foreach ( IItemID ID in it.ItemIDs )
+                        foreach (IItemID ID in it.ItemIDs)
                         {
-                            if ( ID is ILineTriggeredItemID ltID && ltID.TriggerLine!=null )
+                            if (ID is ILineTriggeredItemID ltID && ltID.TriggerLine != null)
                             {
-                                if ( !kvpairs.ContainsKey( ltID.TriggerLine ) )
-                                    kvpairs.Add( ltID.TriggerLine, "1" );
+                                if (!kvpairs.ContainsKey(ltID.TriggerLine))
+                                    kvpairs.Add(ltID.TriggerLine, "1");
                                 break;
                             }
                         }
                         it.Frame.SourceName = videoUrl;
-                        it.Frame.TimeStamp = videoTimeStamp.AddTicks( (long)( TimeSpan.TicksPerSecond * it.Frame.FrameIndex / frameRate ) );
+                        it.Frame.TimeStamp = videoTimeStamp.AddTicks((long)(TimeSpan.TicksPerSecond * it.Frame.FrameIndex / frameRate));
                     }
                     FramePreProcessor.FrameDisplay.updateKVPairs(kvpairs);
 
 
                     // Currently requires the use of a detection line filter, as it generates too many ItemPaths without it.
-                    if( ItemList.Last().ItemIDs.Last().IdentificationMethod.CompareTo( nameof(BGSObjectDetector) ) != 0 )
+                    if (ItemList.Last().ItemIDs.Last().IdentificationMethod.CompareTo(nameof(BGSObjectDetector)) != 0)
                     {
-                        if ( ItemList.Last().ItemIDs.Last().IdentificationMethod.CompareTo( nameof( DetectionLine ) ) != 0 )
+                        if (ItemList.Last().ItemIDs.Last().IdentificationMethod.CompareTo(nameof(DetectionLine)) != 0)
                         {
-                            var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer( ItemList.Last(), framedItemBuffer, new PolyPredictor(), 0.3 );
-                            ItemPaths.Add( path );
+                            var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer(ItemList.Last(), framedItemBuffer, new PolyPredictor(), 0.3);
+                            ItemPaths.Add(path);
                         }
                     }
 
-                    framedItemBuffer.Add( ItemList );
-                    if ( framedItemBuffer.Count > BUFFERSIZE )
+                    framedItemBuffer.Add(ItemList);
+                    if (framedItemBuffer.Count > BUFFERSIZE)
                     {
-                        framedItemBuffer.RemoveAt( 0 );
+                        framedItemBuffer.RemoveAt(0);
                     }
                 }
 
 
                 //print out stats
-                if ( ( frameIndex & 0xF ) == 0 )
+                if ((frameIndex & 0xF) == 0)
                 {
                     double fps = 1000 * (double)(1) / (DateTime.Now - prevTime).TotalMilliseconds;
                     double avgFps = 1000 * (long)frameIndex / (DateTime.Now - startTime).TotalMilliseconds;
-                    Console.WriteLine( "{0} {1,-5} {2} {3,-5} {4} {5,-15} {6} {7,-10:N2} {8} {9,-10:N2}",
-                                        "sFactor:", SAMPLING_FACTOR, "rFactor:", RESOLUTION_FACTOR, "FrameID:", frameIndex, "FPS:", fps, "avgFPS:", avgFps );
+                    Console.WriteLine("{0} {1,-5} {2} {3,-5} {4} {5,-15} {6} {7,-10:N2} {8} {9,-10:N2}",
+                                        "sFactor:", SAMPLING_FACTOR, "rFactor:", RESOLUTION_FACTOR, "FrameID:", frameIndex, "FPS:", fps, "avgFPS:", avgFps);
                 }
                 prevTime = DateTime.Now;
             }
-            for ( int i = 0; i < ItemPaths.Count; i++ )
+            for (int i = 0; i < ItemPaths.Count; i++)
             {
-                Console.WriteLine( "Item path length " + ( i + 1 ) + ": " + ItemPaths[i].FramedItems.Count );
+                Console.WriteLine("Item path length " + (i + 1) + ": " + ItemPaths[i].FramedItems.Count);
             }
-           Console.WriteLine("Done!");
+            Console.WriteLine("Done!");
         }
 
-        private static void CompressIFrames( IList<IFramedItem> ItemList )
+        private static void CompressIFrames(IList<IFramedItem> ItemList)
         {
-            if( ItemList is null )
+            if (ItemList is null)
             {
                 return;
             }
 
-            for ( int i = 0; i < ItemList.Count; i++ )
+            for (int i = 0; i < ItemList.Count; i++)
             {
                 int frameIndex = ItemList[i].Frame.FrameIndex;
-                for ( int j = i + 1; j < ItemList.Count; j++ )
+                for (int j = i + 1; j < ItemList.Count; j++)
                 {
-                    if( ItemList[j].Frame.FrameIndex == frameIndex )
+                    if (ItemList[j].Frame.FrameIndex == frameIndex)
                     {
-                        if( !object.ReferenceEquals(ItemList[j].Frame, ItemList[i].Frame ) )
+                        if (!object.ReferenceEquals(ItemList[j].Frame, ItemList[i].Frame))
                         {
                             ItemList[j].Frame = ItemList[i].Frame;
                         }

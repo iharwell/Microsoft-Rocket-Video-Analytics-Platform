@@ -13,7 +13,7 @@ namespace Utils.Items
         /// <summary>
         ///   Gives the frame index for the framed item at the given index.
         /// </summary>
-        int FrameIndex( int entryIndex );
+        int FrameIndex(int entryIndex);
 
         /// <summary>
         ///   A list of the <see cref="IFramedItem" /> objects with this item in all frames in which

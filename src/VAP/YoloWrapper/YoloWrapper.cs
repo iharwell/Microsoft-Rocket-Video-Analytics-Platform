@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -419,8 +419,17 @@ namespace Wrapper.Yolo
             foreach (var item in container.candidates.Where(o => o.h > 0 || o.w > 0))
             {
                 var objectType = this._objectType[(int)item.obj_id];
-                var yoloItem = new YoloItem() { X = (int)item.x, Y = (int)item.y, Height = (int)item.h, Width = (int)item.w,
-                    Confidence = item.prob, Type = objectType, ObjId = (int)item.obj_id, TrackId = (int)item.track_id };
+                var yoloItem = new YoloItem()
+                {
+                    X = (int)item.x,
+                    Y = (int)item.y,
+                    Height = (int)item.h,
+                    Width = (int)item.w,
+                    Confidence = item.prob,
+                    Type = objectType,
+                    ObjId = (int)item.obj_id,
+                    TrackId = (int)item.track_id
+                };
                 yoloItems.Add(yoloItem);
             }
 

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 using System.Collections.Generic;
 
 namespace PostProcessor.Model

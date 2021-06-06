@@ -21,7 +21,7 @@ namespace Utils.Items
             Confidence = 0.0;
         }
 
-        public ItemID( Rectangle boundingBox, int objectID, string objName, double confidence, int trackID, string identificationMethod )
+        public ItemID(Rectangle boundingBox, int objectID, string objName, double confidence, int trackID, string identificationMethod)
         {
             ObjName = objName;
             ObjectID = objectID;

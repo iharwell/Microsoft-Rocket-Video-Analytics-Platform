@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenCvSharp;
@@ -119,8 +119,8 @@ namespace BGSObjectDetector
                 int size = (int)point.Size;
 
                 Box box = new Box("", x - size, x + size, y - size, y + size, frameIndex, id);
-                IItemID itemID = new ItemID( new Rectangle(box.X0, box.Y0, box.Width, box.Height), 0, null, 0, (int)id, nameof(BGSObjectDetector) );
-                IFramedItem item = new FramedItem( frame, itemID );
+                IItemID itemID = new ItemID(new Rectangle(box.X0, box.Y0, box.Width, box.Height), 0, null, 0, (int)id, nameof(BGSObjectDetector));
+                IFramedItem item = new FramedItem(frame, itemID);
                 id++;
                 newBlobs.Add(item);
 
