@@ -1,4 +1,7 @@
-﻿namespace LineDetector
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LineDetector
 {
     /// <summary>
     /// Indicates whether a detector is currently occupied or not.
