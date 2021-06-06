@@ -23,18 +23,36 @@ namespace Utils.Items
         /// </returns>
         public static double Similarity( this IFramedItem item, Rectangle rect )
         {
+            if ( rect.Width == 0 )
+            {
+                rect.Width = 1;
+            }
+            if ( rect.Height == 0 )
+            {
+                rect.Height = 1;
+            }
             StatisticRectangle sr = new StatisticRectangle(item.ItemIDs);
+
+            var median = sr.Median;
+            if ( median.Width == 0 )
+            {
+                median = new RectangleF( median.Location, new SizeF( 1, median.Height ) );
+            }
+            if ( median.Height == 0 )
+            {
+                median = new RectangleF( median.Location, new SizeF( median.Width, 1 ) );
+            }
             if ( sr.Median.X <= rect.Right && rect.X <= sr.Median.Right && sr.Median.Y <= rect.Bottom && rect.Y <= sr.Median.Bottom )
             {
                 // There is some overlap, so we will give a positive similarity score.
-                double ovX = Math.Max( rect.X, sr.Median.X );
-                double ovY = Math.Max( rect.Y, sr.Median.Y );
-                double ovW = Math.Min( rect.Right, sr.Median.Right ) - ovX;
-                double ovH = Math.Min( rect.Bottom, sr.Median.Bottom ) - ovY;
+                double ovX = Math.Max( rect.X, median.X );
+                double ovY = Math.Max( rect.Y, median.Y );
+                double ovW = Math.Min( rect.Right, median.Right ) - ovX;
+                double ovH = Math.Min( rect.Bottom, median.Bottom ) - ovY;
                 RectangleF overlap = new RectangleF( (float)ovX, (float)ovY, (float)ovW, (float)ovH );
 
                 double overlapArea = ovW*ovH;
-                double srArea = sr.Median.Width*sr.Median.Height;
+                double srArea = median.Width*median.Height;
                 double rectArea = rect.Width*rect.Height;
                 /*
                 double overlapPercentRect = overlapArea/(rect.Width*rect.Height);
@@ -50,8 +68,8 @@ namespace Utils.Items
                 double diagSq2 = sr.Median.DiagonalSquared();
                 double normalizedDistance1 = distSq / diagSq1;
                 double normalizedDistance2 = distSq / diagSq2;
-                double sizeFactor = Math.Max(sr.Median.Width, rect.Width) / Math.Min(sr.Median.Width, rect.Width)
-                                  * Math.Max(sr.Median.Height, rect.Height) / Math.Min(sr.Median.Height, rect.Height);
+                double sizeFactor = Math.Max(median.Width, rect.Width) / Math.Min(median.Width, rect.Width)
+                                  * Math.Max(median.Height, rect.Height) / Math.Min(median.Height, rect.Height);
 
                 return -( normalizedDistance1 * normalizedDistance2 ) * sizeFactor;
             }

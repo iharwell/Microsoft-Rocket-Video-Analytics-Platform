@@ -35,6 +35,8 @@ namespace DNNDetector.Model
         public int ObjectID { get; set; }
         public int TrackID { get; set; }
         public int Index { get; set; }
+        public bool FurtherAnalysisTriggered { get; set; }
+        public object SourceObject { get; set; }
         public byte[] RawImageData { get; set; }
         public byte[] TaggedImageData { get; set; }
         public byte[] CroppedImageData { get; set; }

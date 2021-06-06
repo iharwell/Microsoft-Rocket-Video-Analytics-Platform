@@ -53,7 +53,16 @@ namespace LineDetector
                         int x2 = (int)(Convert.ToInt32(fields[4 + 0 * 5]) * imageScaling);
                         int y2 = (int)(Convert.ToInt32(fields[5 + 0 * 5]) * imageScaling);
                         double threshold = Convert.ToDouble(fields[6 + 0 * 5]);
-                        SingleLineCrossingDetector lineDetector = new SingleLineCrossingDetector(x1, y1, x2, y2, threshold, sFactor);
+                        SingleLineCrossingDetector lineDetector;
+                        if ( noLines == 1)
+                        {
+                            lineDetector = new SingleLineCrossingDetector(x1, y1, x2, y2, threshold, sFactor, directionName );
+
+                        }
+                        else
+                        {
+                            lineDetector = new SingleLineCrossingDetector(x1, y1, x2, y2, threshold, sFactor, directionName+i );
+                        }
 
                         lineDetectors.Add(lineDetector);
                     }

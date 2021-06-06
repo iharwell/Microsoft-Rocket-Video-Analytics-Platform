@@ -12,6 +12,8 @@ namespace Utils.Items
     ///   An <see cref="IPathPredictor" /> that uses a polynomial regression on the for corners of
     ///   the known bounding boxes to predict the bounding box location in another frame.
     /// </summary>
+
+    [Serializable]
     public class PolyPredictor : PathPredictor
     {
 

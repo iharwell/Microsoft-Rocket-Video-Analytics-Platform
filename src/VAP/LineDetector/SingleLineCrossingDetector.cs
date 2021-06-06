@@ -17,9 +17,9 @@ namespace LineDetector
         bool debug = false;
 
         /// <inheritdoc cref="SingleLineCrossingDetector(int, int, int, int, double, int)"/>
-        public SingleLineCrossingDetector(int a, int b, int c, int d)
+        public SingleLineCrossingDetector(int a, int b, int c, int d, string lineName)
         {
-            line = new DetectionLine(a, b, c, d);
+            line = new DetectionLine(a, b, c, d, lineName);
             lineCrossingDetector = new FallingEdgeCrossingDetector(1);
         }
 
@@ -35,9 +35,9 @@ namespace LineDetector
         /// The overlap fraction threshold for this detector to be considered occupied.
         /// </param>
         /// <param name="sFactor">The frame rate sampling factor.</param>
-        public SingleLineCrossingDetector(int a, int b, int c, int d, double threshold, int sFactor)
+        public SingleLineCrossingDetector(int a, int b, int c, int d, double threshold, int sFactor, string lineName)
         {
-            line = new DetectionLine(a, b, c, d, threshold);
+            line = new DetectionLine(a, b, c, d, threshold, lineName );
             lineCrossingDetector = new FallingEdgeCrossingDetector(sFactor);
         }
 
@@ -54,7 +54,7 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
+        public (bool crossingResult, IFramedItem b) notifyFrameArrival( int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
             (occupancy, bbox) = line.isOccupied(boxes, mask);
             bool crossingResult = lineCrossingDetector.notifyOccupancy(frameNo, occupancy);
@@ -74,10 +74,46 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival( int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
+        public (bool crossingResult, IFramedItem b) notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
         {
-            (occupancy, bbox) = line.isOccupied( boxes, mask );
+            return notifyFrameArrival( frame, frameNo, boxes, mask, null );
+        }
+
+        /// <summary>
+        /// Processes a frame upon arrival.
+        /// </summary>
+        /// <param name="frameNo">The index of the frame to process.</param>
+        /// <param name="boxes">A list of bounding boxes of items in frame.</param>
+        /// <param name="mask">
+        /// A mask detailing the precise layout of items in the frame using black to indicate vacant
+        /// space, and white to indicate occupied space.
+        /// </param>
+        /// <returns>
+        /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
+        /// the bounding box of the crossing item.
+        /// </returns>
+        public (bool crossingResult, IFramedItem b) notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature )
+        {
+            (occupancy, bbox) = line.isOccupied( boxes, mask, signature );
             bool crossingResult = lineCrossingDetector.notifyOccupancy(frameNo, occupancy);
+            if( bbox != null && bbox.ItemIDs[bbox.ItemIDs.Count - 1] is ITriggeredItem trig )
+            {
+                trig.FurtherAnalysisTriggered = crossingResult;
+            }
+            if( crossingResult && bbox == null )
+            {
+                ILineTriggeredItemID item = new LineTriggeredItemID( line.Line.BoundingBox, 0, null, 0, 0, nameof(SingleLineCrossingDetector) );
+                item.SourceObject = signature;
+                //item.TriggerLine = this.line.LineName;
+                item.FurtherAnalysisTriggered = true;
+                bbox = new FramedItem( frame, item );
+
+                boxes.Add( bbox );
+            }
+            /*if ( !crossingResult && bbox != null && bbox.ItemIDs[bbox.ItemIDs.Count-1].SourceObject == signature )
+            {
+                bbox.ItemIDs.RemoveAt( bbox.ItemIDs.Count - 1 );
+            }*/
             return (crossingResult, bbox);
         }
 

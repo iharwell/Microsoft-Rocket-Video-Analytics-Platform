@@ -47,6 +47,8 @@ namespace LineDetector
             set => lineSegment.P2 = value;
         }
 
+        public string LineName { get; set; }
+
         /// <summary>
         /// The step size used to determine occupancy.
         /// </summary>
@@ -58,10 +60,11 @@ namespace LineDetector
         public double overlapFractionThreshold { get; set; } = DEFAULT_OCCUPANCY_THRESHOLD;
 
         /// <inheritdoc cref="DetectionLine(int, int, int, int, double)"/>
-        public DetectionLine(int a, int b, int c, int d)
+        public DetectionLine(int a, int b, int c, int d, string lineName)
         {
             p1 = new Point(a, b);
             p2 = new Point(c, d);
+            LineName = lineName;
             double length = lineSegment.Length;
             increment = 1 / (2 * length);
         }
@@ -74,10 +77,11 @@ namespace LineDetector
         /// <param name="c">The X coordinate of the second point of the line.</param>
         /// <param name="d">The Y coordinate of the second point of the line.</param>
         /// <param name="l_threshold">The overlap acceptance threshold used for a positive detection.</param>
-        public DetectionLine(int a, int b, int c, int d, double l_threshold)
+        public DetectionLine(int a, int b, int c, int d, double l_threshold, string lineName)
         {
             p1 = new Point(a, b);
             p2 = new Point(c, d);
+            LineName = lineName;
             double length = lineSegment.Length;
             increment = 1 / (2 * length);
             overlapFractionThreshold = l_threshold;
@@ -319,7 +323,9 @@ namespace LineDetector
                 IItemID existingID = b.ItemIDs.Last();
                 ILineTriggeredItemID id = new LineTriggeredItemID( existingID.BoundingBox, existingID.ObjectID, existingID.ObjName, existingID.Confidence, existingID.TrackID, nameof(DetectionLine) );
                 id.TriggerSegment = this.Line;
+                id.TriggerLine = LineName;
                 b.ItemIDs.Add( id );
+
                 return (true, b);
             }
             else
@@ -340,12 +346,29 @@ namespace LineDetector
         /// </returns>
         public (bool occupied, IFramedItem box) isOccupied( IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
         {
+            return isOccupied( boxes, mask, null );
+        }
+
+        /// <summary>
+        /// Determines if this line is occupied.
+        /// </summary>
+        /// <param name="boxes">The bounding boxes of items in the frame.</param>
+        /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
+        /// <returns>
+        /// Returns a tuple containing a boolean indicating whether this line is
+        /// occupied, and the bounding box of the occupying item if so. If this line is
+        /// unoccupied, the bounding box will be null.
+        /// </returns>
+        public (bool occupied, IFramedItem box) isOccupied( IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature )
+        {
             (double frac, IFramedItem b) = getMaximumFractionContainedInAnyBox( boxes, mask );
             if ( frac >= overlapFractionThreshold )
             {
                 IItemID existingID = b.ItemIDs.Last();
                 ILineTriggeredItemID id = new LineTriggeredItemID( existingID.BoundingBox, existingID.ObjectID, existingID.ObjName, existingID.Confidence, existingID.TrackID, nameof(DetectionLine) );
                 id.TriggerSegment = this.Line;
+                id.TriggerLine = LineName;
+                id.SourceObject = signature;
                 b.ItemIDs.Add( id );
                 return (true, b);
             }

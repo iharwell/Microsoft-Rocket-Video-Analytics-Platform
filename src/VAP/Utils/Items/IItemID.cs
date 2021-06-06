@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Utils.Items
@@ -60,5 +61,14 @@ namespace Utils.Items
         ///   generated the object.
         /// </remarks>
         string IdentificationMethod { get; set; }
+
+        /// <summary>
+        ///   The identification method that created this ID.
+        /// </summary>
+        /// <remarks>
+        ///   This should usually be set using <see langword="nameof" /> with the class that
+        ///   generated the object.
+        /// </remarks>
+        object SourceObject { get; set; }
     }
 }

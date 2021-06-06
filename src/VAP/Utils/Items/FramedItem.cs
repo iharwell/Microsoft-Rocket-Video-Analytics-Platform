@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 using OpenCvSharp;
 using Utils.ShapeTools;
@@ -12,6 +13,12 @@ namespace Utils.Items
     /// <summary>
     ///   The default implementation of the <see cref="IFramedItem" /> interface.
     /// </summary>
+
+    [Serializable]
+    [DataContract]
+    [KnownType( typeof( Frame ) )]
+    [KnownType( typeof( ItemID ) )]
+    [KnownType( typeof( LineTriggeredItemID ) )]
     public class FramedItem : IFramedItem
     {
         /// <summary>
@@ -49,10 +56,12 @@ namespace Utils.Items
         }
 
         /// <inheritdoc />
+        [DataMember]
         public IFrame Frame { get; set; }
 
         /// <inheritdoc />
-        public IList<IItemID> ItemIDs { get; }
+        [DataMember]
+        public IList<IItemID> ItemIDs { get; protected set; }
 
         /// <inheritdoc />
         public Mat CroppedImageData( int itemIDIndex )
@@ -171,6 +180,10 @@ namespace Utils.Items
             if( target is null )
             {
                 target = source;
+            }
+            if(source is null )
+            {
+                return target;
             }
 
             for ( int i = 0; i < source.Count; i++ )

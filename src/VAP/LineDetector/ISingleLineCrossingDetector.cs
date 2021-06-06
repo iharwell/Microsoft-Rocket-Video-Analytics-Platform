@@ -36,7 +36,20 @@ namespace LineDetector
         /// <returns>
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and the bounding box of the crossing item.
         /// </returns>
-        (bool crossingResult, IFramedItem b) notifyFrameArrival( int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask );
+        (bool crossingResult, IFramedItem b) notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask );
+
+        //notify the arrival of a frame to the detector
+        //return true if there is a crossing event detected
+        /// <summary>
+        /// Processes a frame upon arrival.
+        /// </summary>
+        /// <param name="frameNo">The index of the frame to process.</param>
+        /// <param name="boxes">A list of bounding boxes of items in frame.</param>
+        /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
+        /// <returns>
+        /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and the bounding box of the crossing item.
+        /// </returns>
+        (bool crossingResult, IFramedItem b) notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object sourceObject );
 
         /// <summary>
         /// Processes a frame upon arrival.

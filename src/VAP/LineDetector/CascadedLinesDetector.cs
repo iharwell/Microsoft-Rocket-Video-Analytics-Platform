@@ -171,16 +171,22 @@ namespace LineDetector
         }
 
         /// <inheritdoc/>
-        public void notifyFrameArrival( int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
+        public void notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
+        {
+            notifyFrameArrival( frame, frameNo, boxes, mask, null );
+        }
+
+        /// <inheritdoc/>
+        public void notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object sourceObject )
         {
             for ( int i = 0; i < noLines; i++ )
             {
-                (bool val, IFramedItem b) = lineCrossingDetectors[i].notifyFrameArrival( frameNo, boxes, mask );
+                (bool val, IFramedItem b) = lineCrossingDetectors[i].notifyFrameArrival( frame, frameNo, boxes, mask, sourceObject );
                 if ( b != null )
                     bbox = b;
                 if ( val )
                 {
-                    NotifyCrossingEvent( frameNo, i );
+                    NotifyCrossingEvent( frame.FrameIndex, i );
                 }
             }
         }

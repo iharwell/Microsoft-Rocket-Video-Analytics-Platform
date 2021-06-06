@@ -16,6 +16,8 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
 using TFDetector;
 using Utils;
 using Utils.Items;
@@ -26,7 +28,7 @@ namespace VideoPipelineCore
     {
         const int BUFFERSIZE = 90;
 
-        static void Main(string[] args)
+        static void Main2(string[] args)
         {
             //parse arguments
             if (args.Length < 4)
@@ -357,6 +359,21 @@ namespace VideoPipelineCore
             for ( int i = 0; i < ItemPaths.Count; i++ )
             {
                 Console.WriteLine( "Item path length " + ( i + 1 ) + ": " + ItemPaths[i].FramedItems.Count );
+            }
+            string output = "output";
+            DataContractSerializer serializer = new DataContractSerializer(typeof(ItemPath) );
+            for ( int i = 0; i < ItemPaths.Count; i++ )
+            {
+                if ( ItemPaths[i] is ItemPath path )
+                {
+                    string name = output+i;
+                    using ( StreamWriter writer = new StreamWriter( name + ".xml" ) )
+                    {
+                        serializer.WriteObject( writer.BaseStream, path );
+                        writer.Flush();
+                        writer.Close();
+                    }
+                }
             }
            Console.WriteLine("Done!");
         }

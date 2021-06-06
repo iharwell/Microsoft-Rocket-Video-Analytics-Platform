@@ -30,7 +30,7 @@ namespace Wrapper.Yolo
             this._trackingObject = trackingObject;
         }
 
-        public List<YoloTrackingItem> Analyse(byte[] imageData, HashSet<string> category, Color bboxColor )
+        public List<YoloTrackingItem> Analyse(byte[] imageData, ISet<string> category, Color bboxColor )
         {
             var items = this._yoloWrapper.Track(imageData);
             if (items == null || items.Count() == 0)
@@ -65,7 +65,7 @@ namespace Wrapper.Yolo
         }
 
         //find all match based on distance
-        private List<YoloItem> FindAllMatch(IEnumerable<YoloItem> items, int maxDistance, HashSet<string> category)
+        private List<YoloItem> FindAllMatch(IEnumerable<YoloItem> items, int maxDistance, ISet<string> category)
         {
             List<YoloItem> yItems = new List<YoloItem>();
             var distanceItems = items.Select(o => new { Category = o.Type, Distance = this.Distance(o.Center(), this._trackingObject), Item = o }).Where(o => (category.Count == 0 || category.Contains(o.Category)) && o.Distance <= maxDistance).OrderBy(o => o.Distance);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using OpenCvSharp;
 
@@ -8,7 +9,8 @@ namespace Utils.Items
     /// <summary>
     ///   Default implementation of the <see cref="IFrame" /> interface.
     /// </summary>
-    public class Frame : IFrame
+    [Serializable]
+    public class Frame : IFrame, ISerializable
     {
         public Frame()
         {
@@ -40,6 +42,29 @@ namespace Utils.Items
             SourceName = sourceName;
             FrameIndex = frameIndex;
             FrameData = frameData;
+        }
+
+        protected Frame( SerializationInfo info, StreamingContext context )
+        {
+            SourceName = info.GetString( nameof( SourceName ) );
+            FrameIndex = info.GetInt32( nameof( FrameIndex ) );
+            TimeStamp = (DateTime)info.GetValue( nameof( TimeStamp ), typeof( DateTime ) );
+
+            object framebytes = info.GetValue( nameof( FrameData ), typeof( byte[] ) );
+
+            FrameData = Mat.FromImageData( framebytes as byte[], ImreadModes.Color );
+
+
+            object o = info.GetValue( nameof( ForegroundMask ), typeof( byte[] ) );
+
+            if( o is null )
+            {
+                ForegroundMask = null;
+            }
+            else
+            {
+                ForegroundMask = Mat.FromImageData( o as byte[], ImreadModes.AnyColor );
+            }
         }
 
         /// <summary>
@@ -79,5 +104,33 @@ namespace Utils.Items
 
         /// <inheritdoc />
         public DateTime TimeStamp { get; set; }
+
+        public virtual void GetObjectData( SerializationInfo info, StreamingContext context )
+        {
+            info.AddValue( nameof( SourceName ), SourceName );
+            info.AddValue( nameof( FrameIndex ), FrameIndex );
+            info.AddValue( nameof( TimeStamp ), TimeStamp );
+            info.AddValue( nameof( FrameData ), FrameData.ToBytes( ".jpg", encodingParamsJPG ) );
+            if ( ForegroundMask != null )
+            {
+                info.AddValue( nameof( ForegroundMask ), ForegroundMask.ToBytes( ".png", encodingParamsPNG ) );
+            }
+            else
+            {
+                info.AddValue( nameof( ForegroundMask ), null );
+            }
+            
+        }
+
+        private static readonly ImageEncodingParam[] encodingParamsJPG = new ImageEncodingParam[]
+        {
+            new ImageEncodingParam(ImwriteFlags.JpegQuality, 70),
+            new ImageEncodingParam(ImwriteFlags.JpegOptimize, 1)
+        };
+        private static readonly ImageEncodingParam[] encodingParamsPNG = new ImageEncodingParam[]
+        {
+            new ImageEncodingParam(ImwriteFlags.PngCompression, 7 ),
+            new ImageEncodingParam(ImwriteFlags.PngBilevel, 1 )
+        };
     }
 }
