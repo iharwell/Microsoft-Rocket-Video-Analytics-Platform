@@ -61,7 +61,9 @@ namespace FramePreProcessor
             foreach (string s in kvpairs.Keys)
             {
                 if (!displayKVpairs.ContainsKey(s))
+                {
                     displayKVpairs.Add(s, kvpairs[s]);
+                }
                 else
                 {
                     int currentVal = Int32.Parse(displayKVpairs[s]);
