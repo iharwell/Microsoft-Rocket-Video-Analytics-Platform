@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -11,18 +14,18 @@ namespace LineDetector
     /// <summary>
     /// Detector that uses a series of lines to detect the approach of items and fires when the items cross the final line.
     /// </summary>
-    class CascadedLinesDetector : ILineBasedDetector
+    internal class CascadedLinesDetector : ILineBasedDetector
     {
-        List<ISingleLineCrossingDetector> lineCrossingDetectors;
-        List<int> minLags;
-        List<int> maxLags;
-        int noLines;
-        List<List<int>> CrossingEventTimeStampBuffers;
-        int Count;
-        IFramedItem bbox;
-        int SUPRESSION_INTERVAL = 1;
-        List<int> lastEventFrame;
-        bool debug = false;
+        private List<ISingleLineCrossingDetector> lineCrossingDetectors;
+        private List<int> minLags;
+        private List<int> maxLags;
+        private int noLines;
+        private List<List<int>> CrossingEventTimeStampBuffers;
+        private int Count;
+        private IFramedItem bbox;
+        private int SUPRESSION_INTERVAL = 1;
+        private List<int> lastEventFrame;
+        private bool debug = false;
 
         /// <summary>
         /// Activates debug logging.
@@ -103,7 +106,7 @@ namespace LineDetector
         }
 
 
-        bool recursiveCrossingEventCheck(int lineNo, int frameNo)
+        private bool recursiveCrossingEventCheck(int lineNo, int frameNo)
         {
             bool result = false;
             purgeOldEvents(frameNo, lineNo - 1);
@@ -132,7 +135,7 @@ namespace LineDetector
             return result;
         }
 
-        void NotifyCrossingEvent(int frameNo, int lineNo)
+        private void NotifyCrossingEvent(int frameNo, int lineNo)
         {
             if (lineNo != noLines - 1)
             {
@@ -156,16 +159,16 @@ namespace LineDetector
         }
 
         /// <inheritdoc/>
-        public void notifyFrameArrival( int frameNo, IList<IFramedItem> boxes, Bitmap mask )
+        public void notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
-            for ( int i = 0; i < noLines; i++ )
+            for (int i = 0; i < noLines; i++)
             {
-                (bool val, IFramedItem b) = lineCrossingDetectors[i].notifyFrameArrival( frameNo, boxes, mask );
-                if ( b != null )
+                (bool val, IFramedItem b) = lineCrossingDetectors[i].notifyFrameArrival(frameNo, boxes, mask);
+                if (b != null)
                     bbox = b;
-                if ( val )
+                if (val)
                 {
-                    NotifyCrossingEvent( frameNo, i );
+                    NotifyCrossingEvent(frameNo, i);
                 }
             }
         }
@@ -231,7 +234,7 @@ namespace LineDetector
             Count = value;
         }
 
-        int getPendingNow(int frameNo, int lineNo)
+        private int getPendingNow(int frameNo, int lineNo)
         {
             purgeOldEvents(frameNo, lineNo);
             return CrossingEventTimeStampBuffers[lineNo].Count;
@@ -266,7 +269,7 @@ namespace LineDetector
             List<LineSegment> coors = new List<LineSegment>();
             for (int i = 0; i < lineCrossingDetectors.Count; i++)
             {
-                coors.Add( lineCrossingDetectors[i].getDetectionLine().Line );
+                coors.Add(lineCrossingDetectors[i].getDetectionLine().Line);
             }
             return coors;
         }

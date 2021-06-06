@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -13,30 +13,30 @@ namespace Utils
 {
     public class Utils
     {
-        public static void cleanFolder( string folder )
+        public static void cleanFolder(string folder)
         {
-            Directory.CreateDirectory( folder );
+            Directory.CreateDirectory(folder);
             DirectoryInfo di = new DirectoryInfo(folder);
-            foreach ( FileInfo file in di.GetFiles() ) file.Delete();
+            foreach (FileInfo file in di.GetFiles()) file.Delete();
         }
 
         public static void cleanFolderAll()
         {
-            cleanFolder( Config.OutputFolder.OutputFolderAll );
-            cleanFolder( Config.OutputFolder.OutputFolderBGSLine );
-            cleanFolder( Config.OutputFolder.OutputFolderLtDNN );
-            cleanFolder( Config.OutputFolder.OutputFolderCcDNN );
-            cleanFolder( Config.OutputFolder.OutputFolderAML );
-            cleanFolder( Config.OutputFolder.OutputFolderFrameDNNDarknet );
-            cleanFolder( Config.OutputFolder.OutputFolderFrameDNNTF );
-            cleanFolder( Config.OutputFolder.OutputFolderFrameDNNONNX );
+            cleanFolder(Config.OutputFolder.OutputFolderAll);
+            cleanFolder(Config.OutputFolder.OutputFolderBGSLine);
+            cleanFolder(Config.OutputFolder.OutputFolderLtDNN);
+            cleanFolder(Config.OutputFolder.OutputFolderCcDNN);
+            cleanFolder(Config.OutputFolder.OutputFolderAML);
+            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNDarknet);
+            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNTF);
+            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNONNX);
         }
 
-        public static byte[] MatToByteBmp( Mat image )
+        public static byte[] MatToByteBmp(Mat image)
         {
             // known good:
             // return ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(image));
-            return image.ToBytes( ".bmp" );
+            return image.ToBytes(".bmp");
         }
 
         public static byte[] ImageToByteBmp(Image imageIn)
@@ -59,28 +59,28 @@ namespace Utils
 
         public static float checkLineBboxOverlapRatio(int[] line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
         {
-            LineSegment newLine = new LineSegment( new Point(line[0], line[1]), new Point(line[2], line[3]));
+            LineSegment newLine = new LineSegment(new Point(line[0], line[1]), new Point(line[2], line[3]));
             return checkLineBboxOverlapRatio(newLine, bbox_x, bbox_y, bbox_w, bbox_h);
         }
-        public static float checkLineBboxOverlapRatio( int[] line, Rectangle bbox )
+        public static float checkLineBboxOverlapRatio(int[] line, Rectangle bbox)
         {
-            LineSegment newLine = new LineSegment( new Point(line[0], line[1]), new Point(line[2], line[3]));
-            return checkLineBboxOverlapRatio( newLine, bbox.X, bbox.Y, bbox.Width, bbox.Height );
+            LineSegment newLine = new LineSegment(new Point(line[0], line[1]), new Point(line[2], line[3]));
+            return checkLineBboxOverlapRatio(newLine, bbox.X, bbox.Y, bbox.Width, bbox.Height);
         }
 
-        public static float checkLineBboxOverlapRatio( LineSegment line, Rectangle bbox )
+        public static float checkLineBboxOverlapRatio(LineSegment line, Rectangle bbox)
         {
-            return checkLineBboxOverlapRatio( line, bbox.X, bbox.Y, bbox.Width, bbox.Height );
+            return checkLineBboxOverlapRatio(line, bbox.X, bbox.Y, bbox.Width, bbox.Height);
         }
 
-        public static float checkLineBboxOverlapRatio( LineSegment line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
+        public static float checkLineBboxOverlapRatio(LineSegment line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
         {
             float overlapRatio = 0.0F;
             int insidePixels = 0;
 
             IEnumerable<Point> linePixels = EnumerateLineNoDiagonalSteps(line.P1, line.P2);
-            
-            foreach(Point pixel in linePixels)
+
+            foreach (Point pixel in linePixels)
             {
                 if ((pixel.X >= bbox_x) && (pixel.X <= bbox_x + bbox_w) && (pixel.Y >= bbox_y) && (pixel.Y <= bbox_y + bbox_h))
                 {
@@ -128,7 +128,7 @@ namespace Utils
             using (var pen = new Pen(color, 3))
             {
                 canvas.DrawRectangle(pen, x, y, w, h);
-                canvas.DrawString(annotation, new Font("Arial", 16), new SolidBrush( color ), new PointF(x, y - 20));
+                canvas.DrawString(annotation, new Font("Arial", 16), new SolidBrush(color), new PointF(x, y - 20));
                 canvas.Flush();
 
                 using (var memoryStream2 = new MemoryStream())
@@ -178,10 +178,10 @@ namespace Utils
             return catDict;
         }
 
-        public static void WriteAllBytes( string path, Mat data )
+        public static void WriteAllBytes(string path, Mat data)
         {
             Stream s = new FileStream(path, FileMode.OpenOrCreate);
-            data.WriteToStream( s, ".bmp" );
+            data.WriteToStream(s, ".bmp");
             s.Flush();
             s.Close();
         }

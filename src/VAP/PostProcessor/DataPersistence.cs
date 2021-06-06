@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
 using DNNDetector.Model;
@@ -23,8 +23,8 @@ namespace PostProcessor
     public class DataPersistence
     {
         //string blobUri_BGS = null;
-        static AzureBlobProcessor blobProcessor = new AzureBlobProcessor();
-        
+        private static AzureBlobProcessor blobProcessor = new AzureBlobProcessor();
+
         // force precise initialization
         static DataPersistence() { }
 
@@ -36,7 +36,7 @@ namespace PostProcessor
                 foreach (IFramedItem it in detectionResult)
                 {
                     var fileList = Directory.GetFiles(@OutputFolder.OutputFolderAll, $"frame-{frameIndex}*");
-                    string blobName = Path.GetFileName(fileList[fileList.Length-1]);
+                    string blobName = Path.GetFileName(fileList[fileList.Length - 1]);
                     //string blobName = it.IdentificationMethod == "Cheap" ? $@"frame-{frameIndex}-Cheap-{it.Confidence}.jpg" : $@"frame-{frameIndex}-Heavy-{it.Confidence}.jpg";
                     string blobUri = SendDataToCloud(azureContainerName, blobName, @OutputFolder.OutputFolderAll + blobName);
                     string serializedResult = SerializeDetectionResult(videoUrl, cameraID, frameIndex, it, objDir, blobUri, YOLOCONFIG, YOLOCONFIG_HEAVY);

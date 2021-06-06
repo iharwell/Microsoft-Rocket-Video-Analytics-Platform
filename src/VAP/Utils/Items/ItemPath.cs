@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.Serialization;
@@ -28,7 +31,7 @@ namespace Utils.Items
         }
 
         /// <inheritdoc />
-        public virtual int FrameIndex( int entryIndex )
+        public virtual int FrameIndex(int entryIndex)
         {
             return FramedItems[entryIndex].Frame.FrameIndex;
         }

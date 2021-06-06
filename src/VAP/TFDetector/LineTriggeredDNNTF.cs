@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
 using DNNDetector.Config;
@@ -18,9 +18,9 @@ namespace TFDetector
     public class LineTriggeredDNNTF
     {
         //static string TFCONFIG = "";
-        FrameDNNTF frameDNNTF;
-        FrameBuffer frameBufferLtDNNTF;
-        Dictionary<string, int> counts_prev = new Dictionary<string, int>();
+        private FrameDNNTF frameDNNTF;
+        private FrameBuffer frameBufferLtDNNTF;
+        private Dictionary<string, int> counts_prev = new Dictionary<string, int>();
 
         public LineTriggeredDNNTF(List<(string key, LineSegment coordinates)> lines)
         {
@@ -63,10 +63,10 @@ namespace TFDetector
                                     foreach (IFramedItem framedItemPre in analyzedTrackingItems)
                                     {
                                         IItemID item = framedItemPre.ItemIDs[0];
-                                        LineTriggeredItemID item2 = new LineTriggeredItemID(item.BoundingBox, item.ObjectID, item.ObjName, item.Confidence, item.TrackID, nameof(FrameDNNTF) );
+                                        LineTriggeredItemID item2 = new LineTriggeredItemID(item.BoundingBox, item.ObjectID, item.ObjName, item.Confidence, item.TrackID, nameof(FrameDNNTF));
                                         item2.TriggerLine = lane;
                                         item2.TriggerLineID = lineID;
-                                        if ( item2.InsertIntoFramedItemList(items, out IFramedItem framedItem, frameIndexTF) )
+                                        if (item2.InsertIntoFramedItemList(items, out IFramedItem framedItem, frameIndexTF))
                                         {
                                             framedItem.Frame.FrameData = frameTF;
                                             framedItem.Frame.FrameIndex = frameIndexTF;
@@ -75,9 +75,9 @@ namespace TFDetector
                                         // output cheap TF results
                                         string blobName_Cheap = $@"frame-{frameIndex}-Cheap-{item.Confidence}.jpg";
                                         string fileName_Cheap = @OutputFolder.OutputFolderLtDNN + blobName_Cheap;
-                                        var tagged = framedItem.TaggedImageData( framedItem.ItemIDs.Count - 1, System.Drawing.Color.Pink );
-                                        Utils.Utils.WriteAllBytes( fileName_Cheap, tagged );
-                                        Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, tagged );
+                                        var tagged = framedItem.TaggedImageData(framedItem.ItemIDs.Count - 1, System.Drawing.Color.Pink);
+                                        Utils.Utils.WriteAllBytes(fileName_Cheap, tagged);
+                                        Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, tagged);
                                     }
                                     updateCount(counts);
                                     return items;
@@ -93,7 +93,7 @@ namespace TFDetector
             return items;
         }
 
-        void updateCount(Dictionary<string, int> counts)
+        private void updateCount(Dictionary<string, int> counts)
         {
             foreach (string dir in counts.Keys)
             {

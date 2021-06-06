@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Tensorflow.Serving;
 
 namespace AML.Client

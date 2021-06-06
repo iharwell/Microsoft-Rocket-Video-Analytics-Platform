@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
 using DNNDetector.Model;
@@ -19,10 +19,10 @@ namespace DarknetDetector
 {
     public class LineTriggeredDNNDarknet
     {
-        static string YOLOCONFIG = "YoloV3TinyCoco"; // "cheap" yolo config folder name
-        FrameDNNDarknet frameDNNYolo;
-        FrameBuffer frameBufferLtDNNYolo;
-        Dictionary<string, int> counts_prev = new Dictionary<string, int>();
+        private static string YOLOCONFIG = "YoloV3TinyCoco"; // "cheap" yolo config folder name
+        private FrameDNNDarknet frameDNNYolo;
+        private FrameBuffer frameBufferLtDNNYolo;
+        private Dictionary<string, int> counts_prev = new Dictionary<string, int>();
 
         public LineTriggeredDNNDarknet(double rFactor)
         {
@@ -132,7 +132,7 @@ namespace DarknetDetector
                         {
                             // call yolo for crosscheck
                             int lineID = Array.IndexOf(counts.Keys.ToArray(), lane);
-                            frameDNNYolo.SetTrackingPoint( lines[lineID].coordinates.MidPoint ); //only needs to check the last line in each row
+                            frameDNNYolo.SetTrackingPoint(lines[lineID].coordinates.MidPoint); //only needs to check the last line in each row
                             Mat[] frameBufferArray = frameBufferLtDNNYolo.ToArray();
                             int frameIndexYolo = frameIndex - 1;
                             DateTime start = DateTime.Now;
@@ -144,7 +144,7 @@ namespace DarknetDetector
                                 Mat frameYolo = frameBufferArray[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
                                 // byte[] imgByte = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameYolo));
 
-                                analyzedTrackingItems = frameDNNYolo.Detect( frameYolo, category, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE, frameIndexYolo);
+                                analyzedTrackingItems = frameDNNYolo.Detect(frameYolo, category, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE, frameIndexYolo);
 
                                 // object detected by cheap YOLO
                                 if (analyzedTrackingItems != null)
@@ -184,7 +184,7 @@ namespace DarknetDetector
             return items;
         }
 
-        Item Item(YoloTrackingItem yoloTrackingItem)
+        private Item Item(YoloTrackingItem yoloTrackingItem)
         {
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "");
@@ -197,7 +197,7 @@ namespace DarknetDetector
             return item;
         }
 
-        void updateCount(Dictionary<string, int> counts)
+        private void updateCount(Dictionary<string, int> counts)
         {
             foreach (string dir in counts.Keys)
             {

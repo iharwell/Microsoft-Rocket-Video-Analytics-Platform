@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,7 +31,7 @@ namespace Wrapper.TF
 
         //private static double MIN_SCORE_FOR_OBJECT_HIGHLIGHTING = 0.5;
 
-        static OptionSet options = new OptionSet()
+        private static OptionSet options = new OptionSet()
         {
             { "input_image=",  "Specifies the path to an image ", v => _input = v },
             { "output_image=",  "Specifies the path to the output image with detected objects", v => _output = v },

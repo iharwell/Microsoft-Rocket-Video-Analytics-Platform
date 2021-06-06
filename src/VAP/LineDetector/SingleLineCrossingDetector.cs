@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
 using BGSObjectDetector;
@@ -10,11 +10,11 @@ namespace LineDetector
 {
     public class SingleLineCrossingDetector : ISingleLineCrossingDetector
     {
-        DetectionLine line;
-        bool occupancy;
-        IFramedItem bbox;
-        FallingEdgeCrossingDetector lineCrossingDetector;
-        bool debug = false;
+        private DetectionLine line;
+        private bool occupancy;
+        private IFramedItem bbox;
+        private FallingEdgeCrossingDetector lineCrossingDetector;
+        private bool debug = false;
 
         /// <inheritdoc cref="SingleLineCrossingDetector(int, int, int, int, double, int)"/>
         public SingleLineCrossingDetector(int a, int b, int c, int d, string lineName)

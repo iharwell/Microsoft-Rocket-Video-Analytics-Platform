@@ -1,13 +1,13 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace LineDetector
 {
-    class LineSets
+    internal class LineSets
     {
         /// <summary>
         /// Reads a line set from the provided CSV text file.

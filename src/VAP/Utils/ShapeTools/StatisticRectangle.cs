@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,17 +13,17 @@ namespace Utils.ShapeTools
 {
     public class StatisticRectangle
     {
-        public StatisticRectangle( IEnumerable<IItemID> items )
+        public StatisticRectangle(IEnumerable<IItemID> items)
         {
-            Rectangle runningSum = new Rectangle(0,0,0,0);
-            Rectangle bbox = new Rectangle(0,0,0,0);
+            Rectangle runningSum = new Rectangle(0, 0, 0, 0);
+            Rectangle bbox = new Rectangle(0, 0, 0, 0);
             int count = 0;
 
             bool SizeItemsSet = false;
-            Rectangle smallitem = new Rectangle(0,0,0,0);
-            Rectangle largeitem = new Rectangle(0,0,0,0);
+            Rectangle smallitem = new Rectangle(0, 0, 0, 0);
+            Rectangle largeitem = new Rectangle(0, 0, 0, 0);
 
-            foreach ( IItemID item in items )
+            foreach (IItemID item in items)
             {
                 Rectangle rect = item.BoundingBox;
                 runningSum.X += rect.X;
@@ -30,7 +33,7 @@ namespace Utils.ShapeTools
 
                 ++count;
 
-                if ( !SizeItemsSet )
+                if (!SizeItemsSet)
                 {
                     SizeItemsSet = true;
                     smallitem = rect;
@@ -39,21 +42,21 @@ namespace Utils.ShapeTools
                 }
                 else
                 {
-                    if ( IsSmaller( rect, smallitem ) )
+                    if (IsSmaller(rect, smallitem))
                     {
                         smallitem = rect;
                     }
-                    else if ( IsSmaller( largeitem, rect ) )
+                    else if (IsSmaller(largeitem, rect))
                     {
                         largeitem = rect;
                     }
 
-                    int xResult = Math.Min( bbox.X, rect.X );
-                    int yResult = Math.Min( bbox.Y, rect.Y );
-                    int widthResult = Math.Max( bbox.Right, rect.Right ) - xResult;
-                    int heightResult = Math.Max( bbox.Bottom, rect.Bottom ) - yResult;
+                    int xResult = Math.Min(bbox.X, rect.X);
+                    int yResult = Math.Min(bbox.Y, rect.Y);
+                    int widthResult = Math.Max(bbox.Right, rect.Right) - xResult;
+                    int heightResult = Math.Max(bbox.Bottom, rect.Bottom) - yResult;
 
-                    bbox = new Rectangle( xResult, yResult, widthResult, heightResult );
+                    bbox = new Rectangle(xResult, yResult, widthResult, heightResult);
                 }
             }
 
@@ -66,28 +69,28 @@ namespace Utils.ShapeTools
             var hSet = from item in items
                        select (double)item.BoundingBox.Height;
 
-            Median = new RectangleF( (float)xSet.Median(), (float)ySet.Median(), (float)wSet.Median(), (float)hSet.Median() );
+            Median = new RectangleF((float)xSet.Median(), (float)ySet.Median(), (float)wSet.Median(), (float)hSet.Median());
 
-            Mean = new RectangleF( 1.0f * runningSum.X / count,
+            Mean = new RectangleF(1.0f * runningSum.X / count,
                                    1.0f * runningSum.Y / count,
                                    1.0f * runningSum.Width / count,
-                                   1.0f * runningSum.Height / count );
+                                   1.0f * runningSum.Height / count);
             OverallBoundingBox = bbox;
             SmallestItem = smallitem;
             LargestItem = largeitem;
 
         }
-        public StatisticRectangle( IEnumerable<Rectangle> rectangles )
+        public StatisticRectangle(IEnumerable<Rectangle> rectangles)
         {
-            Rectangle runningSum = new Rectangle(0,0,0,0);
-            Rectangle bbox = new Rectangle(0,0,0,0);
+            Rectangle runningSum = new Rectangle(0, 0, 0, 0);
+            Rectangle bbox = new Rectangle(0, 0, 0, 0);
             int count = 0;
 
             bool SizeItemsSet = false;
-            Rectangle smallitem = new Rectangle(0,0,0,0);
-            Rectangle largeitem = new Rectangle(0,0,0,0);
+            Rectangle smallitem = new Rectangle(0, 0, 0, 0);
+            Rectangle largeitem = new Rectangle(0, 0, 0, 0);
 
-            foreach ( Rectangle rect in rectangles )
+            foreach (Rectangle rect in rectangles)
             {
                 runningSum.X += rect.X;
                 runningSum.Y += rect.Y;
@@ -96,7 +99,7 @@ namespace Utils.ShapeTools
 
                 ++count;
 
-                if ( !SizeItemsSet )
+                if (!SizeItemsSet)
                 {
                     SizeItemsSet = true;
                     smallitem = rect;
@@ -105,21 +108,21 @@ namespace Utils.ShapeTools
                 }
                 else
                 {
-                    if ( IsSmaller( rect, smallitem ) )
+                    if (IsSmaller(rect, smallitem))
                     {
                         smallitem = rect;
                     }
-                    else if ( IsSmaller( largeitem, rect ) )
+                    else if (IsSmaller(largeitem, rect))
                     {
                         largeitem = rect;
                     }
 
-                    int xResult = Math.Min( bbox.X, rect.X );
-                    int yResult = Math.Min( bbox.Y, rect.Y );
-                    int widthResult = Math.Max( bbox.Right, rect.Right ) - xResult;
-                    int heightResult = Math.Max( bbox.Bottom, rect.Bottom ) - yResult;
+                    int xResult = Math.Min(bbox.X, rect.X);
+                    int yResult = Math.Min(bbox.Y, rect.Y);
+                    int widthResult = Math.Max(bbox.Right, rect.Right) - xResult;
+                    int heightResult = Math.Max(bbox.Bottom, rect.Bottom) - yResult;
 
-                    bbox = new Rectangle( xResult, yResult, widthResult, heightResult );
+                    bbox = new Rectangle(xResult, yResult, widthResult, heightResult);
                 }
             }
 
@@ -132,12 +135,12 @@ namespace Utils.ShapeTools
             var hSet = from r in rectangles
                        select (double)r.Height;
 
-            Median = new RectangleF( (float)xSet.Median(), (float)ySet.Median(), (float)wSet.Median(), (float)hSet.Median() );
+            Median = new RectangleF((float)xSet.Median(), (float)ySet.Median(), (float)wSet.Median(), (float)hSet.Median());
 
-            Mean = new RectangleF( 1.0f * runningSum.X / count,
+            Mean = new RectangleF(1.0f * runningSum.X / count,
                                    1.0f * runningSum.Y / count,
                                    1.0f * runningSum.Width / count,
-                                   1.0f * runningSum.Height / count );
+                                   1.0f * runningSum.Height / count);
             OverallBoundingBox = bbox;
             SmallestItem = smallitem;
             LargestItem = largeitem;

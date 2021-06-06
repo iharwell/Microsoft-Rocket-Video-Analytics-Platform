@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿namespace Utils.Config
+namespace Utils.Config
 {
     public static class OutputFolder
     {

@@ -1,4 +1,7 @@
-﻿namespace LineDetector
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LineDetector
 {
     /// <summary>
     /// Indicates whether a detector is currently occupied or not.
@@ -18,7 +21,7 @@
     /// <summary>
     /// Interface for a crossing detector that fires as a function of occupancy.
     /// </summary>
-    interface ICrossingDetector
+    internal interface ICrossingDetector
     {
         /// <summary>
         /// Notifies the detector of a new occupancy state at a given frame.

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
 using DNNDetector.Model;
@@ -18,12 +18,12 @@ namespace AML.Client
 {
     public class AMLCaller
     {
-        static string Host;
-        static bool UseSSL;
-        static string Auth;
-        static string AksServiceName;
-        static string InputName = "Placeholder:0";
-        static string OutputName = "classifier/resnet_v1_50/predictions/Softmax:0";
+        private static string Host;
+        private static bool UseSSL;
+        private static string Auth;
+        private static string AksServiceName;
+        private static string InputName = "Placeholder:0";
+        private static string OutputName = "classifier/resnet_v1_50/predictions/Softmax:0";
 
         public AMLCaller(string host, bool useSSL, string auth, string aksServiceName)
         {
@@ -55,7 +55,7 @@ namespace AML.Client
             for (int itemIndex = 0; itemIndex < items.Count(); itemIndex++)
             {
                 MemoryStream mStream = new MemoryStream();
-                items[itemIndex].CroppedImageData( items[itemIndex].ItemIDs.Count - 1 ).WriteToStream(mStream);
+                items[itemIndex].CroppedImageData(items[itemIndex].ItemIDs.Count - 1).WriteToStream(mStream);
                 mStream.Position = 0;
                 /*using ( Image image = Image.FromStream( new MemoryStream( items[itemIndex].CroppedImageData( items[itemIndex].ItemIDs.Count - 1 ) ) ) )
                 {
@@ -97,8 +97,8 @@ namespace AML.Client
                                         string blobName_AML = $@"frame-{frameIndex}-zAML-{key}-{kvp.Value}.jpg";
                                         string fileName_AML = @OutputFolder.OutputFolderAML + blobName_AML;
                                         var cropped = items[itemIndex].CroppedImageData(items[itemIndex].ItemIDs.Count - 1);
-                                        Utils.Utils.WriteAllBytes(fileName_AML, cropped );
-                                        Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_AML, cropped );
+                                        Utils.Utils.WriteAllBytes(fileName_AML, cropped);
+                                        Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_AML, cropped);
 
                                         goto CheckNextItem;
                                     }
@@ -112,7 +112,7 @@ namespace AML.Client
                         return null;
                     }
                 }
-            CheckNextItem:;
+CheckNextItem:;
             }
 
             return amlResult;

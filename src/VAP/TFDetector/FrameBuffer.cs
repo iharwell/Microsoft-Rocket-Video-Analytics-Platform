@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,10 +9,10 @@ using OpenCvSharp;
 
 namespace TFDetector
 {
-    class FrameBuffer
+    internal class FrameBuffer
     {
-        Queue<Mat> frameBuffer;
-        int bSize;
+        private Queue<Mat> frameBuffer;
+        private int bSize;
 
         public FrameBuffer(int size)
         {

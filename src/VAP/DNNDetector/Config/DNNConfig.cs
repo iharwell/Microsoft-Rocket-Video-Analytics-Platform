@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿namespace DNNDetector.Config
+namespace DNNDetector.Config
 {
     public static class DNNConfig
     {

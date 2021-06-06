@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 using System;
 using System.Globalization;
 
@@ -47,7 +47,7 @@ namespace PostProcessor.Model
 
         [DataMember(Name = "time")]
         public string Time { get; set; }
-        
+
         [DataMember(Name = "VideoInput")]
         public string VideoInput { get; set; }
 

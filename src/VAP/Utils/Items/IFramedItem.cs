@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.Serialization;
@@ -36,7 +39,7 @@ namespace Utils.Items
         ///   Returns a <c>byte[]</c> of the tagged image data for the requested
         ///   <see cref="IItemID" /> in this frame.
         /// </returns>
-        Mat TaggedImageData( int itemIDIndex, Color tagColor );
+        Mat TaggedImageData(int itemIDIndex, Color tagColor);
 
         /// <summary>
         ///   Retrieves the cropped image data for the item using the <see cref="IItemID" /> found
@@ -49,6 +52,6 @@ namespace Utils.Items
         ///   Returns a <c>byte[]</c> of the cropped image data for the requested
         ///   <see cref="IItemID" /> in this frame.
         /// </returns>
-        Mat CroppedImageData( int itemIDIndex );
+        Mat CroppedImageData(int itemIDIndex);
     }
 }

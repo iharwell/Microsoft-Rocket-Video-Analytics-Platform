@@ -17,9 +17,9 @@ namespace Wrapper.ORT
 {
     public class ORTWrapper
     {
-        static IYoloConfiguration cfg;
-        static InferenceSession session1, session2;
-        DNNMode mode = DNNMode.Unknown;
+        private static IYoloConfiguration cfg;
+        private static InferenceSession session1, session2;
+        private DNNMode mode = DNNMode.Unknown;
 
         public ORTWrapper(string modelPath, DNNMode mode)
         {
@@ -97,12 +97,12 @@ namespace Wrapper.ORT
             return tensorData.ToArray();
         }
 
-        static float[] LoadTensorFromImageFile(Bitmap bitmap)
+        private static float[] LoadTensorFromImageFile(Bitmap bitmap)
         {
             RGBtoBGR(bitmap);
             int iw = bitmap.Width, ih = bitmap.Height, w = 416, h = 416, nw, nh;
 
-            float scale = Math.Min((float)w/iw, (float)h/ih);
+            float scale = Math.Min((float)w / iw, (float)h / ih);
             nw = (int)(iw * scale);
             nh = (int)(ih * scale);
 
@@ -152,7 +152,7 @@ namespace Wrapper.ORT
             bmp.UnlockBits(data);
         }
 
-        static List<ORTItem> PostProcessing(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results)
+        private static List<ORTItem> PostProcessing(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results)
         {
             List<ORTItem> itemList = new List<ORTItem>();
 

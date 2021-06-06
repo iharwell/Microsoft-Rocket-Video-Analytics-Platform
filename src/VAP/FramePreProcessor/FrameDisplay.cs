@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,14 +11,14 @@ namespace FramePreProcessor
 {
     public class FrameDisplay
     {
-        static Dictionary<string, string> displayKVpairs = new Dictionary<string, string>();
-        static Dictionary<string, string> prev_displayKVpairs = new Dictionary<string, string>();
+        private static Dictionary<string, string> displayKVpairs = new Dictionary<string, string>();
+        private static Dictionary<string, string> prev_displayKVpairs = new Dictionary<string, string>();
 
         public static void display(Mat resizedFrame)
         {
             Mat frameToDisplay = resizedFrame.Clone();
             if (displayKVpairs.Count > 0)
-            {                
+            {
                 double scale = 0.75;
 
                 //Header box configs
@@ -47,7 +47,7 @@ namespace FramePreProcessor
                 {
                     int displayTotal = Int32.Parse(displayKVpairs[dir]);
                     result += dir + " " + displayTotal + "       ";
-                    
+
                 }
                 Cv2.PutText(frameToDisplay, result, new Point(leftTextPadding + row1Textbox, row1Height), HersheyFonts.HersheyPlain, scale, Scalar.Black);
             }
@@ -57,11 +57,13 @@ namespace FramePreProcessor
         }
 
         public static void updateKVPairs(Dictionary<string, string> kvpairs)
-        {            
-            foreach(string s in kvpairs.Keys)
+        {
+            foreach (string s in kvpairs.Keys)
             {
                 if (!displayKVpairs.ContainsKey(s))
+                {
                     displayKVpairs.Add(s, kvpairs[s]);
+                }
                 else
                 {
                     int currentVal = Int32.Parse(displayKVpairs[s]);

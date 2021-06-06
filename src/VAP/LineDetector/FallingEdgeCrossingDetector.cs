@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 
 namespace LineDetector
@@ -6,15 +9,15 @@ namespace LineDetector
     /// <summary>
     /// A line crossing detector that fires when an item leaves the line area.
     /// </summary>
-    class FallingEdgeCrossingDetector : ICrossingDetector
+    internal class FallingEdgeCrossingDetector : ICrossingDetector
     {
-        List<int> FrameNoList = new List<int>();
-        List<double> OccupancyValueList = new List<double>();
-        int UP_STATE_TRANSITION_LENGTH = 4;
-        int DOWN_STATE_TRANSITION_LENGTH = 10;
-        int History;
-        OCCUPANCY_STATE curState = OCCUPANCY_STATE.UNOCCUPIED;
-        bool debug = false;
+        private List<int> FrameNoList = new List<int>();
+        private List<double> OccupancyValueList = new List<double>();
+        private int UP_STATE_TRANSITION_LENGTH = 4;
+        private int DOWN_STATE_TRANSITION_LENGTH = 10;
+        private int History;
+        private OCCUPANCY_STATE curState = OCCUPANCY_STATE.UNOCCUPIED;
+        private bool debug = false;
         public List<double> debug_occupancySequence;
 
         /// <summary>

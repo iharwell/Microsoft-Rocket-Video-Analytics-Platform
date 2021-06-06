@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -21,7 +21,7 @@ namespace LineDetector
 
         public static double DEFAULT_OCCUPANCY_THRESHOLD = 0.9; // default threhsold
 
-        LineSegment lineSegment;
+        private LineSegment lineSegment;
 
         public LineSegment Line
         {
@@ -116,7 +116,7 @@ namespace LineDetector
 
                 bool isInside = b.Contains((int)currentX, (int)currentY);
 
-                if (mask.GetPixel((int)currentX, (int)currentY).ToArgb() == (~0) )
+                if (mask.GetPixel((int)currentX, (int)currentY).ToArgb() == (~0))
                 {
                     overlapCount++;
                 }
@@ -141,7 +141,7 @@ namespace LineDetector
         /// the given mask, from 0 indicating no overlap to 1 indicating
         /// complete overlap.
         /// </returns>
-        public double getFractionContainedInBox( RectangleF b, OpenCvSharp.Mat mask )
+        public double getFractionContainedInBox(RectangleF b, OpenCvSharp.Mat mask)
         {
             double eta = 0;
             Size size = Line.P2Offset;
@@ -154,14 +154,14 @@ namespace LineDetector
 
             do
             {
-                if ( ( lastX == currentX ) && ( lastY == currentY ) )
+                if ((lastX == currentX) && (lastY == currentY))
                     continue;
 
                 totalPixelCount++;
 
                 bool isInside = b.Contains((int)currentX, (int)currentY);
-                byte v = mask.Get<byte>( (int)currentY, (int)currentX );
-                if ( v == 255 )
+                byte v = mask.Get<byte>((int)currentY, (int)currentX);
+                if (v == 255)
                 {
                     overlapCount++;
                 }
@@ -171,7 +171,7 @@ namespace LineDetector
                 eta += increment;
                 currentX = p1.X + eta * size.Width;
                 currentY = p1.Y + eta * size.Height;
-            } while ( eta <= 1 );
+            } while (eta <= 1);
 
             double fraction = (double)overlapCount / (double)totalPixelCount;
             return fraction;
@@ -203,7 +203,7 @@ namespace LineDetector
 
                 totalPixelCount++;
 
-                if ( mask.GetPixel( (int)currentX, (int)currentY ).ToString() == "Color [A=255, R=255, G=255, B=255]" )
+                if (mask.GetPixel((int)currentX, (int)currentY).ToString() == "Color [A=255, R=255, G=255, B=255]")
                 {
                     overlapCount++;
                 }
@@ -218,7 +218,7 @@ namespace LineDetector
             return fraction;
         }
 
-        public double getFractionInForeground( Mat mask )
+        public double getFractionInForeground(Mat mask)
         {
             double eta = 0;
             Size size = Line.P2Offset;
@@ -231,12 +231,13 @@ namespace LineDetector
 
             do
             {
-                if ( ( lastX == currentX ) && ( lastY == currentY ) )
+                if ((lastX == currentX) && (lastY == currentY))
                     continue;
 
                 totalPixelCount++;
 
-                /**/if ( mask.Get<byte>( (int)currentY, (int)currentX ) == 255 )
+                /**/
+                if (mask.Get<byte>((int)currentY, (int)currentX) == 255)
                 {
                     overlapCount++;
                 }
@@ -246,7 +247,7 @@ namespace LineDetector
                 eta += increment;
                 currentX = p1.X + eta * size.Width;
                 currentY = p1.Y + eta * size.Height;
-            } while ( eta <= 1 );
+            } while (eta <= 1);
 
             double fraction = (double)overlapCount / (double)totalPixelCount;
             return fraction;
@@ -265,7 +266,7 @@ namespace LineDetector
             for (int boxNo = 0; boxNo < boxes.Count; boxNo++)
             {
                 IFramedItem b = boxes[boxNo];
-                StatisticRectangle sr = new StatisticRectangle( from item in b.ItemIDs select item.BoundingBox );
+                StatisticRectangle sr = new StatisticRectangle(from item in b.ItemIDs select item.BoundingBox);
                 double area = sr.Mean.Width * sr.Mean.Height;
                 if (area < MIN_BOX_SIZE) continue;
                 double overlapFraction = getFractionContainedInBox(sr.Mean, mask);
@@ -284,19 +285,19 @@ namespace LineDetector
         /// <param name="boxes">The list of <see cref="Box"/> objects to check, representing the bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
         /// <returns>Returns a tuple containing both the maximum overlap fraction found, and the <see cref="Box"/> associated with that overlap.</returns>
-        public (double frac, IFramedItem b) getMaximumFractionContainedInAnyBox( IList<IFramedItem> boxes, OpenCvSharp.Mat mask )
+        public (double frac, IFramedItem b) getMaximumFractionContainedInAnyBox(IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
         {
             double maxOverlapFraction = 0;
             IFramedItem maxB = null;
-            for ( int boxNo = 0; boxNo < boxes.Count; boxNo++ )
+            for (int boxNo = 0; boxNo < boxes.Count; boxNo++)
             {
                 IFramedItem b = boxes[boxNo];
-                StatisticRectangle sr = new StatisticRectangle( b.ItemIDs );
+                StatisticRectangle sr = new StatisticRectangle(b.ItemIDs);
                 double area = sr.Mean.Width * sr.Mean.Height;
-                if ( area < MIN_BOX_SIZE )
+                if (area < MIN_BOX_SIZE)
                     continue;
                 double overlapFraction = getFractionContainedInBox(sr.Mean, mask);
-                if ( overlapFraction > maxOverlapFraction )
+                if (overlapFraction > maxOverlapFraction)
                 {
                     maxOverlapFraction = overlapFraction;
                     maxB = b;

@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -25,10 +25,10 @@ namespace LineDetector
 
         public MultiLaneDetector multiLaneDetector;
 
-        Dictionary<string, int> counts = new Dictionary<string, int>();
-        Dictionary<string, int> counts_prev = new Dictionary<string, int>();
-        Dictionary<string, bool> occupancy = new Dictionary<string, bool>();
-        Dictionary<string, bool> occupancy_prev = new Dictionary<string, bool>();
+        private Dictionary<string, int> counts = new Dictionary<string, int>();
+        private Dictionary<string, int> counts_prev = new Dictionary<string, int>();
+        private Dictionary<string, bool> occupancy = new Dictionary<string, bool>();
+        private Dictionary<string, bool> occupancy_prev = new Dictionary<string, bool>();
 
         /// <summary>
         /// Constructs a <see cref="Detector"/> object with the provided 
@@ -131,41 +131,41 @@ namespace LineDetector
                 multiLaneDetector.notifyFrameArrival( frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature );
 
                 // bgs visualization with lines
-                if ( DISPLAY_BGS )
+                if (DISPLAY_BGS)
                 {
                     List<(string key, LineSegment coordinates)> lines = this.multiLaneDetector.getAllLines();
-                    for ( int i = 0; i < lines.Count; i++ )
+                    for (int i = 0; i < lines.Count; i++)
                     {
                         System.Drawing.Point p1 = lines[i].coordinates.P1;
                         System.Drawing.Point p2 = lines[i].coordinates.P2;
-                        Cv2.Line( frame.ForegroundMask, p1.X, p1.Y, p2.X, p2.Y, new Scalar( 255, 0, 255, 255 ), 5 );
+                        Cv2.Line(frame.ForegroundMask, p1.X, p1.Y, p2.X, p2.Y, new Scalar(255, 0, 255, 255), 5);
                     }
-                    Cv2.ImShow( "BGS Output", frame.ForegroundMask );
+                    Cv2.ImShow("BGS Output", frame.ForegroundMask);
                     Cv2.WaitKey(1);
                 }
             }
             counts = multiLaneDetector.getCounts();
 
-            if ( counts_prev.Count != 0 )
+            if (counts_prev.Count != 0)
             {
-                foreach ( string lane in counts.Keys )
+                foreach (string lane in counts.Keys)
                 {
                     int diff = Math.Abs(counts[lane] - counts_prev[lane]);
-                    if ( diff > 0 ) //object detected by BGS-based counter
+                    if (diff > 0) //object detected by BGS-based counter
                     {
-                        Console.WriteLine( $"Line: {lane}\tCounts: {counts[lane]}" );
+                        Console.WriteLine($"Line: {lane}\tCounts: {counts[lane]}");
                         string blobName_BGS = $@"frame-{frame.FrameIndex}-BGS-{lane}-{counts[lane]}.jpg";
                         string fileName_BGS = @OutputFolder.OutputFolderBGSLine + blobName_BGS;
-                        frame.FrameData.SaveImage( fileName_BGS );
-                        frame.FrameData.SaveImage( @OutputFolder.OutputFolderAll + blobName_BGS );
+                        frame.FrameData.SaveImage(fileName_BGS);
+                        frame.FrameData.SaveImage(@OutputFolder.OutputFolderAll + blobName_BGS);
                     }
                 }
             }
-            updateCount( counts );
+            updateCount(counts);
 
             //occupancy
             occupancy = multiLaneDetector.getOccupancy();
-            foreach ( string lane in occupancy.Keys )
+            foreach (string lane in occupancy.Keys)
             {
                 //output frames that have line occupied by objects
                 //if (frameIndex > 1)
@@ -178,7 +178,7 @@ namespace LineDetector
                 //        frame.SaveImage(@OutputFolder.OutputFolderAll + blobName_BGS);
                 //    }
                 //}
-                updateCount( lane, occupancy );
+                updateCount(lane, occupancy);
             }
 
             return boxes;
@@ -245,7 +245,7 @@ namespace LineDetector
             return (counts, occupancy);
         }
 
-        bool occupancyChanged(string lane)
+        private bool occupancyChanged(string lane)
         {
             bool diff = false;
             if (occupancy_prev.Count != 0)
@@ -256,12 +256,12 @@ namespace LineDetector
             return diff;
         }
 
-        void updateCount(string lane, Dictionary<string, bool> counts)
+        private void updateCount(string lane, Dictionary<string, bool> counts)
         {
             occupancy_prev[lane] = counts[lane];
         }
 
-        void updateCount(Dictionary<string, int> counts)
+        private void updateCount(Dictionary<string, int> counts)
         {
             foreach (string dir in counts.Keys)
             {

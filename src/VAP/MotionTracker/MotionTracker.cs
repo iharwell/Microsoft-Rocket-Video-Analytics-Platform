@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using Utils.Items;
 using System.Linq;
@@ -9,11 +12,11 @@ namespace MotionTracker
 {
     public class MotionTracker
     {
-        public static IItemPath GetPathFromIdAndBuffer( IFramedItem framedID, IList<IList<IFramedItem>> buffer, IPathPredictor predictor, double similarityThreshold )
+        public static IItemPath GetPathFromIdAndBuffer(IFramedItem framedID, IList<IList<IFramedItem>> buffer, IPathPredictor predictor, double similarityThreshold)
         {
             IItemPath itemPath = new ItemPath();
-            itemPath.FramedItems.Add( framedID );
-            if( buffer.Count == 0 )
+            itemPath.FramedItems.Add(framedID);
+            if (buffer.Count == 0)
             {
                 return itemPath;
             }
@@ -26,34 +29,32 @@ namespace MotionTracker
             int startingIndex = givenIndex - minFrame;
             List<int> counts = new List<int>();
 
-            //InductTriggeredFrame( itemPath, orgFrames );
-
-            InductionPass( predictor, ( similarityThreshold + 0.5 ) / 1.5, itemPath, orgFrames, ref startingIndex );
-            if ( orgFrames.Count == 0 )
+            InductionPass(predictor, (similarityThreshold + 0.5) / 1.5, itemPath, orgFrames, ref startingIndex);
+            if (orgFrames.Count == 0)
             {
                 return itemPath;
             }
-            counts.Add( itemPath.FramedItems.Count );
+            counts.Add(itemPath.FramedItems.Count);
 
-            InductionPass( predictor, ( similarityThreshold + 0.3 ) / 1.3, itemPath, orgFrames, ref startingIndex );
+            InductionPass(predictor, (similarityThreshold + 0.3) / 1.3, itemPath, orgFrames, ref startingIndex);
 
-            if ( orgFrames.Count == 0 )
+
+            if (orgFrames.Count == 0)
             {
                 return itemPath;
             }
-            counts.Add( itemPath.FramedItems.Count );
+            counts.Add(itemPath.FramedItems.Count);
 
-            InductionPass( predictor, ( similarityThreshold + 0.1 ) / 1.1, itemPath, orgFrames, ref startingIndex );
+            InductionPass(predictor, (similarityThreshold + 0.1) / 1.1, itemPath, orgFrames, ref startingIndex);
 
-            if ( orgFrames.Count == 0 )
+            if (orgFrames.Count == 0)
             {
                 return itemPath;
             }
-            counts.Add( itemPath.FramedItems.Count );
+            counts.Add(itemPath.FramedItems.Count);
 
-            InductionPass( predictor, similarityThreshold, itemPath, orgFrames, ref startingIndex );
-
-            counts.Add( itemPath.FramedItems.Count );
+            InductionPass(predictor, similarityThreshold, itemPath, orgFrames, ref startingIndex);
+            counts.Add(itemPath.FramedItems.Count);
             /*for ( int i = 0; i < Math.Max( startingIndex, orgFrames.Last().First().Frame.FrameIndex - givenIndex ); ++i )
             {
                 if ( ( startingIndex + i ) < orgFrames.Count )
@@ -75,9 +76,9 @@ namespace MotionTracker
                 TestAndAdd( orgFrames[i], predictor, itemPath, similarityThreshold );
             }*/
 
-            for ( int i = 0; i < counts.Count; i++ )
+            for (int i = 0; i < counts.Count; i++)
             {
-                Console.WriteLine( "Pass " + ( i + 1 ) + ": " + counts[i] );
+                Console.WriteLine("Pass " + (i + 1) + ": " + counts[i]);
             }
             return itemPath;
         }
@@ -261,7 +262,7 @@ namespace MotionTracker
             int lowIndex = startingIndex -1;
             int highIndex = startingIndex;
 
-            while ( lowIndex >= 0 || highIndex < orgFrames.Count )
+            while (lowIndex >= 0 || highIndex < orgFrames.Count)
             {
                 int currentSize = itemPath.FramedItems.Count;
                 for ( ; lowIndex >= 0; --lowIndex )
@@ -289,9 +290,9 @@ namespace MotionTracker
             }
         }
 
-        private static void TestAndAdd( IList<IFramedItem> itemsInFrame, IPathPredictor predictor, IItemPath itemPath, double similarityThreshold )
+        private static void TestAndAdd(IList<IFramedItem> itemsInFrame, IPathPredictor predictor, IItemPath itemPath, double similarityThreshold)
         {
-            if ( itemsInFrame.Count == 0 )
+            if (itemsInFrame.Count == 0)
             {
                 return;
             }
@@ -301,25 +302,25 @@ namespace MotionTracker
 
             double bestSim = 0;
             int closestIndex = -1;
-            for ( int j = 0; j < itemsInFrame.Count; j++ )
+            for (int j = 0; j < itemsInFrame.Count; j++)
             {
                 var fItem = itemsInFrame[j];
                 double sim = fItem.Similarity(prediction);
-                if ( sim > bestSim )
+                if (sim > bestSim)
                 {
                     bestSim = sim;
                     closestIndex = j;
                 }
             }
 
-            if ( bestSim > similarityThreshold )
+            if (bestSim > similarityThreshold)
             {
-                itemPath.FramedItems.Add( itemsInFrame[closestIndex] );
+                itemPath.FramedItems.Add(itemsInFrame[closestIndex]);
             }
 
         }
 
-        private static IList<IList<IFramedItem>> GroupByFrame( IList<IList<IFramedItem>> buffer )
+        private static IList<IList<IFramedItem>> GroupByFrame(IList<IList<IFramedItem>> buffer)
         {
             var allFramedItems = from IList<IFramedItem> subList in buffer
                                  from IFramedItem item in subList
@@ -328,24 +329,24 @@ namespace MotionTracker
             int minFrame = buffer[0][0].Frame.FrameIndex;
             int maxFrame = buffer[0][0].Frame.FrameIndex;
 
-            foreach( var item in allFramedItems )
+            foreach (var item in allFramedItems)
             {
                 int frameIndex = item.Frame.FrameIndex;
-                minFrame = Math.Min( minFrame, frameIndex );
-                maxFrame = Math.Max( maxFrame, frameIndex );
+                minFrame = Math.Min(minFrame, frameIndex);
+                maxFrame = Math.Max(maxFrame, frameIndex);
             }
 
-            IList<IList<IFramedItem>> organizedFrames = new List<IList<IFramedItem>>(maxFrame-minFrame);
+            IList<IList<IFramedItem>> organizedFrames = new List<IList<IFramedItem>>(maxFrame - minFrame);
 
-            for ( int i = minFrame; i <= maxFrame; i++ )
+            for (int i = minFrame; i <= maxFrame; i++)
             {
-                organizedFrames.Add( new List<IFramedItem>() );
+                organizedFrames.Add(new List<IFramedItem>());
             }
 
-            foreach ( var item in allFramedItems )
+            foreach (var item in allFramedItems)
             {
                 int frameIndex = item.Frame.FrameIndex;
-                organizedFrames[frameIndex - minFrame].Add( item );
+                organizedFrames[frameIndex - minFrame].Add(item);
             }
             return organizedFrames;
         }

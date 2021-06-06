@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 namespace Wrapper.Yolo.Model
 {
