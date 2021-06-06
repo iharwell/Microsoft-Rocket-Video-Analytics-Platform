@@ -19,8 +19,8 @@ namespace Utils.Items
         public LineTriggeredItemID()
         { }
 
-        public LineTriggeredItemID( Rectangle boundingBox, int objectID, string objName, double confidence, int trackID, string identificationMethod )
-            : base( boundingBox, objectID, objName, confidence, trackID, identificationMethod)
+        public LineTriggeredItemID(Rectangle boundingBox, int objectID, string objName, double confidence, int trackID, string identificationMethod)
+            : base(boundingBox, objectID, objName, confidence, trackID, identificationMethod)
         {
             FurtherAnalysisTriggered = false;
         }

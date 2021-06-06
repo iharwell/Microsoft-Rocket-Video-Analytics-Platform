@@ -30,7 +30,7 @@ namespace LineDetector
         /// <param name="frameNo">The index of the frame to process.</param>
         /// <param name="boxes">A list of bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
-        void notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask );
+        void notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask);
 
         /// <summary>
         /// Processes a frame upon arrival.
@@ -38,7 +38,7 @@ namespace LineDetector
         /// <param name="frameNo">The index of the frame to process.</param>
         /// <param name="boxes">A list of bounding boxes of items in frame.</param>
         /// <param name="mask">A mask detailing the precise layout of items in the frame using black to indicate vacant space, and white to indicate occupied space.</param>
-        void notifyFrameArrival( IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature );
+        void notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature);
 
         /// <summary>
         /// Processes a frame upon arrival.

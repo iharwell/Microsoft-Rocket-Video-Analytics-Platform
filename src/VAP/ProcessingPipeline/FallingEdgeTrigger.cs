@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,19 +14,19 @@ namespace ProcessingPipeline
         public double Hysteresis { get; set; }
         public int MinimumEntriesForTransition { get; set; }
         public bool CurrentState { get; protected set; }
-        public bool NotifyNextValue( double value )
+        public bool NotifyNextValue(double value)
         {
-            ValueHistory.Add( value );
+            ValueHistory.Add(value);
 
-            if( CurrentState && value < TriggerThreshold - Hysteresis )
+            if (CurrentState && value < TriggerThreshold - Hysteresis)
             {
                 int frameCount = 1;
-                for ( int i = ValueHistory.Count - 2; i >= 0; i++ )
+                for (int i = ValueHistory.Count - 2; i >= 0; i++)
                 {
-                    if ( ValueHistory[i] < TriggerThreshold - Hysteresis )
+                    if (ValueHistory[i] < TriggerThreshold - Hysteresis)
                     {
                         ++frameCount;
-                        if ( frameCount >= MinimumEntriesForTransition )
+                        if (frameCount >= MinimumEntriesForTransition)
                         {
                             CurrentState = false;
                             return true;
@@ -31,15 +34,15 @@ namespace ProcessingPipeline
                     }
                 }
             }
-            else if ( !CurrentState && value > TriggerThreshold + Hysteresis )
+            else if (!CurrentState && value > TriggerThreshold + Hysteresis)
             {
                 int frameCount = 1;
-                for ( int i = ValueHistory.Count - 2; i >= 0; i++ )
+                for (int i = ValueHistory.Count - 2; i >= 0; i++)
                 {
-                    if ( ValueHistory[i] > TriggerThreshold + Hysteresis )
+                    if (ValueHistory[i] > TriggerThreshold + Hysteresis)
                     {
                         ++frameCount;
-                        if ( frameCount >= MinimumEntriesForTransition )
+                        if (frameCount >= MinimumEntriesForTransition)
                         {
                             CurrentState = true;
                             return false;

@@ -15,12 +15,12 @@ namespace Utils.Items
     /// </summary>
 
     [Serializable]
-    [KnownType( typeof( FramedItem ) )]
-    [KnownType( typeof( ItemID ) )]
-    [KnownType( typeof( LineTriggeredItemID ) )]
-    [KnownType( typeof( Frame ) )]
-    [KnownType( typeof( OpenCvSharp.Mat ) )]
-    [KnownType( typeof( List<IItemID> ) )]
+    [KnownType(typeof(FramedItem))]
+    [KnownType(typeof(ItemID))]
+    [KnownType(typeof(LineTriggeredItemID))]
+    [KnownType(typeof(Frame))]
+    [KnownType(typeof(OpenCvSharp.Mat))]
+    [KnownType(typeof(List<IItemID>))]
     public class ItemPath : IItemPath
     {
         public ItemPath()
@@ -46,7 +46,7 @@ namespace Utils.Items
         {
             get
             {
-                if ( highestConfidenceFrame == -1 )
+                if (highestConfidenceFrame == -1)
                 {
                     UpdateHighestConfidence();
                 }
@@ -58,7 +58,7 @@ namespace Utils.Items
         {
             get
             {
-                if ( highestConfidenceID == -1 )
+                if (highestConfidenceID == -1)
                 {
                     UpdateHighestConfidence();
                 }
@@ -107,11 +107,11 @@ namespace Utils.Items
             double max = -1;
             int frameNum = -1;
             int idNum = -1;
-            for ( int i = 0; i < FramedItems.Count; i++ )
+            for (int i = 0; i < FramedItems.Count; i++)
             {
-                for ( int j = 0; j < FramedItems[i].ItemIDs.Count; j++ )
+                for (int j = 0; j < FramedItems[i].ItemIDs.Count; j++)
                 {
-                    if( FramedItems[i].ItemIDs[j].Confidence > max )
+                    if (FramedItems[i].ItemIDs[j].Confidence > max)
                     {
                         max = FramedItems[i].ItemIDs[j].Confidence;
                         frameNum = i;

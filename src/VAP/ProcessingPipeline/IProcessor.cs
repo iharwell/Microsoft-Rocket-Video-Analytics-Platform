@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System.Collections.Generic;
 using System.Drawing;
 using DNNDetector.Model;
 using OpenCvSharp;
@@ -44,7 +47,7 @@ namespace ProcessingPipeline
         /// <returns>
         ///   <see langword="true" /> if an item was found; otherwise <see langword="false" />.
         /// </returns>
-        bool Run( IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage );
+        bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage);
 
         bool DisplayOutput { get; set; }
     }

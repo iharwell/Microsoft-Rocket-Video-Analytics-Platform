@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
@@ -24,19 +27,19 @@ namespace ProcessingPipeline
 
         public bool DisplayOutput { get; set; }
 
-        public bool Run( IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage )
+        public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
-            frame.FrameData = FramePreProcessor.PreProcessor.returnFrame( frame.FrameData, frame.FrameIndex, SamplingFactor, ResolutionFactor, DisplayOutput );
+            frame.FrameData = FramePreProcessor.PreProcessor.returnFrame(frame.FrameData, frame.FrameIndex, SamplingFactor, ResolutionFactor, DisplayOutput);
 
-            if ( frame.FrameData == null)
+            if (frame.FrameData == null)
             {
                 return false;
             }
 
-            var bgsItems=detector.DetectObjects(frame.TimeStamp, frame.FrameData, frame.FrameIndex, out Mat fg, this );
+            var bgsItems = detector.DetectObjects(frame.TimeStamp, frame.FrameData, frame.FrameIndex, out Mat fg, this);
             frame.ForegroundMask = fg;
-            FramedItem.MergeIntoFramedItemList( bgsItems, ref items );
-            return bgsItems!=null && bgsItems.Count > 0;
+            FramedItem.MergeIntoFramedItemList(bgsItems, ref items);
+            return bgsItems != null && bgsItems.Count > 0;
         }
     }
 }

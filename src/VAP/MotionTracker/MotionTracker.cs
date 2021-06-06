@@ -83,9 +83,9 @@ namespace MotionTracker
             return itemPath;
         }
 
-        public static IItemPath ExpandPathFromBuffer( IItemPath itemPath, IList<IList<IFramedItem>> buffer, IPathPredictor predictor, double similarityThreshold )
+        public static IItemPath ExpandPathFromBuffer(IItemPath itemPath, IList<IList<IFramedItem>> buffer, IPathPredictor predictor, double similarityThreshold)
         {
-            if ( buffer.Count == 0 )
+            if (buffer.Count == 0)
             {
                 return itemPath;
             }
@@ -100,50 +100,50 @@ namespace MotionTracker
             int startingIndex = givenIndex - minFrame;
             List<int> counts = new List<int>();
 
-            RemoveUsedFrames( itemPath, orgFrames, ref startingIndex );
-            if ( orgFrames.Count == 0 )
+            RemoveUsedFrames(itemPath, orgFrames, ref startingIndex);
+            if (orgFrames.Count == 0)
             {
                 return itemPath;
             }
 
             //InductTriggeredFrame( itemPath, orgFrames );
 
-            InductionPass( predictor, ( similarityThreshold + 0.5 ) / 1.5, itemPath, orgFrames, ref startingIndex );
-            if ( orgFrames.Count == 0 )
+            InductionPass(predictor, (similarityThreshold + 0.5) / 1.5, itemPath, orgFrames, ref startingIndex);
+            if (orgFrames.Count == 0)
             {
                 return itemPath;
             }
-            counts.Add( itemPath.FramedItems.Count );
+            counts.Add(itemPath.FramedItems.Count);
 
-            InductionPass( predictor, ( similarityThreshold + 0.3 ) / 1.3, itemPath, orgFrames, ref startingIndex );
+            InductionPass(predictor, (similarityThreshold + 0.3) / 1.3, itemPath, orgFrames, ref startingIndex);
 
 
-            if ( orgFrames.Count == 0 )
+            if (orgFrames.Count == 0)
             {
                 return itemPath;
             }
-            counts.Add( itemPath.FramedItems.Count );
+            counts.Add(itemPath.FramedItems.Count);
 
-            InductionPass( predictor, ( similarityThreshold + 0.1 ) / 1.1, itemPath, orgFrames, ref startingIndex );
+            InductionPass(predictor, (similarityThreshold + 0.1) / 1.1, itemPath, orgFrames, ref startingIndex);
 
-            if ( orgFrames.Count == 0 )
+            if (orgFrames.Count == 0)
             {
                 return itemPath;
             }
-            counts.Add( itemPath.FramedItems.Count );
+            counts.Add(itemPath.FramedItems.Count);
 
-            InductionPass( predictor, similarityThreshold, itemPath, orgFrames, ref startingIndex );
+            InductionPass(predictor, similarityThreshold, itemPath, orgFrames, ref startingIndex);
 
-            counts.Add( itemPath.FramedItems.Count );
+            counts.Add(itemPath.FramedItems.Count);
 
-            for ( int i = 0; i < counts.Count; i++ )
+            for (int i = 0; i < counts.Count; i++)
             {
-                Console.WriteLine( "Pass " + ( i + 1 ) + ": " + counts[i] );
+                Console.WriteLine("Pass " + (i + 1) + ": " + counts[i]);
             }
             return itemPath;
         }
 
-        private static void RemoveUsedFrames( IItemPath itemPath, IList<IList<IFramedItem>> orgFrames, ref int startingIndex )
+        private static void RemoveUsedFrames(IItemPath itemPath, IList<IList<IFramedItem>> orgFrames, ref int startingIndex)
         {
             var usedFrames = from framedItem in itemPath.FramedItems
                              let frame = framedItem.Frame.FrameIndex
@@ -183,65 +183,65 @@ namespace MotionTracker
                 }
             }*/
 
-            for ( int i = 0; i < orgFrames.Count; i++ )
+            for (int i = 0; i < orgFrames.Count; i++)
             {
-                if ( orgFrames[i].Count == 0 )
+                if (orgFrames[i].Count == 0)
                 {
                     // Remove empty
-                    if ( i <= startingIndex && startingIndex > 0 )
+                    if (i <= startingIndex && startingIndex > 0)
                     {
                         --startingIndex;
                     }
-                    orgFrames.RemoveAt( i );
+                    orgFrames.RemoveAt(i);
                     --i;
                     continue;
                 }
-                if ( usedFrames.Contains( orgFrames[i].First().Frame.FrameIndex ) )
+                if (usedFrames.Contains(orgFrames[i].First().Frame.FrameIndex))
                 {
-                    if ( i <= startingIndex && startingIndex > 0 )
+                    if (i <= startingIndex && startingIndex > 0)
                     {
                         --startingIndex;
                     }
-                    orgFrames.RemoveAt( i );
+                    orgFrames.RemoveAt(i);
                     --i;
                 }
             }
         }
 
-        private static void InductTriggeredFrame( IItemPath itemPath, IList<IList<IFramedItem>> orgFrames )
+        private static void InductTriggeredFrame(IItemPath itemPath, IList<IList<IFramedItem>> orgFrames)
         {
             ITriggeredItem triggeredItemID = null;
 
             var lastFrame = orgFrames.Last();
-            for ( int i = lastFrame.Count-1; i >= 0; --i )
+            for (int i = lastFrame.Count - 1; i >= 0; --i)
             {
                 var framedItem = lastFrame[i];
-                for ( int j = framedItem.ItemIDs.Count - 1; j >= 0; --j )
+                for (int j = framedItem.ItemIDs.Count - 1; j >= 0; --j)
                 {
                     var itemID = framedItem.ItemIDs[j];
-                    if ( itemID is ITriggeredItem item && item.FurtherAnalysisTriggered )
+                    if (itemID is ITriggeredItem item && item.FurtherAnalysisTriggered)
                     {
                         triggeredItemID = item;
                         break;
                     }
                 }
-                if( triggeredItemID != null )
+                if (triggeredItemID != null)
                 {
                     break;
                 }
             }
             /**/
-            if ( triggeredItemID != null )
+            if (triggeredItemID != null)
             {
                 var secondLastFrame = orgFrames[orgFrames.Count - 1];
                 IFramedItem closestItem = null;
                 int closestItemIndex = -1;
                 double maxSim = -999999999;
-                for ( int i = 0; i < secondLastFrame.Count; i++ )
+                for (int i = 0; i < secondLastFrame.Count; i++)
                 {
                     var framedItem = secondLastFrame[i];
-                    double sim = framedItem.Similarity( triggeredItemID.BoundingBox );
-                    if ( sim > maxSim )
+                    double sim = framedItem.Similarity(triggeredItemID.BoundingBox);
+                    if (sim > maxSim)
                     {
                         maxSim = sim;
                         closestItem = framedItem;
@@ -249,28 +249,28 @@ namespace MotionTracker
                     }
                 }
 
-                if ( closestItem != null )
+                if (closestItem != null)
                 {
-                    itemPath.FramedItems.Add( closestItem );
-                    orgFrames.RemoveAt( orgFrames.Count - 2 );
+                    itemPath.FramedItems.Add(closestItem);
+                    orgFrames.RemoveAt(orgFrames.Count - 2);
                 }
             }
         }
 
-        private static void InductionPass( IPathPredictor predictor, double similarityThreshold, IItemPath itemPath, IList<IList<IFramedItem>> orgFrames, ref int startingIndex)
+        private static void InductionPass(IPathPredictor predictor, double similarityThreshold, IItemPath itemPath, IList<IList<IFramedItem>> orgFrames, ref int startingIndex)
         {
-            int lowIndex = startingIndex -1;
+            int lowIndex = startingIndex - 1;
             int highIndex = startingIndex;
 
             while (lowIndex >= 0 || highIndex < orgFrames.Count)
             {
                 int currentSize = itemPath.FramedItems.Count;
-                for ( ; lowIndex >= 0; --lowIndex )
+                for (; lowIndex >= 0; --lowIndex)
                 {
-                    TestAndAdd( orgFrames[lowIndex], predictor, itemPath, similarityThreshold );
-                    if ( currentSize != itemPath.FramedItems.Count || orgFrames[lowIndex].Count == 0 )
+                    TestAndAdd(orgFrames[lowIndex], predictor, itemPath, similarityThreshold);
+                    if (currentSize != itemPath.FramedItems.Count || orgFrames[lowIndex].Count == 0)
                     {
-                        orgFrames.RemoveAt( lowIndex );
+                        orgFrames.RemoveAt(lowIndex);
                         --lowIndex;
                         --highIndex;
                         --startingIndex;
@@ -278,12 +278,12 @@ namespace MotionTracker
                         break;
                     }
                 }
-                for ( ; highIndex < orgFrames.Count; ++highIndex )
+                for (; highIndex < orgFrames.Count; ++highIndex)
                 {
-                    TestAndAdd( orgFrames[highIndex], predictor, itemPath, similarityThreshold );
-                    if ( currentSize != itemPath.FramedItems.Count || orgFrames[highIndex].Count == 0 )
+                    TestAndAdd(orgFrames[highIndex], predictor, itemPath, similarityThreshold);
+                    if (currentSize != itemPath.FramedItems.Count || orgFrames[highIndex].Count == 0)
                     {
-                        orgFrames.RemoveAt( highIndex );
+                        orgFrames.RemoveAt(highIndex);
                         break;
                     }
                 }

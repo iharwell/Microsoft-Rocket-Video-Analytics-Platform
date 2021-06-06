@@ -26,26 +26,26 @@ namespace Utils.Items
         /// </returns>
         public static double Similarity(this IFramedItem item, Rectangle rect)
         {
-            if ( rect.Width == 0 )
+            if (rect.Width == 0)
             {
                 rect.Width = 1;
             }
-            if ( rect.Height == 0 )
+            if (rect.Height == 0)
             {
                 rect.Height = 1;
             }
             StatisticRectangle sr = new StatisticRectangle(item.ItemIDs);
 
             var median = sr.Median;
-            if ( median.Width == 0 )
+            if (median.Width == 0)
             {
-                median = new RectangleF( median.Location, new SizeF( 1, median.Height ) );
+                median = new RectangleF(median.Location, new SizeF(1, median.Height));
             }
-            if ( median.Height == 0 )
+            if (median.Height == 0)
             {
-                median = new RectangleF( median.Location, new SizeF( median.Width, 1 ) );
+                median = new RectangleF(median.Location, new SizeF(median.Width, 1));
             }
-            if ( sr.Median.X <= rect.Right && rect.X <= sr.Median.Right && sr.Median.Y <= rect.Bottom && rect.Y <= sr.Median.Bottom )
+            if (sr.Median.X <= rect.Right && rect.X <= sr.Median.Right && sr.Median.Y <= rect.Bottom && rect.Y <= sr.Median.Bottom)
             {
                 // There is some overlap, so we will give a positive similarity score.
                 double ovX = Math.Max(rect.X, median.X);

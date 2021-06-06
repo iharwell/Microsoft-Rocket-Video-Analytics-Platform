@@ -47,26 +47,26 @@ namespace Utils.Items
             FrameData = frameData;
         }
 
-        protected Frame( SerializationInfo info, StreamingContext context )
+        protected Frame(SerializationInfo info, StreamingContext context)
         {
-            SourceName = info.GetString( nameof( SourceName ) );
-            FrameIndex = info.GetInt32( nameof( FrameIndex ) );
-            TimeStamp = (DateTime)info.GetValue( nameof( TimeStamp ), typeof( DateTime ) );
+            SourceName = info.GetString(nameof(SourceName));
+            FrameIndex = info.GetInt32(nameof(FrameIndex));
+            TimeStamp = (DateTime)info.GetValue(nameof(TimeStamp), typeof(DateTime));
 
-            object framebytes = info.GetValue( nameof( FrameData ), typeof( byte[] ) );
+            object framebytes = info.GetValue(nameof(FrameData), typeof(byte[]));
 
-            FrameData = Mat.FromImageData( framebytes as byte[], ImreadModes.Color );
+            FrameData = Mat.FromImageData(framebytes as byte[], ImreadModes.Color);
 
 
-            object o = info.GetValue( nameof( ForegroundMask ), typeof( byte[] ) );
+            object o = info.GetValue(nameof(ForegroundMask), typeof(byte[]));
 
-            if( o is null )
+            if (o is null)
             {
                 ForegroundMask = null;
             }
             else
             {
-                ForegroundMask = Mat.FromImageData( o as byte[], ImreadModes.AnyColor );
+                ForegroundMask = Mat.FromImageData(o as byte[], ImreadModes.AnyColor);
             }
         }
 
@@ -108,21 +108,21 @@ namespace Utils.Items
         /// <inheritdoc />
         public DateTime TimeStamp { get; set; }
 
-        public virtual void GetObjectData( SerializationInfo info, StreamingContext context )
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue( nameof( SourceName ), SourceName );
-            info.AddValue( nameof( FrameIndex ), FrameIndex );
-            info.AddValue( nameof( TimeStamp ), TimeStamp );
-            info.AddValue( nameof( FrameData ), FrameData.ToBytes( ".jpg", encodingParamsJPG ) );
-            if ( ForegroundMask != null )
+            info.AddValue(nameof(SourceName), SourceName);
+            info.AddValue(nameof(FrameIndex), FrameIndex);
+            info.AddValue(nameof(TimeStamp), TimeStamp);
+            info.AddValue(nameof(FrameData), FrameData.ToBytes(".jpg", encodingParamsJPG));
+            if (ForegroundMask != null)
             {
-                info.AddValue( nameof( ForegroundMask ), ForegroundMask.ToBytes( ".png", encodingParamsPNG ) );
+                info.AddValue(nameof(ForegroundMask), ForegroundMask.ToBytes(".png", encodingParamsPNG));
             }
             else
             {
-                info.AddValue( nameof( ForegroundMask ), null );
+                info.AddValue(nameof(ForegroundMask), null);
             }
-            
+
         }
 
         private static readonly ImageEncodingParam[] encodingParamsJPG = new ImageEncodingParam[]

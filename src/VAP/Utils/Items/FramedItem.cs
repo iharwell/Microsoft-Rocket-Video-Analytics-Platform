@@ -19,9 +19,9 @@ namespace Utils.Items
 
     [Serializable]
     [DataContract]
-    [KnownType( typeof( Frame ) )]
-    [KnownType( typeof( ItemID ) )]
-    [KnownType( typeof( LineTriggeredItemID ) )]
+    [KnownType(typeof(Frame))]
+    [KnownType(typeof(ItemID))]
+    [KnownType(typeof(LineTriggeredItemID))]
     public class FramedItem : IFramedItem
     {
         /// <summary>
@@ -184,7 +184,7 @@ namespace Utils.Items
             {
                 target = source;
             }
-            if(source is null )
+            if (source is null)
             {
                 return target;
             }
