@@ -11,25 +11,25 @@ namespace DarknetDetector
 {
     internal class FrameBuffer
     {
-        private Queue<Mat> frameBuffer;
-        private int bSize;
+        private readonly Queue<Mat> _frameBuffer;
+        private readonly int _bSize;
 
         public FrameBuffer(int size)
         {
-            bSize = size;
-            frameBuffer = new Queue<Mat>(bSize);
+            _bSize = size;
+            _frameBuffer = new Queue<Mat>(_bSize);
         }
 
         public void Buffer(Mat frame)
         {
-            frameBuffer.Enqueue(frame);
-            if (frameBuffer.Count > bSize)
-                frameBuffer.Dequeue();
+            _frameBuffer.Enqueue(frame);
+            if (_frameBuffer.Count > _bSize)
+                _frameBuffer.Dequeue();
         }
 
         public Mat[] ToArray()
         {
-            return frameBuffer.ToArray();
+            return _frameBuffer.ToArray();
         }
     }
 }

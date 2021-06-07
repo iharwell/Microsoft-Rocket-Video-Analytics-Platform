@@ -14,7 +14,7 @@ namespace LineDetector
     // corresponds to LineCrossingBasedMultiLaneCounter.cs
     public class MultiLaneDetector
     {
-        private Dictionary<string, ILineBasedDetector> laneDetector;
+        private readonly Dictionary<string, ILineBasedDetector> _laneDetector;
 
         /// <summary>
         ///   Creates a <see cref="MultiLaneDetector" /> object using the provided set of named
@@ -25,7 +25,7 @@ namespace LineDetector
         /// </param>
         public MultiLaneDetector(Dictionary<string, ILineBasedDetector> lineBasedDetector)
         {
-            laneDetector = lineBasedDetector;
+            _laneDetector = lineBasedDetector;
         }
 
         /// <summary>
@@ -41,12 +41,12 @@ namespace LineDetector
         ///   A mask detailing the precise layout of items in the frame using black to indicate
         ///   vacant space, and white to indicate occupied space.
         /// </param>
-        public void notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
+        public void NotifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
 
-            foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)
+            foreach (KeyValuePair<string, ILineBasedDetector> entry in _laneDetector)
             {
-                entry.Value.notifyFrameArrival(frameNo, boxes, mask);
+                entry.Value.NotifyFrameArrival(frameNo, boxes, mask);
             }
         }
 
@@ -63,12 +63,12 @@ namespace LineDetector
         ///   A mask detailing the precise layout of items in the frame using black to indicate
         ///   vacant space, and white to indicate occupied space.
         /// </param>
-        public void notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature = null)
+        public void NotifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature = null)
         {
 
-            foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)
+            foreach (KeyValuePair<string, ILineBasedDetector> entry in _laneDetector)
             {
-                entry.Value.notifyFrameArrival(frame, frameNo, boxes, mask, signature);
+                entry.Value.NotifyFrameArrival(frame, frameNo, boxes, mask, signature);
             }
         }
 
@@ -82,12 +82,12 @@ namespace LineDetector
         ///   A mask detailing the precise layout of items in the frame using black to indicate
         ///   vacant space, and white to indicate occupied space.
         /// </param>
-        public void notifyFrameArrival(int frameNo, Bitmap mask)
+        public void NotifyFrameArrival(int frameNo, Bitmap mask)
         {
 
-            foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)
+            foreach (KeyValuePair<string, ILineBasedDetector> entry in _laneDetector)
             {
-                entry.Value.notifyFrameArrival(frameNo, mask);
+                entry.Value.NotifyFrameArrival(frameNo, mask);
             }
         }
 
@@ -98,12 +98,12 @@ namespace LineDetector
         ///   Returns a <see cref="Dictionary{TKey, TValue}" /> of all occupancy counters, organized
         ///   by the name of the lines.
         /// </returns>
-        public Dictionary<string, int> getCounts()
+        public Dictionary<string, int> GetCounts()
         {
             Dictionary<string, int> counts = new Dictionary<string, int>();
-            foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)
+            foreach (KeyValuePair<string, ILineBasedDetector> entry in _laneDetector)
             {
-                counts.Add(entry.Key, entry.Value.getCount());
+                counts.Add(entry.Key, entry.Value.GetCount());
             }
             return counts;
         }
@@ -115,12 +115,12 @@ namespace LineDetector
         ///   Returns a <see cref="Dictionary{TKey, TValue}" /> of all occupancy states, organized
         ///   by the name of the lines.
         /// </returns>
-        public Dictionary<string, bool> getOccupancy()
+        public Dictionary<string, bool> GetOccupancy()
         {
             Dictionary<string, bool> occupancy = new Dictionary<string, bool>();
-            foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)
+            foreach (KeyValuePair<string, ILineBasedDetector> entry in _laneDetector)
             {
-                occupancy.Add(entry.Key, entry.Value.getOccupancy());
+                occupancy.Add(entry.Key, entry.Value.GetOccupancy());
             }
             return occupancy;
         }
@@ -134,9 +134,9 @@ namespace LineDetector
         /// <returns>
         ///   Returns a <see cref="PointF"> with the value of the center of the requested line if it exists, and null otherwise.
         /// </returns>
-        public PointF? getBboxCenter(string laneID)
+        public PointF? GetBboxCenter(string laneID)
         {
-            foreach (KeyValuePair<string, ILineBasedDetector> entry in laneDetector)
+            foreach (KeyValuePair<string, ILineBasedDetector> entry in _laneDetector)
             {
                 if (entry.Key == laneID)
                 {
@@ -155,12 +155,12 @@ namespace LineDetector
         /// <returns>
         ///   Returns a list of <c>Tuples</c> containing the name and coordinates of each line.
         /// </returns>
-        public List<(string key, LineSegment segments)> getAllLines()
+        public List<(string key, LineSegment segments)> GetAllLines()
         {
             var lines = new List<(string key, LineSegment coordinates)>();
-            foreach (KeyValuePair<string, ILineBasedDetector> lane in laneDetector)
+            foreach (KeyValuePair<string, ILineBasedDetector> lane in _laneDetector)
             {
-                var coor = lane.Value.getLineCoor()[0];
+                var coor = lane.Value.GetLineCoor()[0];
                 lines.Add((lane.Key, coor));
             }
             return lines;

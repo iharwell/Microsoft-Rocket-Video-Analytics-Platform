@@ -16,7 +16,7 @@ namespace ProcessingPipeline
     /// </summary>
     public class HeavyDarknetProcessor : IProcessor
     {
-        private DarknetDetector.CascadedDNNDarknet cascadedDNN;
+        private readonly DarknetDetector.CascadedDNNDarknet _cascadedDNN;
 
         /// <summary>
         ///   Creates a new <see cref="HeavyDarknetProcessor" />.
@@ -39,7 +39,7 @@ namespace ProcessingPipeline
                                       Color boxColor,
                                       bool displayOutput)
         {
-            cascadedDNN = new DarknetDetector.CascadedDNNDarknet(resFactor);
+            _cascadedDNN = new DarknetDetector.CascadedDNNDarknet(resFactor);
             Categories = categories;
             BoundingBoxColor = boxColor;
             DisplayOutput = displayOutput;
@@ -106,7 +106,7 @@ namespace ProcessingPipeline
         /// <inheritdoc/>
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
-            items = cascadedDNN.Run(frame, items, LineSegments, Categories, this);
+            items = _cascadedDNN.Run(frame, items, LineSegments, Categories, this);
 
             if (items == null)
             {

@@ -12,11 +12,9 @@ namespace Wrapper.Yolo
     {
         public byte[] Resize(byte[] imageData, int width, int height)
         {
-            using (var image = this.Byte2Image(imageData))
-            using (var resizedImage = this.ResizeImage(image, width, height))
-            {
-                return this.Image2Byte(resizedImage);
-            }
+            using var image = this.Byte2Image(imageData);
+            using var resizedImage = this.ResizeImage(image, width, height);
+            return this.Image2Byte(resizedImage);
         }
 
         /// <summary>
@@ -41,11 +39,9 @@ namespace Wrapper.Yolo
                 graphics.SmoothingMode = SmoothingMode.None;
                 graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                using (var wrapMode = new ImageAttributes())
-                {
-                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
-                }
+                using var wrapMode = new ImageAttributes();
+                wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
             }
 
             return destImage;
@@ -53,19 +49,15 @@ namespace Wrapper.Yolo
 
         private Image Byte2Image(byte[] imageData)
         {
-            using (var memoryStream = new MemoryStream(imageData))
-            {
-                return Image.FromStream(memoryStream);
-            }
+            using var memoryStream = new MemoryStream(imageData);
+            return Image.FromStream(memoryStream);
         }
 
         private byte[] Image2Byte(Image image)
         {
-            using (var memoryStream = new MemoryStream())
-            {
-                image.Save(memoryStream, ImageFormat.Bmp);
-                return memoryStream.ToArray();
-            }
+            using var memoryStream = new MemoryStream();
+            image.Save(memoryStream, ImageFormat.Bmp);
+            return memoryStream.ToArray();
         }
     }
 }

@@ -66,7 +66,7 @@ namespace VideoPipelineCore
             bool loop = false;
             bool displayRawVideo = false;
             bool displayBGSVideo = false;
-            Utils.Utils.cleanFolderAll();
+            Utils.Utils.CleanFolderAll();
 
             PolyPredictor polyPredictor = new PolyPredictor();
             IoUPredictor ioUPredictor = new IoUPredictor();
@@ -115,9 +115,9 @@ namespace VideoPipelineCore
                 videoTimeStamp = DateTime.Now;
             }
 
-            double frameRate = decoder.getVideoFPS();
+            double frameRate = decoder.GetVideoFPS();
             int frameIndex = 0;
-            int videoTotalFrame = decoder.getTotalFrameNum();
+            int videoTotalFrame = decoder.GetTotalFrameNum();
 
             IList<IFramedItem> itemList = null;
             IList<IItemPath> itemPaths = new List<IItemPath>();
@@ -142,7 +142,7 @@ namespace VideoPipelineCore
                 //decoder
                 IFrame frame = new Frame
                 {
-                    FrameData = decoder.getNextFrame()
+                    FrameData = decoder.GetNextFrame()
                 };
                 if (frame.FrameData == null)
                 {
@@ -183,7 +183,7 @@ namespace VideoPipelineCore
                         it.Frame.SourceName = videoUrl;
                         it.Frame.TimeStamp = videoTimeStamp.AddTicks((long)(TimeSpan.TicksPerSecond * it.Frame.FrameIndex / frameRate));
                     }
-                    FramePreProcessor.FrameDisplay.updateKVPairs(kvpairs);
+                    FramePreProcessor.FrameDisplay.UpdateKVPairs(kvpairs);
                     object lastSource = itemList.Last().ItemIDs.Last().SourceObject;
                     // string lastMethod = ItemList.Last().ItemIDs.Last().IdentificationMethod;
                     // Currently requires the use of a detection line filter, as it generates too many ItemPaths without it.

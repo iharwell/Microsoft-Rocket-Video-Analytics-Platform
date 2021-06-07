@@ -9,17 +9,17 @@ namespace FramePreProcessor
 {
     public class PreProcessor
     {
-        public static Mat returnFrame(Mat sourceMat, int frameIndex, int SAMPLING_FACTOR, double RESOLUTION_FACTOR, bool display)
+        public static Mat ReturnFrame(Mat sourceMat, int frameIndex, int samplingFactor, double resolutionFactor, bool display)
         {
             Mat resizedFrame = null;
 
-            if (frameIndex % SAMPLING_FACTOR != 0) return resizedFrame;
+            if (frameIndex % samplingFactor != 0) return resizedFrame;
 
             try
             {
-                resizedFrame = sourceMat.Resize(new OpenCvSharp.Size((int)(sourceMat.Size().Width * RESOLUTION_FACTOR), (int)(sourceMat.Size().Height * RESOLUTION_FACTOR)));
+                resizedFrame = sourceMat.Resize(new OpenCvSharp.Size((int)(sourceMat.Size().Width * resolutionFactor), (int)(sourceMat.Size().Height * resolutionFactor)));
                 if (display)
-                    FrameDisplay.display(resizedFrame);
+                    FrameDisplay.Display(resizedFrame);
             }
             catch (Exception e)
             {

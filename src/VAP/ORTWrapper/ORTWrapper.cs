@@ -17,26 +17,26 @@ namespace Wrapper.ORT
 {
     public class ORTWrapper
     {
-        private static IYoloConfiguration cfg;
-        private static InferenceSession session1, session2;
-        private DNNMode mode = DNNMode.Unknown;
+        private static IYoloConfiguration s_cfg;
+        private static InferenceSession s_session1, s_session2;
+        private readonly DNNMode _mode = DNNMode.Unknown;
 
         public ORTWrapper(string modelPath, DNNMode mode)
         {
             // Optional : Create session options and set the graph optimization level for the session
-            SessionOptions options = new SessionOptions();
+            //SessionOptions options = new SessionOptions();
             //options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_EXTENDED;
-            cfg = new Yolov3BaseConfig();
+            s_cfg = new Yolov3BaseConfig();
 
-            this.mode = mode;
+            this._mode = mode;
             switch (mode)
             {
                 case DNNMode.LT:
                 case DNNMode.Frame:
-                    session1 = new InferenceSession(modelPath, SessionOptions.MakeSessionOptionWithCudaProvider(0));
+                    s_session1 = new InferenceSession(modelPath, SessionOptions.MakeSessionOptionWithCudaProvider(0));
                     break;
                 case DNNMode.CC:
-                    session2 = new InferenceSession(modelPath, SessionOptions.MakeSessionOptionWithCudaProvider(0));
+                    s_session2 = new InferenceSession(modelPath, SessionOptions.MakeSessionOptionWithCudaProvider(0));
                     break;
             }
         }
@@ -53,17 +53,17 @@ namespace Wrapper.ORT
             container.Add(NamedOnnxValue.CreateFromTensor<float>("image_shape", tensor2));
 
             // Run the inference
-            switch (mode)
+            switch (_mode)
             {
                 case DNNMode.LT:
                 case DNNMode.Frame:
-                    using (var results = session1.Run(container))  // results is an IDisposableReadOnlyCollection<DisposableNamedOnnxValue> container
+                    using (var results = s_session1.Run(container))  // results is an IDisposableReadOnlyCollection<DisposableNamedOnnxValue> container
                     {
                         List<ORTItem> itemList = PostProcessing(results);
                         return itemList;
                     }
                 case DNNMode.CC:
-                    using (var results = session2.Run(container))  // results is an IDisposableReadOnlyCollection<DisposableNamedOnnxValue> container
+                    using (var results = s_session2.Run(container))  // results is an IDisposableReadOnlyCollection<DisposableNamedOnnxValue> container
                     {
                         List<ORTItem> itemList = PostProcessing(results);
                         return itemList;
@@ -90,7 +90,7 @@ namespace Wrapper.ORT
                 string[] dataStr = dataStrList.ToArray();
                 for (int i = 0; i < dataStr.Length; i++)
                 {
-                    tensorData.Add(Single.Parse(dataStr[i]));
+                    tensorData.Add(float.Parse(dataStr[i]));
                 }
             }
 
@@ -186,7 +186,7 @@ namespace Wrapper.ORT
                 out_boxes.Add(box);
 
                 //output
-                ORTItem item = new ORTItem((int)box[1], (int)box[0], (int)(box[3] - box[1]), (int)(box[2] - box[0]), out_classes[ibox], cfg.Labels[out_classes[ibox]], out_scores[ibox][out_classes[ibox]], 0, "lineName");
+                ORTItem item = new ORTItem((int)box[1], (int)box[0], (int)(box[3] - box[1]), (int)(box[2] - box[0]), out_classes[ibox], s_cfg.Labels[out_classes[ibox]], out_scores[ibox][out_classes[ibox]], 0, "lineName");
                 itemList.Add(item);
             }
 
@@ -206,34 +206,32 @@ namespace Wrapper.ORT
                 var y = Math.Max(item.Y, 0);
                 var width = item.Width;
                 var height = item.Height;
-                string text = $"{item.ObjName} ({(item.Confidence * 100).ToString("0")}%)";
-                using (Graphics thumbnailGraphic = Graphics.FromImage(image))
+                string text = $"{item.ObjName} ({item.Confidence * 100:0}%)";
+                using Graphics thumbnailGraphic = Graphics.FromImage(image);
+                thumbnailGraphic.CompositingQuality = CompositingQuality.HighQuality;
+                thumbnailGraphic.SmoothingMode = SmoothingMode.HighQuality;
+                thumbnailGraphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+                Font drawFont = new Font("Arial", 12, FontStyle.Bold);
+                SizeF size = thumbnailGraphic.MeasureString(text, drawFont);
+                SolidBrush fontBrush = new SolidBrush(Color.Black);
+                Point atPoint = new Point((int)(x + width / 2), (int)(y + height / 2) - (int)size.Height - 1);
+
+                // Define BoundingBox options
+                Pen pen = new Pen(Color.Pink, 3.2f);
+                SolidBrush colorBrush = new SolidBrush(Color.Pink);
+
+                thumbnailGraphic.FillRectangle(colorBrush, (int)(x + width / 2), (int)(y + height / 2 - size.Height - 1), size.Width, (int)size.Height);
+                thumbnailGraphic.DrawString(text, drawFont, fontBrush, atPoint);
+
+                // Draw bounding box on image
+                thumbnailGraphic.DrawRectangle(pen, x, y, width, height);
+                if (!Directory.Exists(outputImageLocation))
                 {
-                    thumbnailGraphic.CompositingQuality = CompositingQuality.HighQuality;
-                    thumbnailGraphic.SmoothingMode = SmoothingMode.HighQuality;
-                    thumbnailGraphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
-
-                    Font drawFont = new Font("Arial", 12, FontStyle.Bold);
-                    SizeF size = thumbnailGraphic.MeasureString(text, drawFont);
-                    SolidBrush fontBrush = new SolidBrush(Color.Black);
-                    Point atPoint = new Point((int)(x + width / 2), (int)(y + height / 2) - (int)size.Height - 1);
-
-                    // Define BoundingBox options
-                    Pen pen = new Pen(Color.Pink, 3.2f);
-                    SolidBrush colorBrush = new SolidBrush(Color.Pink);
-
-                    thumbnailGraphic.FillRectangle(colorBrush, (int)(x + width / 2), (int)(y + height / 2 - size.Height - 1), size.Width, (int)size.Height);
-                    thumbnailGraphic.DrawString(text, drawFont, fontBrush, atPoint);
-
-                    // Draw bounding box on image
-                    thumbnailGraphic.DrawRectangle(pen, x, y, width, height);
-                    if (!Directory.Exists(outputImageLocation))
-                    {
-                        Directory.CreateDirectory(outputImageLocation);
-                    }
-
-                    image.Save(Path.Combine(outputImageLocation, imageName));
+                    Directory.CreateDirectory(outputImageLocation);
                 }
+
+                image.Save(Path.Combine(outputImageLocation, imageName));
             }
         }
 
@@ -253,11 +251,9 @@ namespace Wrapper.ORT
                 graphics.SmoothingMode = SmoothingMode.HighQuality;
                 graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                using (var wrapMode = new ImageAttributes())
-                {
-                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
-                }
+                using var wrapMode = new ImageAttributes();
+                wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
             }
 
             return destImage;

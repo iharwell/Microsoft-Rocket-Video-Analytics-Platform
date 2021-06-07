@@ -11,11 +11,11 @@ namespace Wrapper.TF
 	/// </summary>
     internal class ImageEditor : IDisposable
     {
-        private Graphics _graphics;
-        private Image _image;
-        private string _fontFamily;
-        private float _fontSize;
-        private string _outputFile;
+        private readonly Graphics _graphics;
+        private readonly Image _image;
+        private readonly string _fontFamily;
+        private readonly float _fontSize;
+        private readonly string _outputFile;
 
         public ImageEditor(string inputFile, string outputFile, string fontFamily = "Ariel", float fontSize = 12)
         {

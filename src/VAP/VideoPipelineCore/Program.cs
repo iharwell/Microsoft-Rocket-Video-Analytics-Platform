@@ -64,7 +64,7 @@ namespace VideoPipelineCore
             bool loop = false;
             bool displayRawVideo = false;
             bool displayBGSVideo = false;
-            Utils.Utils.cleanFolderAll();
+            Utils.Utils.CleanFolderAll();
 
             //create pipeline components (initialization based on pplConfig)
 
@@ -81,7 +81,7 @@ namespace VideoPipelineCore
             Detector lineDetector = new Detector(samplingFactor, resolutionFactor, lineFile, displayBGSVideo);
             Dictionary<string, int> counts = null;
             Dictionary<string, bool> occupancy = null;
-            List<(string key, LineSegment coordinates)> lines = lineDetector._multiLaneDetector.getAllLines();
+            List<(string key, LineSegment coordinates)> lines = lineDetector._multiLaneDetector.GetAllLines();
 
             //-----LineTriggeredDNN (Darknet)-----
             LineTriggeredDNNDarknet ltDNNDarknet = null;
@@ -173,7 +173,7 @@ namespace VideoPipelineCore
             int frameIndex = 0;
             int videoTotalFrame = 0;
             if (!isVideoStream)
-                videoTotalFrame = decoder.getTotalFrameNum() - 1; //skip the last frame which could be wrongly encoded from vlc capture
+                videoTotalFrame = decoder.GetTotalFrameNum() - 1; //skip the last frame which could be wrongly encoded from vlc capture
 
             long teleCountsCheapDNN = 0, teleCountsHeavyDNN = 0;
 
@@ -191,7 +191,7 @@ namespace VideoPipelineCore
                 videoTimeStamp = DateTime.Now;
             }
 
-            double frameRate = decoder.getVideoFPS();
+            double frameRate = decoder.GetVideoFPS();
 
             //RUN PIPELINE 
             DateTime startTime = DateTime.Now;
@@ -207,11 +207,11 @@ namespace VideoPipelineCore
                 }
 
                 //decoder
-                Mat frame = decoder.getNextFrame();
+                Mat frame = decoder.GetNextFrame();
 
 
                 //frame pre-processor
-                frame = FramePreProcessor.PreProcessor.returnFrame(frame, frameIndex, samplingFactor, resolutionFactor, displayRawVideo);
+                frame = FramePreProcessor.PreProcessor.ReturnFrame(frame, frameIndex, samplingFactor, resolutionFactor, displayRawVideo);
                 frameIndex++;
                 if (frame == null) continue;
                 //Console.WriteLine("Frame ID: " + frameIndex);
@@ -324,7 +324,7 @@ namespace VideoPipelineCore
                         it.Frame.SourceName = videoUrl;
                         it.Frame.TimeStamp = videoTimeStamp.AddTicks((long)(TimeSpan.TicksPerSecond * it.Frame.FrameIndex / frameRate));
                     }
-                    FramePreProcessor.FrameDisplay.updateKVPairs(kvpairs);
+                    FramePreProcessor.FrameDisplay.UpdateKVPairs(kvpairs);
 
 
                     // Currently requires the use of a detection line filter, as it generates too many ItemPaths without it.

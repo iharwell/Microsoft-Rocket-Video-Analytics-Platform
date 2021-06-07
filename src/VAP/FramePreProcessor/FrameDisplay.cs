@@ -11,13 +11,13 @@ namespace FramePreProcessor
 {
     public class FrameDisplay
     {
-        private static Dictionary<string, string> displayKVpairs = new Dictionary<string, string>();
-        private static Dictionary<string, string> prev_displayKVpairs = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> s_displayKVpairs = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> s_prev_displayKVpairs = new Dictionary<string, string>();
 
-        public static void display(Mat resizedFrame)
+        public static void Display(Mat resizedFrame)
         {
             Mat frameToDisplay = resizedFrame.Clone();
-            if (displayKVpairs.Count > 0)
+            if (s_displayKVpairs.Count > 0)
             {
                 double scale = 0.75;
 
@@ -43,9 +43,9 @@ namespace FramePreProcessor
                 int row1Height = textHeight + textPadding + boxpadding;
 
                 string result = "";
-                foreach (string dir in displayKVpairs.Keys)
+                foreach (string dir in s_displayKVpairs.Keys)
                 {
-                    int displayTotal = Int32.Parse(displayKVpairs[dir]);
+                    int displayTotal = int.Parse(s_displayKVpairs[dir]);
                     result += dir + " " + displayTotal + "       ";
 
                 }
@@ -56,19 +56,19 @@ namespace FramePreProcessor
             Cv2.WaitKey(1);
         }
 
-        public static void updateKVPairs(Dictionary<string, string> kvpairs)
+        public static void UpdateKVPairs(Dictionary<string, string> kvpairs)
         {
             foreach (string s in kvpairs.Keys)
             {
-                if (!displayKVpairs.ContainsKey(s))
+                if (!s_displayKVpairs.ContainsKey(s))
                 {
-                    displayKVpairs.Add(s, kvpairs[s]);
+                    s_displayKVpairs.Add(s, kvpairs[s]);
                 }
                 else
                 {
-                    int currentVal = Int32.Parse(displayKVpairs[s]);
-                    currentVal += Int32.Parse(kvpairs[s]);
-                    displayKVpairs[s] = currentVal.ToString();
+                    int currentVal = int.Parse(s_displayKVpairs[s]);
+                    currentVal += int.Parse(kvpairs[s]);
+                    s_displayKVpairs[s] = currentVal.ToString();
                 }
             }
         }

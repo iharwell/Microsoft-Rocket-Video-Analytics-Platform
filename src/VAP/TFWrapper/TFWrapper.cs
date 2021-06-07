@@ -20,80 +20,76 @@ namespace Wrapper.TF
 {
     public class TFWrapper
     {
-        public static IEnumerable<CatalogItem> _catalog;
-        private static string _currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        private static string _input_relative = "test_images/input.jpg";
-        private static string _output_relative = "test_images/output.jpg";
-        private static string _input = Path.Combine(_currentDir, _input_relative);
-        private static string _output = Path.Combine(_currentDir, _output_relative);
-        private static string _catalogPath;
-        private static string _modelPath;
+        public static IEnumerable<CatalogItem> Catalog;
+        private static readonly string s_currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        private static readonly string s_input_relative = "test_images/input.jpg";
+        private static readonly string s_output_relative = "test_images/output.jpg";
+        private static string s_input = Path.Combine(s_currentDir, s_input_relative);
+        private static string s_output = Path.Combine(s_currentDir, s_output_relative);
+        private static string s_catalogPath;
+        private static string s_modelPath;
 
         //private static double MIN_SCORE_FOR_OBJECT_HIGHLIGHTING = 0.5;
 
-        private static OptionSet options = new OptionSet()
+        private static readonly OptionSet s_options = new OptionSet()
         {
-            { "input_image=",  "Specifies the path to an image ", v => _input = v },
-            { "output_image=",  "Specifies the path to the output image with detected objects", v => _output = v },
-            { "catalog=", "Specifies the path to the .pbtxt objects catalog", v=> _catalogPath = v},
-            { "model=", "Specifies the path to the trained model", v=> _modelPath = v},
+            { "input_image=",  "Specifies the path to an image ", v => s_input = v },
+            { "output_image=",  "Specifies the path to the output image with detected objects", v => s_output = v },
+            { "catalog=", "Specifies the path to the .pbtxt objects catalog", v=> s_catalogPath = v},
+            { "model=", "Specifies the path to the trained model", v=> s_modelPath = v},
             { "h|help", v => Help () }
         };
 
-        private static TFGraph graph;
-        private static TFSession session;
+        private static TFGraph s_graph;
+        private static TFSession s_session;
 
         public TFWrapper()
         {
             //options.Parse(args);
 
-            if (_catalogPath == null)
+            if (s_catalogPath == null)
             {
-                _catalogPath = DownloadDefaultTexts(_currentDir);
+                s_catalogPath = DownloadDefaultTexts(s_currentDir);
             }
 
-            if (_modelPath == null)
+            if (s_modelPath == null)
             {
-                _modelPath = DownloadDefaultModel(_currentDir);
+                s_modelPath = DownloadDefaultModel(s_currentDir);
             }
 
-            _catalog = CatalogUtil.ReadCatalogItems(_catalogPath);
-            var fileTuples = new List<(string input, string output)>() { (_input, _output) };
+            Catalog = CatalogUtil.ReadCatalogItems(s_catalogPath);
+            var fileTuples = new List<(string input, string output)>() { (s_input, s_output) };
 
-            graph = new TFGraph();
-            var model = File.ReadAllBytes(_modelPath);
-            graph.Import(new TFBuffer(model));
-            session = new TFSession(graph);
+            s_graph = new TFGraph();
+            var model = File.ReadAllBytes(s_modelPath);
+            s_graph.Import(new TFBuffer(model));
+            s_session = new TFSession(s_graph);
 
-            var runner = session.GetRunner();
+            var runner = s_session.GetRunner();
 
             runner
-                .AddInput(graph["image_tensor"][0], ImageUtil.CreateTensorFromImageFile(fileTuples[0].input, TFDataType.UInt8))
+                .AddInput(s_graph["image_tensor"][0], ImageUtil.CreateTensorFromImageFile(fileTuples[0].input, TFDataType.UInt8))
                 .Fetch(
-                graph["detection_boxes"][0],
-                graph["detection_scores"][0],
-                graph["detection_classes"][0],
-                graph["num_detections"][0]);
-
-            TFTensor[] output = null;
-            output = runner.Run();
+                s_graph["detection_boxes"][0],
+                s_graph["detection_scores"][0],
+                s_graph["detection_classes"][0],
+                s_graph["num_detections"][0]);
+            var output = runner.Run();
         }
 
         public (float[,,], float[,], float[,]) Run(byte[] imageByteArray)
         {
             var tensor = ImageUtil.CreateTensorFromByteArray(imageByteArray, TFDataType.UInt8);
-            var runner = session.GetRunner();
+            var runner = s_session.GetRunner();
 
             runner
-                .AddInput(graph["image_tensor"][0], tensor)
+                .AddInput(s_graph["image_tensor"][0], tensor)
                 .Fetch(
-                graph["detection_boxes"][0],
-                graph["detection_scores"][0],
-                graph["detection_classes"][0],
-                graph["num_detections"][0]);
-
-            TFTensor[] output = null;
-            output = runner.Run();
+                s_graph["detection_boxes"][0],
+                s_graph["detection_scores"][0],
+                s_graph["detection_classes"][0],
+                s_graph["num_detections"][0]);
+            var output = runner.Run();
 
             var boxes = (float[,,])output[0].GetValue(jagged: false);
             var scores = (float[,])output[1].GetValue(jagged: false);
@@ -142,12 +138,10 @@ namespace Wrapper.TF
         {
             Console.WriteLine("Extracting");
 
-            using (Stream inStream = File.OpenRead(file))
-            using (Stream gzipStream = new GZipInputStream(inStream))
-            {
-                TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
-                tarArchive.ExtractContents(targetDir);
-            }
+            using Stream inStream = File.OpenRead(file);
+            using Stream gzipStream = new GZipInputStream(inStream);
+            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
+            tarArchive.ExtractContents(targetDir);
         }
 
         private static string DownloadDefaultTexts(string dir)
@@ -170,46 +164,44 @@ namespace Wrapper.TF
 
             float ymin = 0, xmin = 0, ymax = 0, xmax = 0;
 
-            using (var editor = new ImageEditor(inputFile, outputFile))
+            using var editor = new ImageEditor(inputFile, outputFile);
+            for (int i = 0; i < x; i++)
             {
-                for (int i = 0; i < x; i++)
+                for (int j = 0; j < y; j++)
                 {
-                    for (int j = 0; j < y; j++)
+                    if (scores[i, j] < minScore) continue;
+
+                    for (int k = 0; k < z; k++)
                     {
-                        if (scores[i, j] < minScore) continue;
-
-                        for (int k = 0; k < z; k++)
+                        var box = boxes[i, j, k];
+                        switch (k)
                         {
-                            var box = boxes[i, j, k];
-                            switch (k)
-                            {
-                                case 0:
-                                    ymin = box;
-                                    break;
-                                case 1:
-                                    xmin = box;
-                                    break;
-                                case 2:
-                                    ymax = box;
-                                    break;
-                                case 3:
-                                    xmax = box;
-                                    break;
-                            }
-
+                            case 0:
+                                ymin = box;
+                                break;
+                            case 1:
+                                xmin = box;
+                                break;
+                            case 2:
+                                ymax = box;
+                                break;
+                            case 3:
+                                xmax = box;
+                                break;
                         }
 
-                        int value = Convert.ToInt32(classes[i, j]);
-                        CatalogItem catalogItem = _catalog.FirstOrDefault(item => item.Id == value);
-                        editor.AddBox(xmin, xmax, ymin, ymax, $"{catalogItem.DisplayName} : {(scores[i, j] * 100).ToString("0")}%");
                     }
+
+                    int value = Convert.ToInt32(classes[i, j]);
+                    CatalogItem catalogItem = Catalog.FirstOrDefault(item => item.Id == value);
+                    editor.AddBox(xmin, xmax, ymin, ymax, $"{catalogItem.DisplayName} : {scores[i, j] * 100:0}%");
                 }
             }
         }
 
         private static void Help()
         {
-            options.WriteOptionDescriptions(Console.Out);
+            s_options.WriteOptionDescriptions(Console.Out);
         }
     }
 }

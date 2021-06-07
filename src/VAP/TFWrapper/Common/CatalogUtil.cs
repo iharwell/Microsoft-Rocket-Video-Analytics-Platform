@@ -12,9 +12,9 @@ namespace Wrapper.TF.Common
     public static class CatalogUtil
     {
         // regexes with different new line symbols
-        private static string CATALOG_ITEM_PATTERN = @"item {{{0}  name: ""(?<name>.*)""{0}  id: (?<id>\d+){0}  display_name: ""(?<displayName>.*)""{0}}}";
-        private static string CATALOG_ITEM_PATTERN_ENV = string.Format(CultureInfo.InvariantCulture, CATALOG_ITEM_PATTERN, Environment.NewLine);
-        private static string CATALOG_ITEM_PATTERN_UNIX = string.Format(CultureInfo.InvariantCulture, CATALOG_ITEM_PATTERN, "\n");
+        private const string CATALOG_ITEM_PATTERN = @"item {{{0}  name: ""(?<name>.*)""{0}  id: (?<id>\d+){0}  display_name: ""(?<displayName>.*)""{0}}}";
+        private static readonly string s_catalog_item_pattern_env = string.Format(CultureInfo.InvariantCulture, CATALOG_ITEM_PATTERN, Environment.NewLine);
+        private static readonly string s_catalog_item_pattern_unix = string.Format(CultureInfo.InvariantCulture, CATALOG_ITEM_PATTERN, "\n");
 
         /// <summary>
         /// Reads catalog of well-known objects from text file.
@@ -23,36 +23,34 @@ namespace Wrapper.TF.Common
         /// <returns>collection of items</returns>
         public static IEnumerable<CatalogItem> ReadCatalogItems(string file)
         {
-            using (FileStream stream = File.OpenRead(file))
-            using (StreamReader reader = new StreamReader(stream))
+            using FileStream stream = File.OpenRead(file);
+            using StreamReader reader = new StreamReader(stream);
+            string text = reader.ReadToEnd();
+            if (string.IsNullOrWhiteSpace(text))
             {
-                string text = reader.ReadToEnd();
-                if (string.IsNullOrWhiteSpace(text))
-                {
-                    yield break;
-                }
+                yield break;
+            }
 
-                Regex regex = new Regex(CATALOG_ITEM_PATTERN_ENV);
-                var matches = regex.Matches(text);
-                if (matches.Count == 0)
-                {
-                    regex = new Regex(CATALOG_ITEM_PATTERN_UNIX);
-                    matches = regex.Matches(text);
-                }
+            Regex regex = new Regex(s_catalog_item_pattern_env);
+            var matches = regex.Matches(text);
+            if (matches.Count == 0)
+            {
+                regex = new Regex(s_catalog_item_pattern_unix);
+                matches = regex.Matches(text);
+            }
 
-                foreach (Match match in matches)
-                {
-                    var name = match.Groups[1].Value;
-                    var id = int.Parse(match.Groups[2].Value);
-                    var displayName = match.Groups[3].Value;
+            foreach (Match match in matches)
+            {
+                var name = match.Groups[1].Value;
+                var id = int.Parse(match.Groups[2].Value);
+                var displayName = match.Groups[3].Value;
 
-                    yield return new CatalogItem()
-                    {
-                        Id = id,
-                        Name = name,
-                        DisplayName = displayName
-                    };
-                }
+                yield return new CatalogItem()
+                {
+                    Id = id,
+                    Name = name,
+                    DisplayName = displayName
+                };
             }
         }
     }

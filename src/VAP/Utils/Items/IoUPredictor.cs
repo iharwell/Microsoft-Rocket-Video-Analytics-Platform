@@ -18,7 +18,7 @@ namespace Utils.Items
 
         public override Rectangle Predict(IItemPath path, int frameIndex)
         {
-            int bestIndex = -1;
+            int bestIndex;
             int bestFrame = -1;
             IFramedItem bestItem = null;
 

@@ -15,22 +15,22 @@ namespace DNNDetector.Model
         public int X
         {
             get => BoundingBox.X;
-            set => boundBox.X = value;
+            set => _boundBox.X = value;
         }
         public int Y
         {
             get => BoundingBox.Y;
-            set => boundBox.Y = value;
+            set => _boundBox.Y = value;
         }
         public int Width
         {
             get => BoundingBox.Width;
-            set => boundBox.Width = value;
+            set => _boundBox.Width = value;
         }
         public int Height
         {
             get => BoundingBox.Width;
-            set => boundBox.Width = value;
+            set => _boundBox.Width = value;
         }
         public int ObjectID { get; set; }
         public int TrackID { get; set; }
@@ -46,11 +46,11 @@ namespace DNNDetector.Model
         public string IdentificationMethod { get; set; }
         public Rectangle BoundingBox
         {
-            get => boundBox;
-            set => boundBox = value;
+            get => _boundBox;
+            set => _boundBox = value;
         }
 
-        private Rectangle boundBox;
+        private Rectangle _boundBox;
 
         public Item(int x, int y, int width, int height, int catId, string catName, double confidence, int lineID, string lineName)
         {

@@ -27,15 +27,17 @@ namespace Wrapper.Yolo.Model
 
         public YoloItem GetYoloItem()
         {
-            YoloItem item = new YoloItem();
-            item.X = this.X;
-            item.Y = this.Y;
-            item.Width = this.Width;
-            item.Height = this.Height;
-            item.Type = this.Type;
-            item.Confidence = this.Confidence;
-            item.ObjId = this.ObjId;
-            item.TrackId = this.TrackId;
+            YoloItem item = new YoloItem
+            {
+                X = this.X,
+                Y = this.Y,
+                Width = this.Width,
+                Height = this.Height,
+                Type = this.Type,
+                Confidence = this.Confidence,
+                ObjId = this.ObjId,
+                TrackId = this.TrackId
+            };
 
             return item;
         }

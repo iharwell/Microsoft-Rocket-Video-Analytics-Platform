@@ -52,7 +52,6 @@ namespace Utils.Items
                 double ovY = Math.Max(rect.Y, median.Y);
                 double ovW = Math.Min(rect.Right, median.Right) - ovX;
                 double ovH = Math.Min(rect.Bottom, median.Bottom) - ovY;
-                RectangleF overlap = new RectangleF((float)ovX, (float)ovY, (float)ovW, (float)ovH);
 
                 double overlapArea = ovW * ovH;
                 double srArea = median.Width * median.Height;
@@ -108,10 +107,9 @@ namespace Utils.Items
             for (int i = 0; i < framedItems.Count; i++)
             {
                 IFramedItem fItem = framedItems[i];
-                double sim = double.NegativeInfinity;
                 if (frameIndex >= 0 && fItem.Frame.FrameIndex == frameIndex)
                 {
-                    sim = fItem.Similarity(itemID.BoundingBox);
+                    var sim = fItem.Similarity(itemID.BoundingBox);
                     if (sim > bestSimilarity)
                     {
                         bestIndex = i;

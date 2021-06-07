@@ -8,28 +8,28 @@ namespace Decoder
 {
     public class Decoder
     {
-        private VideoCapture capture = null;
-        private string inputURL;
+        private VideoCapture _capture = null;
+        private readonly string _inputURL;
 
-        private bool toLoop;
+        private readonly bool _toLoop;
 
-        private int objTotal, objDirA, objDirB;
+        private int _objTotal, _objDirA, _objDirB;
 
         public Decoder(string input, bool loop)
         {
-            capture = new VideoCapture(input);
-            inputURL = input;
+            _capture = new VideoCapture(input);
+            _inputURL = input;
 
-            toLoop = loop;
+            _toLoop = loop;
         }
 
-        public Mat getNextFrame()
+        public Mat GetNextFrame()
         {
             Mat sourceMat = new Mat();
 
             try
             {
-                capture.Read(sourceMat);
+                _capture.Read(sourceMat);
             }
 
             catch (Exception e)
@@ -37,7 +37,7 @@ namespace Decoder
                 Console.WriteLine(e.ToString());
                 Console.WriteLine("********RESET*****");
 
-                capture = new VideoCapture(inputURL);
+                _capture = new VideoCapture(_inputURL);
 
                 return null;
             }
@@ -45,39 +45,39 @@ namespace Decoder
             if (sourceMat == null)
                 return sourceMat;
 
-            if (toLoop)
+            if (_toLoop)
             {
                 if (sourceMat.Height == 0 && sourceMat.Width == 0)
                 {
-                    capture = new VideoCapture(inputURL);
-                    capture.Read(sourceMat);
+                    _capture = new VideoCapture(_inputURL);
+                    _capture.Read(sourceMat);
                 }
             }
 
             return sourceMat;
         }
 
-        public int getTotalFrameNum()
+        public int GetTotalFrameNum()
         {
             int length;
-            length = (int)Math.Floor(capture.Get(VideoCaptureProperties.FrameCount));
+            length = (int)Math.Floor(_capture.Get(VideoCaptureProperties.FrameCount));
 
             return length;
         }
 
-        public double getVideoFPS()
+        public double GetVideoFPS()
         {
             double framerate;
-            framerate = capture.Get(VideoCaptureProperties.Fps);
+            framerate = _capture.Get(VideoCaptureProperties.Fps);
 
             return framerate;
         }
 
-        public void updateObjNum(int[] dirCount)
+        public void UpdateObjNum(int[] dirCount)
         {
-            objTotal = dirCount[0] + dirCount[1] + dirCount[2];
-            objDirA = dirCount[0];
-            objDirB = dirCount[1];
+            _objTotal = dirCount[0] + dirCount[1] + dirCount[2];
+            _objDirA = dirCount[0];
+            _objDirB = dirCount[1];
         }
     }
 }

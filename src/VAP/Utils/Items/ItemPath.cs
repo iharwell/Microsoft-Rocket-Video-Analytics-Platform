@@ -26,8 +26,8 @@ namespace Utils.Items
         public ItemPath()
         {
             FramedItems = new List<IFramedItem>();
-            highestConfidenceFrame = -1;
-            highestConfidenceID = -1;
+            _highestConfidenceFrame = -1;
+            _highestConfidenceID = -1;
         }
 
         /// <inheritdoc />
@@ -46,11 +46,11 @@ namespace Utils.Items
         {
             get
             {
-                if (highestConfidenceFrame == -1)
+                if (_highestConfidenceFrame == -1)
                 {
                     UpdateHighestConfidence();
                 }
-                return highestConfidenceFrame;
+                return _highestConfidenceFrame;
             }
         }
 
@@ -58,11 +58,11 @@ namespace Utils.Items
         {
             get
             {
-                if (highestConfidenceID == -1)
+                if (_highestConfidenceID == -1)
                 {
                     UpdateHighestConfidence();
                 }
-                return highestConfidenceID;
+                return _highestConfidenceID;
             }
         }
 
@@ -94,10 +94,10 @@ namespace Utils.Items
         }
 
         [IgnoreDataMember]
-        private int highestConfidenceFrame;
+        private int _highestConfidenceFrame;
 
         [IgnoreDataMember]
-        private int highestConfidenceID;
+        private int _highestConfidenceID;
 
         [IgnoreDataMember]
         public int Count { get; set; }
@@ -120,8 +120,8 @@ namespace Utils.Items
                 }
             }
 
-            highestConfidenceFrame = frameNum;
-            highestConfidenceID = idNum;
+            _highestConfidenceFrame = frameNum;
+            _highestConfidenceID = idNum;
         }
 
         /// <inheritdoc />

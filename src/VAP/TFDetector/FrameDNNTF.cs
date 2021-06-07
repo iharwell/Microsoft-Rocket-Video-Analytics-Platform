@@ -21,39 +21,39 @@ namespace TFDetector
 {
     public class FrameDNNTF
     {
-        private static int _imageWidth, _imageHeight, _index;
-        private static List<(string key, LineSegment coordinates)> _lines;
-        private static HashSet<string> _category;
+        private static int s_imageWidth, s_imageHeight, s_index;
+        private static List<(string key, LineSegment coordinates)> s_lines;
+        private static HashSet<string> s_category;
 
-        private TFWrapper tfWrapper = new TFWrapper();
-        private byte[] imageByteArray;
-        private Brush bboxColor = Brushes.Green;
+        private readonly TFWrapper _tfWrapper = new TFWrapper();
+        private byte[] _imageByteArray;
+        private readonly Brush _bboxColor = Brushes.Green;
 
         public FrameDNNTF(List<(string key, LineSegment coordinates)> lines)
         {
-            _lines = lines;
+            s_lines = lines;
         }
 
         public IList<IFramedItem> Run(Mat frameTF, int frameIndex, HashSet<string> category, Color bboxColor, double min_score_for_linebbox_overlap, bool saveImg = true)
         {
-            _imageWidth = frameTF.Width;
-            _imageHeight = frameTF.Height;
-            _category = category;
-            imageByteArray = Utils.Utils.ImageToByteJpeg(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameTF));
+            s_imageWidth = frameTF.Width;
+            s_imageHeight = frameTF.Height;
+            s_category = category;
+            _imageByteArray = Utils.Utils.ImageToByteJpeg(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameTF));
 
             IFrame frame = new Frame("", frameIndex, frameTF);
 
             float[,,] boxes;
             float[,] scores, classes;
-            (boxes, scores, classes) = tfWrapper.Run(imageByteArray);
+            (boxes, scores, classes) = _tfWrapper.Run(_imageByteArray);
 
             IList<IFramedItem> preValidItems = ValidateItems(boxes, scores, classes, DNNConfig.MIN_SCORE_FOR_TFOBJECT_OUTPUT, frame);
             List<IFramedItem> validObjects = new List<IFramedItem>();
 
             //run overlap ratio-based validation
-            if (_lines != null)
+            if (s_lines != null)
             {
-                for (int lineID = 0; lineID < _lines.Count; lineID++)
+                for (int lineID = 0; lineID < s_lines.Count; lineID++)
                 {
                     /*var overlapItems = preValidItems
                         .Select(
@@ -75,23 +75,23 @@ namespace TFDetector
                     foreach (var framedItem in preValidItems)
                     {
                         Rectangle rect = framedItem.ItemIDs[0].BoundingBox;
-                        float overlap = Utils.Utils.checkLineBboxOverlapRatio(_lines[lineID].coordinates, rect);
+                        float overlap = Utils.Utils.CheckLineBboxOverlapRatio(s_lines[lineID].coordinates, rect);
                         int bbox_x = rect.X + rect.Width;
                         int bbox_y = rect.Y + rect.Height;
-                        double dist = Distance(_lines[lineID].coordinates, rect.Center());
-                        if (bbox_y <= _imageHeight && bbox_x <= _imageWidth && overlap >= min_score_for_linebbox_overlap)
+                        double dist = Distance(s_lines[lineID].coordinates, rect.Center());
+                        if (bbox_y <= s_imageHeight && bbox_x <= s_imageWidth && overlap >= min_score_for_linebbox_overlap)
                         {
                             overlapItems.Add(framedItem);
                         }
                     }
 
-                    overlapItems.Sort((IFramedItem t1, IFramedItem t2) => { return Distance(_lines[lineID].coordinates, t1.ItemIDs[0].BoundingBox.Center()).CompareTo(Distance(_lines[lineID].coordinates, t2.ItemIDs[0].BoundingBox.Center())); });
+                    overlapItems.Sort((IFramedItem t1, IFramedItem t2) => { return Distance(s_lines[lineID].coordinates, t1.ItemIDs[0].BoundingBox.Center()).CompareTo(Distance(s_lines[lineID].coordinates, t2.ItemIDs[0].BoundingBox.Center())); });
 
                     foreach (var item in overlapItems)
                     {
-                        item.ItemIDs[0].TrackID = _index;
+                        item.ItemIDs[0].TrackID = s_index;
                         validObjects.Add(item);
-                        _index++;
+                        s_index++;
                     }
                 }
             }
@@ -133,8 +133,8 @@ namespace TFDetector
                     if (scores[i, j] < minScore) continue;
 
                     int value = Convert.ToInt32(classes[i, j]);
-                    CatalogItem catalogItem = TFWrapper._catalog.FirstOrDefault(item => item.Id == value);
-                    if (_category.Count > 0 && !_category.Contains(catalogItem.DisplayName)) continue;
+                    CatalogItem catalogItem = TFWrapper.Catalog.FirstOrDefault(item => item.Id == value);
+                    if (s_category.Count > 0 && !s_category.Contains(catalogItem.DisplayName)) continue;
 
                     for (int k = 0; k < z; k++)
                     {
@@ -156,21 +156,23 @@ namespace TFDetector
                         }
                     }
 
-                    int bbox_x = (int)(xmin * _imageWidth);
-                    int bbox_y = (int)(ymin * _imageHeight);
-                    int bbox_w = (int)((xmax - xmin) * _imageWidth);
-                    int bbox_h = (int)((ymax - ymin) * _imageHeight);
+                    int bbox_x = (int)(xmin * s_imageWidth);
+                    int bbox_y = (int)(ymin * s_imageHeight);
+                    int bbox_w = (int)((xmax - xmin) * s_imageWidth);
+                    int bbox_h = (int)((ymax - ymin) * s_imageHeight);
 
                     //check line overlap
-                    for (int lineID = 0; lineID < _lines.Count; lineID++)
+                    for (int lineID = 0; lineID < s_lines.Count; lineID++)
                     {
-                        float ratio = Utils.Utils.checkLineBboxOverlapRatio(_lines[lineID].coordinates, bbox_x, bbox_y, bbox_w, bbox_h);
+                        float ratio = Utils.Utils.CheckLineBboxOverlapRatio(s_lines[lineID].coordinates, bbox_x, bbox_y, bbox_w, bbox_h);
                         if (ratio >= DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL)
                         {
                             Rectangle bounds = new Rectangle(bbox_x, bbox_y, bbox_w, bbox_h);
-                            LineTriggeredItemID item = new LineTriggeredItemID(bounds, catalogItem.Id, catalogItem.DisplayName, scores[i, j], lineID, nameof(FrameDNNTF));
-                            item.TriggerLine = _lines[lineID].key;
-                            item.TriggerLineID = lineID;
+                            LineTriggeredItemID item = new LineTriggeredItemID(bounds, catalogItem.Id, catalogItem.DisplayName, scores[i, j], lineID, nameof(FrameDNNTF))
+                            {
+                                TriggerLine = s_lines[lineID].key,
+                                TriggerLineID = lineID
+                            };
                             IFramedItem framed = new FramedItem(frame, item);
 
                             frameDNNItem.Add(framed);

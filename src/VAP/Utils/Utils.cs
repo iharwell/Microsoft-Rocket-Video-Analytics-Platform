@@ -13,23 +13,23 @@ namespace Utils
 {
     public class Utils
     {
-        public static void cleanFolder(string folder)
+        public static void CleanFolder(string folder)
         {
             Directory.CreateDirectory(folder);
             DirectoryInfo di = new DirectoryInfo(folder);
             foreach (FileInfo file in di.GetFiles()) file.Delete();
         }
 
-        public static void cleanFolderAll()
+        public static void CleanFolderAll()
         {
-            cleanFolder(Config.OutputFolder.OutputFolderAll);
-            cleanFolder(Config.OutputFolder.OutputFolderBGSLine);
-            cleanFolder(Config.OutputFolder.OutputFolderLtDNN);
-            cleanFolder(Config.OutputFolder.OutputFolderCcDNN);
-            cleanFolder(Config.OutputFolder.OutputFolderAML);
-            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNDarknet);
-            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNTF);
-            cleanFolder(Config.OutputFolder.OutputFolderFrameDNNONNX);
+            CleanFolder(Config.OutputFolder.OutputFolderAll);
+            CleanFolder(Config.OutputFolder.OutputFolderBGSLine);
+            CleanFolder(Config.OutputFolder.OutputFolderLtDNN);
+            CleanFolder(Config.OutputFolder.OutputFolderCcDNN);
+            CleanFolder(Config.OutputFolder.OutputFolderAML);
+            CleanFolder(Config.OutputFolder.OutputFolderFrameDNNDarknet);
+            CleanFolder(Config.OutputFolder.OutputFolderFrameDNNTF);
+            CleanFolder(Config.OutputFolder.OutputFolderFrameDNNONNX);
         }
 
         public static byte[] MatToByteBmp(Mat image)
@@ -41,41 +41,36 @@ namespace Utils
 
         public static byte[] ImageToByteBmp(Image imageIn)
         {
-            using (var ms = new MemoryStream())
-            {
-                imageIn.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-                return ms.ToArray();
-            }
+            using var ms = new MemoryStream();
+            imageIn.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+            return ms.ToArray();
         }
 
         public static byte[] ImageToByteJpeg(Image imageIn)
         {
-            using (var ms = new MemoryStream())
-            {
-                imageIn.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-                return ms.ToArray();
-            }
+            using var ms = new MemoryStream();
+            imageIn.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+            return ms.ToArray();
         }
 
-        public static float checkLineBboxOverlapRatio(int[] line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
+        public static float CheckLineBboxOverlapRatio(int[] line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
         {
             LineSegment newLine = new LineSegment(new Point(line[0], line[1]), new Point(line[2], line[3]));
-            return checkLineBboxOverlapRatio(newLine, bbox_x, bbox_y, bbox_w, bbox_h);
+            return CheckLineBboxOverlapRatio(newLine, bbox_x, bbox_y, bbox_w, bbox_h);
         }
-        public static float checkLineBboxOverlapRatio(int[] line, Rectangle bbox)
+        public static float CheckLineBboxOverlapRatio(int[] line, Rectangle bbox)
         {
             LineSegment newLine = new LineSegment(new Point(line[0], line[1]), new Point(line[2], line[3]));
-            return checkLineBboxOverlapRatio(newLine, bbox.X, bbox.Y, bbox.Width, bbox.Height);
+            return CheckLineBboxOverlapRatio(newLine, bbox.X, bbox.Y, bbox.Width, bbox.Height);
         }
 
-        public static float checkLineBboxOverlapRatio(LineSegment line, Rectangle bbox)
+        public static float CheckLineBboxOverlapRatio(LineSegment line, Rectangle bbox)
         {
-            return checkLineBboxOverlapRatio(line, bbox.X, bbox.Y, bbox.Width, bbox.Height);
+            return CheckLineBboxOverlapRatio(line, bbox.X, bbox.Y, bbox.Width, bbox.Height);
         }
 
-        public static float checkLineBboxOverlapRatio(LineSegment line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
+        public static float CheckLineBboxOverlapRatio(LineSegment line, int bbox_x, int bbox_y, int bbox_w, int bbox_h)
         {
-            float overlapRatio = 0.0F;
             int insidePixels = 0;
 
             IEnumerable<Point> linePixels = EnumerateLineNoDiagonalSteps(line.P1, line.P2);
@@ -88,7 +83,7 @@ namespace Utils
                 }
             }
 
-            overlapRatio = (float)insidePixels / linePixels.Count();
+            var overlapRatio = (float)insidePixels / linePixels.Count();
             return overlapRatio;
         }
 
@@ -122,47 +117,39 @@ namespace Utils
 
         public static byte[] DrawImage(byte[] imageData, int x, int y, int w, int h, Color color, string annotation = "")
         {
-            using (var memoryStream = new MemoryStream(imageData))
-            using (var image = Image.FromStream(memoryStream))
-            using (var canvas = Graphics.FromImage(image))
-            using (var pen = new Pen(color, 3))
-            {
-                canvas.DrawRectangle(pen, x, y, w, h);
-                canvas.DrawString(annotation, new Font("Arial", 16), new SolidBrush(color), new PointF(x, y - 20));
-                canvas.Flush();
+            using var memoryStream = new MemoryStream(imageData);
+            using var image = Image.FromStream(memoryStream);
+            using var canvas = Graphics.FromImage(image);
+            using var pen = new Pen(color, 3);
+            canvas.DrawRectangle(pen, x, y, w, h);
+            canvas.DrawString(annotation, new Font("Arial", 16), new SolidBrush(color), new PointF(x, y - 20));
+            canvas.Flush();
 
-                using (var memoryStream2 = new MemoryStream())
-                {
-                    image.Save(memoryStream2, ImageFormat.Bmp);
-                    return memoryStream2.ToArray();
-                }
-            }
+            using var memoryStream2 = new MemoryStream();
+            image.Save(memoryStream2, ImageFormat.Bmp);
+            return memoryStream2.ToArray();
         }
 
         public static byte[] CropImage(byte[] imageData, int x, int y, int w, int h)
         {
-            using (var memoryStream = new MemoryStream(imageData))
-            using (var image = Image.FromStream(memoryStream))
-            {
-                Rectangle cropRect = new Rectangle(x, y, Math.Min(image.Width - x, w), Math.Min(image.Height - y, h));
-                Bitmap bmpImage = new Bitmap(image);
-                Image croppedImage = bmpImage.Clone(cropRect, bmpImage.PixelFormat);
+            using var memoryStream = new MemoryStream(imageData);
+            using var image = Image.FromStream(memoryStream);
+            Rectangle cropRect = new Rectangle(x, y, Math.Min(image.Width - x, w), Math.Min(image.Height - y, h));
+            Bitmap bmpImage = new Bitmap(image);
+            Image croppedImage = bmpImage.Clone(cropRect, bmpImage.PixelFormat);
 
-                using (var memoryStream2 = new MemoryStream())
-                {
-                    croppedImage.Save(memoryStream2, ImageFormat.Bmp);
-                    return memoryStream2.ToArray();
-                }
-            }
+            using var memoryStream2 = new MemoryStream();
+            croppedImage.Save(memoryStream2, ImageFormat.Bmp);
+            return memoryStream2.ToArray();
         }
 
         public static List<Tuple<string, int[]>> ConvertLines(List<(string key, LineSegment coordinates)> lines)
         {
             List<Tuple<string, int[]>> newLines = new List<Tuple<string, int[]>>();
-            foreach ((string key, LineSegment coordinates) line in lines)
+            foreach ((string key, LineSegment coordinates) in lines)
             {
-                int[] coor = new int[] { line.coordinates.P1.X, line.coordinates.P1.Y, line.coordinates.P2.X, line.coordinates.P2.Y };
-                Tuple<string, int[]> newLine = new Tuple<string, int[]>(line.key, coor);
+                int[] coor = new int[] { coordinates.P1.X, coordinates.P1.Y, coordinates.P2.X, coordinates.P2.Y };
+                Tuple<string, int[]> newLine = new Tuple<string, int[]>(key, coor);
                 newLines.Add(newLine);
             }
             return newLines;

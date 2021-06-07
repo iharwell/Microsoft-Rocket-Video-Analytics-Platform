@@ -39,16 +39,16 @@ namespace Utils.ShapeTools
         public static Rectangle ScaleFromCenter(this Rectangle rect, double scaleFactor)
         {
             Size s = rect.Size;
-            SizeF NewSize = new SizeF((float)(s.Width * scaleFactor), (float)(s.Height * scaleFactor));
+            SizeF newSize = new SizeF((float)(s.Width * scaleFactor), (float)(s.Height * scaleFactor));
 
-            return (new RectangleF(rect.X - (NewSize.Width - s.Width) / 2, rect.Y - (NewSize.Height - s.Height) / 2, NewSize.Width, NewSize.Height)).RoundRectF();
+            return (new RectangleF(rect.X - (newSize.Width - s.Width) / 2, rect.Y - (newSize.Height - s.Height) / 2, newSize.Width, newSize.Height)).RoundRectF();
         }
         public static RectangleF ScaleFromCenter(this RectangleF rect, double scaleFactor)
         {
             SizeF s = rect.Size;
-            SizeF NewSize = new SizeF((float)(s.Width * scaleFactor), (float)(s.Height * scaleFactor));
+            SizeF newSize = new SizeF((float)(s.Width * scaleFactor), (float)(s.Height * scaleFactor));
 
-            return (new RectangleF(rect.X - (NewSize.Width - s.Width) / 2, rect.Y - (NewSize.Height - s.Height) / 2, NewSize.Width, NewSize.Height));
+            return (new RectangleF(rect.X - (newSize.Width - s.Width) / 2, rect.Y - (newSize.Height - s.Height) / 2, newSize.Width, newSize.Height));
         }
     }
 }

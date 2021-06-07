@@ -9,6 +9,6 @@ namespace Wrapper.Yolo.Model
     internal struct BboxContainer
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = YoloWrapper.MaxObjects)]
-        internal BboxT[] candidates;
+        internal BboxT[] _candidates;
     }
 }

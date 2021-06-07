@@ -15,24 +15,24 @@ namespace PostProcessor
 {
     public class DBClient
     {
-        private static readonly string DBServer = ConfigurationManager.AppSettings["DBServer"];
-        private static readonly string DBCred = ConfigurationManager.AppSettings["DBCred"];
-        private static readonly string DBName = ConfigurationManager.AppSettings["DBName"];
+        private static readonly string s_dBServer = ConfigurationManager.AppSettings["DBServer"];
+        private static readonly string s_dBCred = ConfigurationManager.AppSettings["DBCred"];
+        private static readonly string s_dBName = ConfigurationManager.AppSettings["DBName"];
 
-        private static readonly HttpClient client = new HttpClient();
+        private static readonly HttpClient s_client = new HttpClient();
 
         public static async Task<Camera> GetDocumentCamera(string id)
         {
             var serializer = new DataContractJsonSerializer(typeof(Camera));
 
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", DBCred);
+            s_client.DefaultRequestHeaders.Accept.Clear();
+            s_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", s_dBCred);
 
             System.IO.Stream streamTask = null;
             Camera jsonCamera = null;
             try
             {
-                streamTask = await client.GetStreamAsync(DBServer + "_db/" + DBName + "/_api/document/camera/" + id);
+                streamTask = await s_client.GetStreamAsync(s_dBServer + "_db/" + s_dBName + "/_api/document/camera/" + id);
                 jsonCamera = serializer.ReadObject(streamTask) as Camera;
             }
             catch (Exception)
@@ -53,14 +53,14 @@ namespace PostProcessor
         {
             var serializer = new DataContractJsonSerializer(typeof(Model.Object));
 
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", DBCred);
+            s_client.DefaultRequestHeaders.Accept.Clear();
+            s_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", s_dBCred);
 
             System.IO.Stream streamTask = null;
             Model.Object jsonObject = null;
             try
             {
-                streamTask = await client.GetStreamAsync(DBServer + "_db/" + DBName + "/_api/document/object/" + id);
+                streamTask = await s_client.GetStreamAsync(s_dBServer + "_db/" + s_dBName + "/_api/document/object/" + id);
                 jsonObject = serializer.ReadObject(streamTask) as Model.Object;
             }
             catch (Exception)
@@ -75,14 +75,14 @@ namespace PostProcessor
         {
             var serializer = new DataContractJsonSerializer(typeof(Detection));
 
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", DBCred);
+            s_client.DefaultRequestHeaders.Accept.Clear();
+            s_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", s_dBCred);
 
             System.IO.Stream streamTask = null;
             Detection jsonDetection = null;
             try
             {
-                streamTask = await client.GetStreamAsync(DBServer + "_db/" + DBName + "/_api/document/detection/" + id);
+                streamTask = await s_client.GetStreamAsync(s_dBServer + "_db/" + s_dBName + "/_api/document/detection/" + id);
                 jsonDetection = serializer.ReadObject(streamTask) as Detection;
             }
             catch (Exception)
@@ -98,8 +98,8 @@ namespace PostProcessor
             string[] result = new string[2];
             var serializer = new DataContractJsonSerializer(typeof(QueryRaw));
 
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", DBCred);
+            s_client.DefaultRequestHeaders.Accept.Clear();
+            s_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", s_dBCred);
             var buffer = System.Text.Encoding.UTF8.GetBytes(content);
             var byteContent = new ByteArrayContent(buffer);
 
@@ -107,7 +107,7 @@ namespace PostProcessor
             try
             {
                 var stopWatch = Stopwatch.StartNew();
-                response = await client.PostAsync(DBServer + "_db/" + DBName + "/_api/cursor", byteContent);
+                response = await s_client.PostAsync(s_dBServer + "_db/" + s_dBName + "/_api/cursor", byteContent);
                 result[0] = stopWatch.Elapsed.ToString();
             }
             catch (Exception)
@@ -132,15 +132,15 @@ namespace PostProcessor
         {
             var serializer = new DataContractJsonSerializer(typeof(QueryRaw));
 
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", DBCred);
+            s_client.DefaultRequestHeaders.Accept.Clear();
+            s_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", s_dBCred);
             var buffer = System.Text.Encoding.UTF8.GetBytes(content);
             var byteContent = new ByteArrayContent(buffer);
 
             HttpResponseMessage response = null;
             try
             {
-                response = await client.PostAsync(DBServer + "_db/" + DBName + "/_api/cursor", byteContent);
+                response = await s_client.PostAsync(s_dBServer + "_db/" + s_dBName + "/_api/cursor", byteContent);
             }
             catch (Exception)
             {
@@ -161,8 +161,8 @@ namespace PostProcessor
 
         public static async Task<System.Net.HttpStatusCode> CreateCollection(string cltName)
         {
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", DBCred);
+            s_client.DefaultRequestHeaders.Accept.Clear();
+            s_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", s_dBCred);
             string content = "{\"name\": \"" + cltName + "\"}";
             var buffer = System.Text.Encoding.UTF8.GetBytes(content);
             var byteContent = new ByteArrayContent(buffer);
@@ -170,7 +170,7 @@ namespace PostProcessor
             HttpResponseMessage response = null;
             try
             {
-                response = await client.PostAsync(DBServer + "_db/" + DBName + "/_api/collection", byteContent);
+                response = await s_client.PostAsync(s_dBServer + "_db/" + s_dBName + "/_api/collection", byteContent);
             }
             catch (Exception)
             {
@@ -182,15 +182,15 @@ namespace PostProcessor
 
         public static async Task<System.Net.HttpStatusCode> CreateDocument(string cltName, string content)
         {
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", DBCred);
+            s_client.DefaultRequestHeaders.Accept.Clear();
+            s_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", s_dBCred);
             var buffer = System.Text.Encoding.UTF8.GetBytes(content);
             var byteContent = new ByteArrayContent(buffer);
 
             HttpResponseMessage response = null;
             try
             {
-                response = await client.PostAsync(DBServer + "_db/" + DBName + "/_api/document/" + cltName, byteContent);
+                response = await s_client.PostAsync(s_dBServer + "_db/" + s_dBName + "/_api/document/" + cltName, byteContent);
             }
             catch (Exception)
             {

@@ -26,7 +26,7 @@ namespace LineDetector
         /// <returns>
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and the bounding box of the crossing item.
         /// </returns>
-        (bool crossingResult, IFramedItem b) notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask);
+        (bool crossingResult, IFramedItem b) NotifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask);
 
         //notify the arrival of a frame to the detector
         //return true if there is a crossing event detected
@@ -39,7 +39,7 @@ namespace LineDetector
         /// <returns>
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and the bounding box of the crossing item.
         /// </returns>
-        (bool crossingResult, IFramedItem b) notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask);
+        (bool crossingResult, IFramedItem b) NotifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask);
 
         //notify the arrival of a frame to the detector
         //return true if there is a crossing event detected
@@ -52,7 +52,7 @@ namespace LineDetector
         /// <returns>
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and the bounding box of the crossing item.
         /// </returns>
-        (bool crossingResult, IFramedItem b) notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object sourceObject);
+        (bool crossingResult, IFramedItem b) NotifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object sourceObject);
 
         /// <summary>
         /// Processes a frame upon arrival.
@@ -62,33 +62,33 @@ namespace LineDetector
         /// <returns>
         /// Returns a boolean indicating whether a crossing was detected.
         /// </returns>
-        bool notifyFrameArrival(int frameNo, Bitmap mask);
+        bool NotifyFrameArrival(int frameNo, Bitmap mask);
 
         //returns occupied or not
         /// <summary>
         /// Gets the occupancy state of this detector as of the latest frame.
         /// </summary>
-        OCCUPANCY_STATE getState();
+        OCCUPANCY_STATE GetState();
 
         /// <summary>
         /// Enables debug logging.
         /// </summary>
-        void setDebug();
+        void SetDebug();
 
         /// <summary>
         /// Gets the line occupancy overlap values which are stored while in debug mode.
         /// </summary>
-        List<double> getLineOccupancyHistory();
+        List<double> GetLineOccupancyHistory();
 
         /// <summary>
         /// Gets the <see cref="DetectionLine"/> used by this detector.
         /// </summary>
-        DetectionLine getDetectionLine();
+        DetectionLine GetDetectionLine();
 
         /// <summary>
         /// Gets the occupancy state of this detector as of the latest frame.
         /// </summary>
         /// <returns>Returns true if the detector is occupied by one or more items, and false otherwise.</returns>
-        bool getOccupancy();
+        bool GetOccupancy();
     }
 }

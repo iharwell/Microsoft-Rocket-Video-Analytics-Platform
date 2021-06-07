@@ -36,17 +36,17 @@ namespace BGSObjectDetector
         }
 
         // for storing histogram value
-        public float[] hist;
+        public float[] _hist;
         public void SetHist(float[] h)
         {
-            for (int i = 0; i < h.Length; i++) { hist[i] = h[i]; }
+            for (int i = 0; i < h.Length; i++) { _hist[i] = h[i]; }
         }
 
         // for storing feature values
-        public Mat desc;
+        public Mat _desc;
         public void SetDesc(Mat d)
         {
-            try { desc = d.Clone(); }
+            try { _desc = d.Clone(); }
             catch (Exception) {; }
         }
 
@@ -66,8 +66,8 @@ namespace BGSObjectDetector
             this.ID = id;
 
             // used for different similarity metrics
-            this.hist = new float[256];
-            this.desc = null;
+            this._hist = new float[256];
+            this._desc = null;
         }
 
         public static double MaxOverlapFraction(Box b0, Box b1)

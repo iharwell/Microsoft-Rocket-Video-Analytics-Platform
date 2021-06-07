@@ -13,9 +13,9 @@ namespace Wrapper.Yolo
 {
     public class YoloTracking
     {
-        private YoloWrapper _yoloWrapper;
+        private readonly YoloWrapper _yoloWrapper;
         private Point _trackingObject = new Point(0, 0);
-        private int _maxDistance;
+        private readonly int _maxDistance;
         public int _index;
 
         //distance-based validation
@@ -89,40 +89,32 @@ namespace Wrapper.Yolo
 
         private byte[] DrawImage(byte[] imageData, YoloItem item, Brush color)
         {
-            using (var memoryStream = new MemoryStream(imageData))
-            using (var image = Image.FromStream(memoryStream))
-            using (var canvas = Graphics.FromImage(image))
-            using (var pen = new Pen(color, 3))
-            {
-                canvas.DrawRectangle(pen, item.X, item.Y, item.Width, item.Height);
-                canvas.Flush();
+            using var memoryStream = new MemoryStream(imageData);
+            using var image = Image.FromStream(memoryStream);
+            using var canvas = Graphics.FromImage(image);
+            using var pen = new Pen(color, 3);
+            canvas.DrawRectangle(pen, item.X, item.Y, item.Width, item.Height);
+            canvas.Flush();
 
-                using (var memoryStream2 = new MemoryStream())
-                {
-                    image.Save(memoryStream2, ImageFormat.Bmp);
-                    return memoryStream2.ToArray();
-                }
-            }
+            using var memoryStream2 = new MemoryStream();
+            image.Save(memoryStream2, ImageFormat.Bmp);
+            return memoryStream2.ToArray();
         }
 
         private byte[] CropImage(byte[] imageData, YoloItem item)
         {
-            using (var memoryStream = new MemoryStream(imageData))
-            using (var image = Image.FromStream(memoryStream))
-            {
-                Rectangle cropRect = new Rectangle(item.X, item.Y, Math.Min(image.Width - item.X, item.Width), Math.Min(image.Height - item.Y, item.Height));
-                Bitmap bmpImage = new Bitmap(image);
-                Image croppedImage = bmpImage.Clone(cropRect, bmpImage.PixelFormat);
+            using var memoryStream = new MemoryStream(imageData);
+            using var image = Image.FromStream(memoryStream);
+            Rectangle cropRect = new Rectangle(item.X, item.Y, Math.Min(image.Width - item.X, item.Width), Math.Min(image.Height - item.Y, item.Height));
+            Bitmap bmpImage = new Bitmap(image);
+            Image croppedImage = bmpImage.Clone(cropRect, bmpImage.PixelFormat);
 
-                using (var memoryStream2 = new MemoryStream())
-                {
-                    croppedImage.Save(memoryStream2, ImageFormat.Bmp);
-                    return memoryStream2.ToArray();
-                }
-            }
+            using var memoryStream2 = new MemoryStream();
+            croppedImage.Save(memoryStream2, ImageFormat.Bmp);
+            return memoryStream2.ToArray();
         }
 
-        public double getDistance(Point p1)
+        public double GetDistance(Point p1)
         {
             return Distance(p1, this._trackingObject);
         }

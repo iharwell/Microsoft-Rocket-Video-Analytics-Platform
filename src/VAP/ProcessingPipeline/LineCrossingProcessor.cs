@@ -51,7 +51,7 @@ namespace ProcessingPipeline
             BoundingBoxColor = bbColor;
 
             _detector = new Detector(samplingFactor, resFactor, lineFile, display);
-            var lines = _detector._multiLaneDetector.getAllLines();
+            var lines = _detector._multiLaneDetector.GetAllLines();
             LineSegments = new Dictionary<string, LineSegment>();
 
             for (int i = 0; i < lines.Count; i++)

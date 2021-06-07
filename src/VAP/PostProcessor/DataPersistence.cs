@@ -23,12 +23,12 @@ namespace PostProcessor
     public class DataPersistence
     {
         //string blobUri_BGS = null;
-        private static AzureBlobProcessor blobProcessor = new AzureBlobProcessor();
+        private static readonly AzureBlobProcessor s_blobProcessor = new AzureBlobProcessor();
 
         // force precise initialization
         static DataPersistence() { }
 
-        public static void PersistResult(string dbCollectionName, string videoUrl, int cameraID, int frameIndex, IList<IFramedItem> detectionResult, Position[] objDir, string YOLOCONFIG, string YOLOCONFIG_HEAVY,
+        public static void PersistResult(string dbCollectionName, string videoUrl, int cameraID, int frameIndex, IList<IFramedItem> detectionResult, Position[] objDir, string yOLOCONFIG, string yOLOCONFIG_HEAVY,
             string azureContainerName)
         {
             if (detectionResult != null && detectionResult.Count != 0)
@@ -36,10 +36,10 @@ namespace PostProcessor
                 foreach (IFramedItem it in detectionResult)
                 {
                     var fileList = Directory.GetFiles(@OutputFolder.OutputFolderAll, $"frame-{frameIndex}*");
-                    string blobName = Path.GetFileName(fileList[fileList.Length - 1]);
+                    string blobName = Path.GetFileName(fileList[^1]);
                     //string blobName = it.IdentificationMethod == "Cheap" ? $@"frame-{frameIndex}-Cheap-{it.Confidence}.jpg" : $@"frame-{frameIndex}-Heavy-{it.Confidence}.jpg";
                     string blobUri = SendDataToCloud(azureContainerName, blobName, @OutputFolder.OutputFolderAll + blobName);
-                    string serializedResult = SerializeDetectionResult(videoUrl, cameraID, frameIndex, it, objDir, blobUri, YOLOCONFIG, YOLOCONFIG_HEAVY);
+                    string serializedResult = SerializeDetectionResult(videoUrl, cameraID, frameIndex, it, objDir, blobUri, yOLOCONFIG, yOLOCONFIG_HEAVY);
                     WriteDB(dbCollectionName, serializedResult);
                 }
             }
@@ -47,28 +47,31 @@ namespace PostProcessor
 
         public static string SendDataToCloud(string containerName, string blobName, string sourceFile)
         {
-            return blobProcessor.UploadFileAsync(containerName, blobName, sourceFile).GetAwaiter().GetResult();
+            return s_blobProcessor.UploadFileAsync(containerName, blobName, sourceFile).GetAwaiter().GetResult();
         }
 
         private static string SerializeDetectionResult(string videoUrl, int cameraID, int frameIndex, IFramedItem item, Position[] objDir, string imageUri, string YOLOCONFIG, string YOLOCONFIG_HEAVY)
         {
             throw new NotImplementedException();
-            Model.Consolidation detectionConsolidation = new Model.Consolidation();
-            detectionConsolidation.Key = Guid.NewGuid().ToString();
-            detectionConsolidation.CameraID = cameraID;
-            detectionConsolidation.Frame = frameIndex;
+            Model.Consolidation detectionConsolidation = new Model.Consolidation
+            {
+                Key = Guid.NewGuid().ToString(),
+                CameraID = cameraID,
+                Frame = frameIndex,
 
-            /*detectionConsolidation.ObjID = item.ObjectID;
-            detectionConsolidation.ObjName = item.ObjName;
-            detectionConsolidation.Bbox = new int[] { item.X, item.Y, item.Height, item.Width };
-            detectionConsolidation.Prob = item.Confidence;
-            detectionConsolidation.ObjDir = objDir[0].ToString() + objDir[1].ToString();
-            detectionConsolidation.ImageUri = new Uri(imageUri);*/
+                /*
+                ObjID = item.ObjectID;
+                ObjName = item.ObjName;
+                Bbox = new int[] { item.X, item.Y, item.Height, item.Width };
+                Prob = item.Confidence;
+                ObjDir = objDir[0].ToString() + objDir[1].ToString();
+                ImageUri = new Uri(imageUri);*/
 
-            detectionConsolidation.VideoInput = videoUrl;
-            detectionConsolidation.YoloCheap = YOLOCONFIG;
-            detectionConsolidation.YoloHeavy = YOLOCONFIG_HEAVY;
-            detectionConsolidation.Time = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+                VideoInput = videoUrl,
+                YoloCheap = YOLOCONFIG,
+                YoloHeavy = YOLOCONFIG_HEAVY,
+                Time = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffffff")
+            };
 
             //Create a stream to serialize the object to.  
             MemoryStream ms = new MemoryStream();

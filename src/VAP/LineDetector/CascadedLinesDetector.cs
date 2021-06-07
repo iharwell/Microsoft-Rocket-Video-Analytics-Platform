@@ -16,40 +16,40 @@ namespace LineDetector
     /// </summary>
     internal class CascadedLinesDetector : ILineBasedDetector
     {
-        private List<ISingleLineCrossingDetector> lineCrossingDetectors;
-        private List<int> minLags;
-        private List<int> maxLags;
-        private int noLines;
-        private List<List<int>> CrossingEventTimeStampBuffers;
-        private int Count;
-        private IFramedItem bbox;
-        private int SUPRESSION_INTERVAL = 1;
-        private List<int> lastEventFrame;
-        private bool debug = false;
+        private readonly List<ISingleLineCrossingDetector> _lineCrossingDetectors;
+        private readonly List<int> _minLags;
+        private readonly List<int> _maxLags;
+        private readonly int _noLines;
+        private readonly List<List<int>> _crossingEventTimeStampBuffers;
+        private int _count;
+        private IFramedItem _bbox;
+        private readonly int _supression_interval = 1;
+        private readonly List<int> _lastEventFrame;
+        private bool _debug = false;
 
         /// <summary>
         /// Activates debug logging.
         /// </summary>
-        public void setDebug()
+        public void SetDebug()
         {
-            debug = true;
-            foreach (ISingleLineCrossingDetector d in lineCrossingDetectors)
+            _debug = true;
+            foreach (ISingleLineCrossingDetector d in _lineCrossingDetectors)
             {
-                d.setDebug();
+                d.SetDebug();
             }
         }
 
         /// <summary>
         /// Provides a history of the occupancy of this line detector, with each entry containing a list of occupancy values for each line considered by this detector.
         /// </summary>
-        public List<List<double>> getOccupancyHistory()
+        public List<List<double>> GetOccupancyHistory()
         {
             List<List<double>> ret = new List<List<double>>();
-            if (debug)
+            if (_debug)
             {
-                foreach (ISingleLineCrossingDetector lineDetector in lineCrossingDetectors)
+                foreach (ISingleLineCrossingDetector lineDetector in _lineCrossingDetectors)
                 {
-                    ret.Add(lineDetector.getLineOccupancyHistory());
+                    ret.Add(lineDetector.GetLineOccupancyHistory());
                 }
                 return ret;
             }
@@ -67,36 +67,36 @@ namespace LineDetector
         /// <param name="l_maxLags">The maximum number of events to store in the internal buffer.</param>
         public CascadedLinesDetector(List<ISingleLineCrossingDetector> l_lineDetectors, List<int> l_minLags, List<int> l_maxLags)
         {
-            lineCrossingDetectors = l_lineDetectors;
-            noLines = lineCrossingDetectors.Count;
-            Count = 0;
-            minLags = l_minLags;
-            maxLags = l_maxLags;
+            _lineCrossingDetectors = l_lineDetectors;
+            _noLines = _lineCrossingDetectors.Count;
+            _count = 0;
+            _minLags = l_minLags;
+            _maxLags = l_maxLags;
 
-            CrossingEventTimeStampBuffers = new List<List<int>>();
+            _crossingEventTimeStampBuffers = new List<List<int>>();
 
             //the last line does not have a buffer at all!
-            for (int i = 0; i < noLines - 1; i++)
+            for (int i = 0; i < _noLines - 1; i++)
             {
                 List<int> buffer = new List<int>();
-                CrossingEventTimeStampBuffers.Add(buffer);
+                _crossingEventTimeStampBuffers.Add(buffer);
             }
 
-            lastEventFrame = new List<int>();
-            for (int i = 0; i < noLines - 1; i++)
+            _lastEventFrame = new List<int>();
+            for (int i = 0; i < _noLines - 1; i++)
             {
-                lastEventFrame.Add(0);
+                _lastEventFrame.Add(0);
             }
         }
 
 
-        private void purgeOldEvents(int currentFrame, int lineNo)
+        private void PurgeOldEvents(int currentFrame, int lineNo)
         {
-            while (CrossingEventTimeStampBuffers[lineNo].Count > 0)
+            while (_crossingEventTimeStampBuffers[lineNo].Count > 0)
             {
-                if (CrossingEventTimeStampBuffers[lineNo][0] <= currentFrame - maxLags[lineNo])
+                if (_crossingEventTimeStampBuffers[lineNo][0] <= currentFrame - _maxLags[lineNo])
                 {
-                    CrossingEventTimeStampBuffers[lineNo].RemoveAt(0);
+                    _crossingEventTimeStampBuffers[lineNo].RemoveAt(0);
                 }
                 else
                 {
@@ -106,15 +106,15 @@ namespace LineDetector
         }
 
 
-        private bool recursiveCrossingEventCheck(int lineNo, int frameNo)
+        private bool RecursiveCrossingEventCheck(int lineNo, int frameNo)
         {
             bool result = false;
-            purgeOldEvents(frameNo, lineNo - 1);
-            if (CrossingEventTimeStampBuffers[lineNo - 1].Count > 0)
+            PurgeOldEvents(frameNo, lineNo - 1);
+            if (_crossingEventTimeStampBuffers[lineNo - 1].Count > 0)
             {
-                if (frameNo - CrossingEventTimeStampBuffers[lineNo - 1][0] > minLags[lineNo - 1])
+                if (frameNo - _crossingEventTimeStampBuffers[lineNo - 1][0] > _minLags[lineNo - 1])
                 {
-                    if (frameNo - lastEventFrame[lineNo - 1] >= SUPRESSION_INTERVAL)
+                    if (frameNo - _lastEventFrame[lineNo - 1] >= _supression_interval)
                     {
                         if (lineNo - 1 == 0) //reached the source line - base case
                         {
@@ -122,50 +122,50 @@ namespace LineDetector
                         }
                         else
                         {
-                            result = recursiveCrossingEventCheck(lineNo - 1, frameNo);
+                            result = RecursiveCrossingEventCheck(lineNo - 1, frameNo);
                         }
                     }
                 }
             }
             if (result)
             {
-                CrossingEventTimeStampBuffers[lineNo - 1].RemoveAt(0);
-                lastEventFrame[lineNo - 1] = frameNo;
+                _crossingEventTimeStampBuffers[lineNo - 1].RemoveAt(0);
+                _lastEventFrame[lineNo - 1] = frameNo;
             }
             return result;
         }
 
         private void NotifyCrossingEvent(int frameNo, int lineNo)
         {
-            if (lineNo != noLines - 1)
+            if (lineNo != _noLines - 1)
             {
-                purgeOldEvents(frameNo, lineNo);
-                CrossingEventTimeStampBuffers[lineNo].Add(frameNo);
+                PurgeOldEvents(frameNo, lineNo);
+                _crossingEventTimeStampBuffers[lineNo].Add(frameNo);
             }
             else //this is the exit line
             {
-                if (noLines == 1)
+                if (_noLines == 1)
                 {
-                    Count++;
+                    _count++;
                 }
                 else
                 {
-                    if (recursiveCrossingEventCheck(lineNo, frameNo))
+                    if (RecursiveCrossingEventCheck(lineNo, frameNo))
                     {
-                        Count++;
+                        _count++;
                     }
                 }
             }
         }
 
         /// <inheritdoc/>
-        public void notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
+        public void NotifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
-            for (int i = 0; i < noLines; i++)
+            for (int i = 0; i < _noLines; i++)
             {
-                (bool val, IFramedItem b) = lineCrossingDetectors[i].notifyFrameArrival(frameNo, boxes, mask);
+                (bool val, IFramedItem b) = _lineCrossingDetectors[i].NotifyFrameArrival(frameNo, boxes, mask);
                 if (b != null)
-                    bbox = b;
+                    _bbox = b;
                 if (val)
                 {
                     NotifyCrossingEvent(frameNo, i);
@@ -174,19 +174,19 @@ namespace LineDetector
         }
 
         /// <inheritdoc/>
-        public void notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
+        public void NotifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
         {
-            notifyFrameArrival(frame, frameNo, boxes, mask, null);
+            NotifyFrameArrival(frame, frameNo, boxes, mask, null);
         }
 
         /// <inheritdoc/>
-        public void notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object sourceObject)
+        public void NotifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object sourceObject)
         {
-            for (int i = 0; i < noLines; i++)
+            for (int i = 0; i < _noLines; i++)
             {
-                (bool val, IFramedItem b) = lineCrossingDetectors[i].notifyFrameArrival(frame, frameNo, boxes, mask, sourceObject);
+                (bool val, IFramedItem b) = _lineCrossingDetectors[i].NotifyFrameArrival(frame, frameNo, boxes, mask, sourceObject);
                 if (b != null)
-                    bbox = b;
+                    _bbox = b;
                 if (val)
                 {
                     NotifyCrossingEvent(frame.FrameIndex, i);
@@ -195,11 +195,11 @@ namespace LineDetector
         }
 
         /// <inheritdoc/>
-        public void notifyFrameArrival(int frameNo, Bitmap mask)
+        public void NotifyFrameArrival(int frameNo, Bitmap mask)
         {
-            for (int i = 0; i < noLines; i++)
+            for (int i = 0; i < _noLines; i++)
             {
-                bool val = lineCrossingDetectors[i].notifyFrameArrival(frameNo, mask);
+                bool val = _lineCrossingDetectors[i].NotifyFrameArrival(frameNo, mask);
                 if (val)
                 {
                     NotifyCrossingEvent(frameNo, i);
@@ -210,9 +210,9 @@ namespace LineDetector
         /// <summary>
         /// Gets the number of times that this detector has been triggered.
         /// </summary>
-        public int getCount()
+        public int GetCount()
         {
-            return Count;
+            return _count;
         }
 
         /// <summary>
@@ -222,33 +222,35 @@ namespace LineDetector
         {
             get
             {
-                return bbox;
+                return _bbox;
             }
         }
 
         /// <summary>
         /// Sets the count of this detector.
         /// </summary>
-        public void setCount(int value)
+        public void SetCount(int value)
         {
-            Count = value;
+            _count = value;
         }
 
-        private int getPendingNow(int frameNo, int lineNo)
+        private int GetPendingNow(int frameNo, int lineNo)
         {
-            purgeOldEvents(frameNo, lineNo);
-            return CrossingEventTimeStampBuffers[lineNo].Count;
+            PurgeOldEvents(frameNo, lineNo);
+            return _crossingEventTimeStampBuffers[lineNo].Count;
         }
 
         /// <summary>
         /// Gets a <see cref="Dictionary{TKey, TValue}"/> of the parameters used by this detector, stored by name.
         /// </summary>
-        public Dictionary<string, Object> getParameters()
+        public Dictionary<string, object> GetParameters()
         {
-            Dictionary<string, Object> ret = new Dictionary<string, object>();
-            ret.Add("LINES", lineCrossingDetectors);
-            ret.Add("MIN_LAGS", minLags);
-            ret.Add("MAX_LAGS", maxLags);
+            Dictionary<string, object> ret = new Dictionary<string, object>
+            {
+                { "LINES", _lineCrossingDetectors },
+                { "MIN_LAGS", _minLags },
+                { "MAX_LAGS", _maxLags }
+            };
             return ret;
         }
 
@@ -256,20 +258,20 @@ namespace LineDetector
         /// Gets the current occupancy state of this detector. This updates when the detector is notified of a frame arrival.
         /// </summary>
         /// <returns><see langword="true"/> if the line is occupied; otherwise, <see langword="false"/>.</returns>
-        public bool getOccupancy()
+        public bool GetOccupancy()
         {
-            return lineCrossingDetectors[0].getOccupancy();
+            return _lineCrossingDetectors[0].GetOccupancy();
         }
 
         /// <summary>
         /// Gets the line segments used by this detector.
         /// </summary>
-        public List<LineSegment> getLineCoor()
+        public List<LineSegment> GetLineCoor()
         {
             List<LineSegment> coors = new List<LineSegment>();
-            for (int i = 0; i < lineCrossingDetectors.Count; i++)
+            for (int i = 0; i < _lineCrossingDetectors.Count; i++)
             {
-                coors.Add(lineCrossingDetectors[i].getDetectionLine().Line);
+                coors.Add(_lineCrossingDetectors[i].GetDetectionLine().Line);
             }
             return coors;
         }
@@ -277,9 +279,9 @@ namespace LineDetector
         /// <summary>
         /// Gets the <see cref="DetectionLine"/> used by this detector.
         /// </summary>
-        public DetectionLine getDetectionLine()
+        public DetectionLine GetDetectionLine()
         {
-            return lineCrossingDetectors[0].getDetectionLine();
+            return _lineCrossingDetectors[0].GetDetectionLine();
         }
     }
 }

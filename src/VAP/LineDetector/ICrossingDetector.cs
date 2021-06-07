@@ -29,12 +29,12 @@ namespace LineDetector
         /// <param name="frameNo">The index of the frame of interest.</param>
         /// <param name="occupancy">The occupancy state at that frame.</param>
         /// <returns>Returns true if an event was detected, and false otherwise.</returns>
-        bool notifyOccupancy(int frameNo, bool occupancy);
+        bool NotifyOccupancy(int frameNo, bool occupancy);
 
         //TODO(iharwell): Should be a property.
         /// <summary>
         /// Gets the occupancy state of the detector as of the latest frame.
         /// </summary>
-        OCCUPANCY_STATE getState();
+        OCCUPANCY_STATE GetState();
     }
 }

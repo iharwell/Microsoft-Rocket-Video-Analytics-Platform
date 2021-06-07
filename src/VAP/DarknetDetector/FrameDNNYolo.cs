@@ -85,7 +85,7 @@ namespace DarknetDetector
                 //File.WriteAllBytes(@OutputFolder.OutputFolderAll + $"tmp-{frameIndex}-{lines[lineID].Item1}.jpg", canvas);
                 ////--------------Output images with all bboxes----------------
 
-                var overlapItems = yoloItems.Select(o => new { Overlap = Utils.Utils.checkLineBboxOverlapRatio(_lines[lineID].coordinates, o.X, o.Y, o.Width, o.Height), Bbox_x = o.X + o.Width, Bbox_y = o.Y + o.Height, Distance = this.Distance(_lines[lineID].coordinates, o.Center()), Item = o })
+                var overlapItems = yoloItems.Select(o => new { Overlap = Utils.Utils.CheckLineBboxOverlapRatio(_lines[lineID].coordinates, o.X, o.Y, o.Width, o.Height), Bbox_x = o.X + o.Width, Bbox_y = o.Y + o.Height, Distance = this.Distance(_lines[lineID].coordinates, o.Center()), Item = o })
                     .Where(o => o.Bbox_x <= image.Width && o.Bbox_y <= image.Height && o.Overlap >= min_score_for_linebbox_overlap).OrderBy(o => o.Distance);
                 foreach (var item in overlapItems)
                 {
@@ -129,7 +129,7 @@ namespace DarknetDetector
                 var overlapItems = from o in yoloItems
                                    let o2 = new
                                    {
-                                       Overlap = Utils.Utils.checkLineBboxOverlapRatio(line, o.X, o.Y, o.Width, o.Height),
+                                       Overlap = Utils.Utils.CheckLineBboxOverlapRatio(line, o.X, o.Y, o.Width, o.Height),
                                        Bbox_x = o.X + o.Width,
                                        Bbox_y = o.Y + o.Height,
                                        Distance = this.Distance(line, o.Center()),
@@ -143,7 +143,7 @@ namespace DarknetDetector
 
                 foreach (var item in overlapItems)
                 {
-                    Utils.Utils.checkLineBboxOverlapRatio(line, item.X, item.Y, item.Width, item.Height);
+                    Utils.Utils.CheckLineBboxOverlapRatio(line, item.X, item.Y, item.Width, item.Height);
                     var taggedImageData = Utils.Utils.DrawImage(imgByte, item.X, item.Y, item.Width, item.Height, bboxColor);
                     var croppedImageData = Utils.Utils.CropImage(imgByte, item.X, item.Y, item.Width, item.Height);
                     validObjects.Add(new YoloTrackingItem(item, _frameYoloTracking._index, taggedImageData, croppedImageData));

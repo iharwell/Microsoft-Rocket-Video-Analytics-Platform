@@ -19,7 +19,7 @@ namespace Utils.ShapeTools
             Rectangle bbox = new Rectangle(0, 0, 0, 0);
             int count = 0;
 
-            bool SizeItemsSet = false;
+            bool sizeItemsSet = false;
             Rectangle smallitem = new Rectangle(0, 0, 0, 0);
             Rectangle largeitem = new Rectangle(0, 0, 0, 0);
 
@@ -33,9 +33,9 @@ namespace Utils.ShapeTools
 
                 ++count;
 
-                if (!SizeItemsSet)
+                if (!sizeItemsSet)
                 {
-                    SizeItemsSet = true;
+                    sizeItemsSet = true;
                     smallitem = rect;
                     largeitem = rect;
                     bbox = rect;
@@ -86,7 +86,7 @@ namespace Utils.ShapeTools
             Rectangle bbox = new Rectangle(0, 0, 0, 0);
             int count = 0;
 
-            bool SizeItemsSet = false;
+            bool sizeItemsSet = false;
             Rectangle smallitem = new Rectangle(0, 0, 0, 0);
             Rectangle largeitem = new Rectangle(0, 0, 0, 0);
 
@@ -99,9 +99,9 @@ namespace Utils.ShapeTools
 
                 ++count;
 
-                if (!SizeItemsSet)
+                if (!sizeItemsSet)
                 {
-                    SizeItemsSet = true;
+                    sizeItemsSet = true;
                     smallitem = rect;
                     largeitem = rect;
                     bbox = rect;

@@ -10,7 +10,8 @@ using OpenCvSharp;
 namespace Utils.Items
 {
     /// <summary>
-    ///   Default implementation of the <see cref="IFrame" /> interface.
+    ///   Default implementation of the <see cref="IFrame" /> interface. Represents a single frame
+    ///   in a video.
     /// </summary>
     [Serializable]
     public class Frame : IFrame, ISerializable
@@ -90,7 +91,7 @@ namespace Utils.Items
             SourceName = sourceName;
             FrameIndex = frameIndex;
             FrameData = frameData;
-            TimeStamp = TimeStamp;
+            TimeStamp = timeStamp;
         }
 
         /// <inheritdoc />
@@ -108,15 +109,16 @@ namespace Utils.Items
         /// <inheritdoc />
         public DateTime TimeStamp { get; set; }
 
+        /// <inheritdoc />
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue(nameof(SourceName), SourceName);
             info.AddValue(nameof(FrameIndex), FrameIndex);
             info.AddValue(nameof(TimeStamp), TimeStamp);
-            info.AddValue(nameof(FrameData), FrameData.ToBytes(".jpg", encodingParamsJPG));
+            info.AddValue(nameof(FrameData), FrameData.ToBytes(".jpg", s_encodingParamsJPG));
             if (ForegroundMask != null)
             {
-                info.AddValue(nameof(ForegroundMask), ForegroundMask.ToBytes(".png", encodingParamsPNG));
+                info.AddValue(nameof(ForegroundMask), ForegroundMask.ToBytes(".png", s_encodingParamsPNG));
             }
             else
             {
@@ -125,12 +127,12 @@ namespace Utils.Items
 
         }
 
-        private static readonly ImageEncodingParam[] encodingParamsJPG = new ImageEncodingParam[]
+        private static readonly ImageEncodingParam[] s_encodingParamsJPG = new ImageEncodingParam[]
         {
             new ImageEncodingParam(ImwriteFlags.JpegQuality, 70),
             new ImageEncodingParam(ImwriteFlags.JpegOptimize, 1)
         };
-        private static readonly ImageEncodingParam[] encodingParamsPNG = new ImageEncodingParam[]
+        private static readonly ImageEncodingParam[] s_encodingParamsPNG = new ImageEncodingParam[]
         {
             new ImageEncodingParam(ImwriteFlags.PngCompression, 7 ),
             new ImageEncodingParam(ImwriteFlags.PngBilevel, 1 )

@@ -13,20 +13,20 @@ namespace PostProcessor
 {
     public class AzureBlobProcessor
     {
-        private static CloudStorageAccount storageAccount;
-        private static CloudBlobClient cloudBlobClient;
+        private static CloudStorageAccount s_storageAccount;
+        private static CloudBlobClient s_cloudBlobClient;
 
         public AzureBlobProcessor()
         {
             // Retrieve the connection string from app.config
             string storageConnectionString = ConfigurationManager.AppSettings["StorageConnectionString"];
 
-            if (CloudStorageAccount.TryParse(storageConnectionString, out storageAccount))
+            if (CloudStorageAccount.TryParse(storageConnectionString, out s_storageAccount))
             {
                 try
                 {
                     // Create the CloudBlobClient that represents the Blob storage endpoint for the storage account.
-                    cloudBlobClient = storageAccount.CreateCloudBlobClient();
+                    s_cloudBlobClient = s_storageAccount.CreateCloudBlobClient();
                 }
                 catch (StorageException ex)
                 {
@@ -44,7 +44,7 @@ namespace PostProcessor
                 {
                     container = Guid.NewGuid().ToString();
                 }
-                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(container);
+                CloudBlobContainer cloudBlobContainer = s_cloudBlobClient.GetContainerReference(container);
                 await cloudBlobContainer.CreateIfNotExistsAsync();
                 Console.WriteLine("Created container '{0}'", cloudBlobContainer.Name);
                 Console.WriteLine();
@@ -69,7 +69,7 @@ namespace PostProcessor
         {
             try
             {
-                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+                CloudBlobContainer cloudBlobContainer = s_cloudBlobClient.GetContainerReference(containerName);
                 if (cloudBlobContainer != null)
                 {
                     await cloudBlobContainer.DeleteIfExistsAsync();
@@ -87,7 +87,7 @@ namespace PostProcessor
             try
             {
                 // Get a reference to the blob address, then upload the file to the blob.
-                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+                CloudBlobContainer cloudBlobContainer = s_cloudBlobClient.GetContainerReference(containerName);
                 CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(blobName);
                 await cloudBlockBlob.UploadFromFileAsync(sourceFile);
                 blobUri = cloudBlobContainer.Uri.AbsoluteUri + "/" + blobName;
@@ -105,7 +105,7 @@ namespace PostProcessor
             try
             {
                 // Download the blob to a local file. 
-                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+                CloudBlobContainer cloudBlobContainer = s_cloudBlobClient.GetContainerReference(containerName);
                 CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(blobName);
                 Console.WriteLine("Downloading blob {0} to {1}", blobName, destinationFile);
                 Console.WriteLine();
@@ -122,7 +122,7 @@ namespace PostProcessor
             try
             {
                 // List the blobs in the container.
-                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+                CloudBlobContainer cloudBlobContainer = s_cloudBlobClient.GetContainerReference(containerName);
                 Console.WriteLine("Listing blobs in container {0}.", containerName);
                 BlobContinuationToken blobContinuationToken = null;
                 do

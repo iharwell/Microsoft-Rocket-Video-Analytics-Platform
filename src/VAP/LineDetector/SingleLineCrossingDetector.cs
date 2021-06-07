@@ -54,10 +54,10 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
+        public (bool crossingResult, IFramedItem b) NotifyFrameArrival(int frameNo, IList<IFramedItem> boxes, Bitmap mask)
         {
             (_occupancy, _bbox) = _line.IsOccupied(boxes, mask);
-            bool crossingResult = _lineCrossingDetector.notifyOccupancy(frameNo, _occupancy);
+            bool crossingResult = _lineCrossingDetector.NotifyOccupancy(frameNo, _occupancy);
             return (crossingResult, _bbox);
         }
 
@@ -74,9 +74,9 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
+        public (bool crossingResult, IFramedItem b) NotifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
         {
-            return notifyFrameArrival(frame, frameNo, boxes, mask, null);
+            return NotifyFrameArrival(frame, frameNo, boxes, mask, null);
         }
 
         /// <summary>
@@ -92,10 +92,10 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) notifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature)
+        public (bool crossingResult, IFramedItem b) NotifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask, object signature)
         {
             (_occupancy, _bbox) = _line.IsOccupied(boxes, mask, signature);
-            bool crossingResult = _lineCrossingDetector.notifyOccupancy(frameNo, _occupancy);
+            bool crossingResult = _lineCrossingDetector.NotifyOccupancy(frameNo, _occupancy);
             if (_bbox != null && _bbox.ItemIDs[_bbox.ItemIDs.Count - 1] is ITriggeredItem trig)
             {
                 trig.FurtherAnalysisTriggered = crossingResult;
@@ -128,38 +128,38 @@ namespace LineDetector
         /// space, and white to indicate occupied space.
         /// </param>
         /// <returns>Returns a boolean indicating whether a crossing was detected.</returns>
-        public bool notifyFrameArrival(int frameNo, Bitmap mask)
+        public bool NotifyFrameArrival(int frameNo, Bitmap mask)
         {
             _occupancy = _line.IsOccupied(mask);
-            bool crossingResult = _lineCrossingDetector.notifyOccupancy(frameNo, _occupancy);
+            bool crossingResult = _lineCrossingDetector.NotifyOccupancy(frameNo, _occupancy);
             return crossingResult;
         }
 
         /// <summary>
         /// Gets the occupancy state of this detector as of the latest frame.
         /// </summary>
-        public OCCUPANCY_STATE getState()
+        public OCCUPANCY_STATE GetState()
         {
-            return _lineCrossingDetector.getState();
+            return _lineCrossingDetector.GetState();
         }
 
         /// <summary>
         /// Enables debug logging.
         /// </summary>
-        public void setDebug()
+        public void SetDebug()
         {
             _debug = true;
-            _lineCrossingDetector.setDebug();
+            _lineCrossingDetector.SetDebug();
         }
 
         /// <summary>
         /// Gets the line occupancy overlap values which are stored while in debug mode.
         /// </summary>
-        public List<double> getLineOccupancyHistory()
+        public List<double> GetLineOccupancyHistory()
         {
             if (_debug)
             {
-                return _lineCrossingDetector.getLineOccupancyHistory();
+                return _lineCrossingDetector.GetLineOccupancyHistory();
             }
             else
             {
@@ -173,7 +173,7 @@ namespace LineDetector
         /// <returns>
         /// Returns true if the detector is occupied by one or more items, and false otherwise.
         /// </returns>
-        public bool getOccupancy()
+        public bool GetOccupancy()
         {
             return _occupancy;
         }
@@ -181,7 +181,7 @@ namespace LineDetector
         /// <summary>
         /// Gets the <see cref="DetectionLine"/> used by this detector.
         /// </summary>
-        public DetectionLine getDetectionLine()
+        public DetectionLine GetDetectionLine()
         {
             return _line;
         }
@@ -199,7 +199,7 @@ namespace LineDetector
         /// </summary>
         public (Point p1, Point p2) GetLineCoor()
         {
-            return (getDetectionLine().P1, getDetectionLine().P2);
+            return (GetDetectionLine().P1, GetDetectionLine().P2);
         }
     }
 }

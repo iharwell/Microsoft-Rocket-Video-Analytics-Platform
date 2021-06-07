@@ -70,12 +70,12 @@ namespace LineDetector
                 //Bitmap fgmaskBit = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(fgmask);
 
                 //multiLaneDetector.notifyFrameArrival( frameIndex, boxes, fgmaskBit );
-                _multiLaneDetector.notifyFrameArrival(fr, frameIndex, boxes, fgmask, sourceObject);
+                _multiLaneDetector.NotifyFrameArrival(fr, frameIndex, boxes, fgmask, sourceObject);
 
                 // bgs visualization with lines
                 if (DISPLAY_BGS)
                 {
-                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.getAllLines();
+                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.GetAllLines();
                     for (int i = 0; i < lines.Count; i++)
                     {
                         System.Drawing.Point p1 = lines[i].coordinates.P1;
@@ -86,7 +86,7 @@ namespace LineDetector
                     //Cv2.WaitKey(1);
                 }
             }
-            _counts = _multiLaneDetector.getCounts();
+            _counts = _multiLaneDetector.GetCounts();
 
             if (_counts_prev.Count != 0)
             {
@@ -106,7 +106,7 @@ namespace LineDetector
             UpdateCount(_counts);
 
             //occupancy
-            _occupancy = _multiLaneDetector.getOccupancy();
+            _occupancy = _multiLaneDetector.GetOccupancy();
             foreach (string lane in _occupancy.Keys)
             {
                 //output frames that have line occupied by objects
@@ -130,12 +130,12 @@ namespace LineDetector
         {
             if (frame.FrameIndex > StartDelay)
             {
-                _multiLaneDetector.notifyFrameArrival(frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature);
+                _multiLaneDetector.NotifyFrameArrival(frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature);
 
                 // bgs visualization with lines
                 if (DISPLAY_BGS)
                 {
-                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.getAllLines();
+                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.GetAllLines();
                     for (int i = 0; i < lines.Count; i++)
                     {
                         System.Drawing.Point p1 = lines[i].coordinates.P1;
@@ -146,7 +146,7 @@ namespace LineDetector
                     Cv2.WaitKey(1);
                 }
             }
-            _counts = _multiLaneDetector.getCounts();
+            _counts = _multiLaneDetector.GetCounts();
 
             if (_counts_prev.Count != 0)
             {
@@ -166,7 +166,7 @@ namespace LineDetector
             UpdateCount(_counts);
 
             //occupancy
-            _occupancy = _multiLaneDetector.getOccupancy();
+            _occupancy = _multiLaneDetector.GetOccupancy();
             foreach (string lane in _occupancy.Keys)
             {
                 //output frames that have line occupied by objects
@@ -192,12 +192,12 @@ namespace LineDetector
         {
             if (frame.FrameIndex > StartDelay)
             {
-                _multiLaneDetector.notifyFrameArrival(frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature);
+                _multiLaneDetector.NotifyFrameArrival(frame, frame.FrameIndex, boxes, frame.ForegroundMask, signature);
 
                 // bgs visualization with lines
                 if (DISPLAY_BGS)
                 {
-                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.getAllLines();
+                    List<(string key, LineSegment coordinates)> lines = this._multiLaneDetector.GetAllLines();
                     for (int i = 0; i < lines.Count; i++)
                     {
                         System.Drawing.Point p1 = lines[i].coordinates.P1;
@@ -208,7 +208,7 @@ namespace LineDetector
                     Cv2.WaitKey(1);
                 }
             }
-            _counts = _multiLaneDetector.getCounts();
+            _counts = _multiLaneDetector.GetCounts();
 
             if (_counts_prev.Count != 0)
             {
@@ -228,7 +228,7 @@ namespace LineDetector
             UpdateCount(_counts);
 
             //occupancy
-            _occupancy = _multiLaneDetector.getOccupancy();
+            _occupancy = _multiLaneDetector.GetOccupancy();
             foreach (string lane in _occupancy.Keys)
             {
                 //output frames that have line occupied by objects

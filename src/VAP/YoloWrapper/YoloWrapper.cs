@@ -416,19 +416,19 @@ namespace Wrapper.Yolo
         private IEnumerable<YoloItem> Convert(BboxContainer container)
         {
             var yoloItems = new List<YoloItem>();
-            foreach (var item in container.candidates.Where(o => o.h > 0 || o.w > 0))
+            foreach (var item in container._candidates.Where(o => o._h > 0 || o._w > 0))
             {
-                var objectType = this._objectType[(int)item.obj_id];
+                var objectType = this._objectType[(int)item._obj_id];
                 var yoloItem = new YoloItem()
                 {
-                    X = (int)item.x,
-                    Y = (int)item.y,
-                    Height = (int)item.h,
-                    Width = (int)item.w,
-                    Confidence = item.prob,
+                    X = (int)item._x,
+                    Y = (int)item._y,
+                    Height = (int)item._h,
+                    Width = (int)item._w,
+                    Confidence = item._prob,
                     Type = objectType,
-                    ObjId = (int)item.obj_id,
-                    TrackId = (int)item.track_id
+                    ObjId = (int)item._obj_id,
+                    TrackId = (int)item._track_id
                 };
                 yoloItems.Add(yoloItem);
             }

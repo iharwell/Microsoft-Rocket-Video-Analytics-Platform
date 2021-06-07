@@ -7,41 +7,41 @@ namespace BGSObjectDetector
 {
     internal class MOG2
     {
-        private BackgroundSubtractorMOG2 fgDetector = BackgroundSubtractorMOG2.Create(500, 10); //try sweeping (also set it higher than 25)
-        private Mat regionOfInterest = null;
-        private Mat fgMask0 = new Mat();
-        private Mat fgMask = new Mat();
+        private readonly BackgroundSubtractorMOG2 _fgDetector = BackgroundSubtractorMOG2.Create(500, 10); //try sweeping (also set it higher than 25)
+        private Mat _regionOfInterest = null;
+        private readonly Mat _fgMask0 = new Mat();
+        private readonly Mat _fgMask = new Mat();
 
-        private int N_FRAMES_TO_LEARN = 120; // Why do we need this?
+        private const int N_FRAMES_TO_LEARN = 120; // Why do we need this?
 
         public MOG2()
         {
-            regionOfInterest = null;
-            fgMask0 = new Mat();
-            fgMask = new Mat();
+            _regionOfInterest = null;
+            _fgMask0 = new Mat();
+            _fgMask = new Mat();
         }
 
         public Mat DetectForeground(Mat image, int nFrames)
         {
-            fgDetector.Apply(image, fgMask0);
+            _fgDetector.Apply(image, _fgMask0);
 
-            if (regionOfInterest != null)
-                Cv2.BitwiseAnd(fgMask0, regionOfInterest, fgMask);
+            if (_regionOfInterest != null)
+                Cv2.BitwiseAnd(_fgMask0, _regionOfInterest, _fgMask);
 
             if (nFrames < N_FRAMES_TO_LEARN)
                 return null;
-            else if (regionOfInterest != null)
-                return fgMask;
+            else if (_regionOfInterest != null)
+                return _fgMask;
             else
-                return fgMask0;
+                return _fgMask0;
         }
 
         public void SetRegionOfInterest(Mat roi)
         {
             if (roi != null)
             {
-                regionOfInterest = new Mat();
-                roi.CopyTo(regionOfInterest);
+                _regionOfInterest = new Mat();
+                roi.CopyTo(_regionOfInterest);
             }
         }
     }

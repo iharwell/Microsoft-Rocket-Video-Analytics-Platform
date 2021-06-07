@@ -235,7 +235,6 @@ namespace MotionTracker
             {
                 var secondLastFrame = orgFrames[orgFrames.Count - 1];
                 IFramedItem closestItem = null;
-                int closestItemIndex = -1;
                 double maxSim = -999999999;
                 for (int i = 0; i < secondLastFrame.Count; i++)
                 {
@@ -245,7 +244,6 @@ namespace MotionTracker
                     {
                         maxSim = sim;
                         closestItem = framedItem;
-                        closestItemIndex = i;
                     }
                 }
 

@@ -9,7 +9,7 @@ namespace Wrapper.Yolo
 {
     public class ImageAnalyzer
     {
-        private Dictionary<string, byte[]> _imageFormats = new Dictionary<string, byte[]>();
+        private readonly Dictionary<string, byte[]> _imageFormats = new Dictionary<string, byte[]>();
 
         public ImageAnalyzer()
         {

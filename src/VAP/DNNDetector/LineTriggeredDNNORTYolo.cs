@@ -18,38 +18,38 @@ namespace DNNDetector
     //Todo: merge it with LineTriggeredDNNYolo
     public class LineTriggeredDNNORTYolo
     {
-        private Dictionary<string, int> counts_prev = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _counts_prev = new Dictionary<string, int>();
 
-        private FrameDNNOnnxYolo frameDNNOnnxYolo;
-        private FrameBuffer frameBufferLtDNNOnnxYolo;
+        private readonly FrameDNNOnnxYolo _frameDNNOnnxYolo;
+        private readonly FrameBuffer _frameBufferLtDNNOnnxYolo;
 
         public LineTriggeredDNNORTYolo(List<Tuple<string, int[]>> lines, string modelName)
         {
-            frameBufferLtDNNOnnxYolo = new FrameBuffer(DNNConfig.FRAME_SEARCH_RANGE);
+            _frameBufferLtDNNOnnxYolo = new FrameBuffer(DNNConfig.FRAME_SEARCH_RANGE);
 
-            frameDNNOnnxYolo = new FrameDNNOnnxYolo(lines, modelName, DNNMode.LT);
+            _frameDNNOnnxYolo = new FrameDNNOnnxYolo(lines, modelName, DNNMode.LT);
 
-            Utils.Utils.cleanFolder(@OutputFolder.OutputFolderLtDNN);
-            Utils.Utils.cleanFolder(@OutputFolder.OutputFolderFrameDNNONNX);
+            Utils.Utils.CleanFolder(@OutputFolder.OutputFolderLtDNN);
+            Utils.Utils.CleanFolder(@OutputFolder.OutputFolderFrameDNNONNX);
         }
 
         public IList<IFramedItem> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<Tuple<string, int[]>> lines, Dictionary<string, int> category, ref long teleCountsCheapDNN, IList<IFramedItem> items, bool savePictures = false)
         {
             // buffer frame
-            frameBufferLtDNNOnnxYolo.Buffer(frame);
+            _frameBufferLtDNNOnnxYolo.Buffer(frame);
 
-            if (counts_prev.Count != 0)
+            if (_counts_prev.Count != 0)
             {
                 foreach (string lane in counts.Keys)
                 {
-                    int diff = Math.Abs(counts[lane] - counts_prev[lane]);
+                    int diff = Math.Abs(counts[lane] - _counts_prev[lane]);
                     if (diff > 0) //object detected by BGS
                     {
                         if (frameIndex >= DNNConfig.FRAME_SEARCH_RANGE)
                         {
                             // call onnx cheap model for crosscheck
                             int lineID = Array.IndexOf(counts.Keys.ToArray(), lane);
-                            Mat[] frameBufferArray = frameBufferLtDNNOnnxYolo.ToArray();
+                            Mat[] frameBufferArray = _frameBufferLtDNNOnnxYolo.ToArray();
                             int frameIndexOnnxYolo = frameIndex - 1;
                             IList<IFramedItem> analyzedTrackingItems = null;
 
@@ -58,7 +58,7 @@ namespace DNNDetector
                                 Console.WriteLine("** Calling DNN on " + (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexOnnxYolo)));
                                 Mat frameOnnx = frameBufferArray[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexOnnxYolo)];
 
-                                analyzedTrackingItems = frameDNNOnnxYolo.Run(frameOnnx, (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexOnnxYolo)), category, System.Drawing.Color.Pink, lineID, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
+                                analyzedTrackingItems = _frameDNNOnnxYolo.Run(frameOnnx, (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexOnnxYolo)), category, System.Drawing.Color.Pink, lineID, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
                                 teleCountsCheapDNN++;
                                 // object detected by cheap model
                                 if (analyzedTrackingItems != null)
@@ -125,7 +125,7 @@ namespace DNNDetector
                                             Utils.Utils.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, taggedImage);
                                         }
                                     }
-                                    updateCount(counts);
+                                    UpdateCount(counts);
                                     return items;
                                 }
                                 frameIndexOnnxYolo--;
@@ -134,15 +134,15 @@ namespace DNNDetector
                     }
                 }
             }
-            updateCount(counts);
+            UpdateCount(counts);
             return null;
         }
 
-        private void updateCount(Dictionary<string, int> counts)
+        private void UpdateCount(Dictionary<string, int> counts)
         {
             foreach (string dir in counts.Keys)
             {
-                counts_prev[dir] = counts[dir];
+                _counts_prev[dir] = counts[dir];
             }
         }
     }

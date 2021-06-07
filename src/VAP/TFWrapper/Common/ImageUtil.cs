@@ -23,22 +23,17 @@ namespace Wrapper.TF.Common
             // DecodeJpeg uses a scalar String-valued tensor as input.
             var tensor = TFTensor.CreateString(imageByteArray);
 
-            TFOutput input, output;
 
             // Construct a graph to normalize the image
-            using (var graph = ConstructGraphToNormalizeImage(out input, out output, destinationDataType))
-            {
-                // Execute that graph to normalize this one image
-                using (var session = new TFSession(graph))
-                {
-                    var normalized = session.Run(
-                        inputs: new[] { input },
-                        inputValues: new[] { tensor },
-                        outputs: new[] { output });
+            using var graph = ConstructGraphToNormalizeImage(out var input, out var output, destinationDataType);
+            // Execute that graph to normalize this one image
+            using var session = new TFSession(graph);
+            var normalized = session.Run(
+                inputs: new[] { input },
+                inputValues: new[] { tensor },
+                outputs: new[] { output });
 
-                    return normalized[0];
-                }
-            }
+            return normalized[0];
         }
 
         // The inception model takes as input the image described by a Tensor in a very

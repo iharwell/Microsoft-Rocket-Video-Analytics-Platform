@@ -42,9 +42,12 @@ namespace ProcessingPipeline
         ///   is performed, a value of 0.5 scales the width and height of the frame to half their
         ///   initial size, etc.
         /// </param>
-        public PreProcessorStage( Color bboxColor, int samplingFactor, double resolutionFactor )
+        public PreProcessorStage(Color bboxColor, int samplingFactor, double resolutionFactor)
         {
             Detector = new BGSObjectDetector.BGSObjectDetector();
+            BoundingBoxColor = bboxColor;
+            SamplingFactor = samplingFactor;
+            ResolutionFactor = resolutionFactor;
         }
 
         private BGSObjectDetector.BGSObjectDetector Detector { get; set; }
@@ -70,7 +73,7 @@ namespace ProcessingPipeline
         /// <inheritdoc/>
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
-            frame.FrameData = FramePreProcessor.PreProcessor.returnFrame(frame.FrameData, frame.FrameIndex, SamplingFactor, ResolutionFactor, DisplayOutput);
+            frame.FrameData = FramePreProcessor.PreProcessor.ReturnFrame(frame.FrameData, frame.FrameIndex, SamplingFactor, ResolutionFactor, DisplayOutput);
 
             if (frame.FrameData == null)
             {

@@ -17,13 +17,13 @@ namespace DNNDetector
 {
     public class CascadedDNNORTYolo
     {
-        private FrameDNNOnnxYolo frameDNNOnnxYolo;
+        private readonly FrameDNNOnnxYolo _frameDNNOnnxYolo;
 
         public CascadedDNNORTYolo(List<Tuple<string, int[]>> lines, string modelName)
         {
-            frameDNNOnnxYolo = new FrameDNNOnnxYolo(lines, modelName, DNNMode.CC);
+            _frameDNNOnnxYolo = new FrameDNNOnnxYolo(lines, modelName, DNNMode.CC);
 
-            Utils.Utils.cleanFolder(@OutputFolder.OutputFolderCcDNN);
+            Utils.Utils.CleanFolder(@OutputFolder.OutputFolderCcDNN);
         }
 
         public IList<IFramedItem> Run(int frameIndex, IList<IFramedItem> ltDNNItemList, List<Tuple<string, int[]>> lines, Dictionary<string, int> category, ref long teleCountsHeavyDNN, bool savePictures = false)
@@ -45,9 +45,9 @@ namespace DNNDetector
                 else
                 {
                     IList<IFramedItem> analyzedTrackingItems = null;
-                    ILineTriggeredItemID ltID = (from IItemID id in ltDNNItem.ItemIDs where id is ILineTriggeredItemID select (ILineTriggeredItemID)id).Last();
+                    var ltID = (from IItemID id in ltDNNItem.ItemIDs where id is ILineTriggeredItemID select (ILineTriggeredItemID)id).Last();
                     Console.WriteLine("** Calling Heavy DNN **");
-                    analyzedTrackingItems = frameDNNOnnxYolo.Run(Cv2.ImDecode(ltDNNItem.Frame.FrameData, ImreadModes.Color), frameIndex, category, System.Drawing.Color.Yellow, ltID.TriggerLineID, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
+                    analyzedTrackingItems = _frameDNNOnnxYolo.Run(Cv2.ImDecode(ltDNNItem.Frame.FrameData, ImreadModes.Color), frameIndex, category, System.Drawing.Color.Yellow, ltID.TriggerLineID, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
                     teleCountsHeavyDNN++;
 
                     // object detected by heavy YOLO
@@ -64,9 +64,11 @@ namespace DNNDetector
                             }
                             else
                             {
-                                item2 = new LineTriggeredItemID(item.BoundingBox, item.ObjectID, item.ObjName, item.Confidence, item.TrackID, nameof(CascadedDNNORTYolo));
-                                item2.TriggerLine = ltID.TriggerLine;
-                                item2.TriggerLineID = ltID.TriggerLineID;
+                                item2 = new LineTriggeredItemID(item.BoundingBox, item.ObjectID, item.ObjName, item.Confidence, item.TrackID, nameof(CascadedDNNORTYolo))
+                                {
+                                    TriggerLine = ltID.TriggerLine,
+                                    TriggerLineID = ltID.TriggerLineID
+                                };
                             }
 
 
