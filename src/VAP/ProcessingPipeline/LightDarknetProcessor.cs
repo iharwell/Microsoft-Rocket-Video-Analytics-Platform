@@ -11,9 +11,13 @@ using Utils.Items;
 
 namespace ProcessingPipeline
 {
+    /// <summary>
+    ///   A lightweight Darknet Yolo DNN stage designed to work with a line triggering system.
+    /// </summary>
     public class LightDarknetProcessor : IProcessor
     {
         private readonly DarknetDetector.LineTriggeredDNNDarknet _darknet;
+
 
         public LightDarknetProcessor(List<(string key, LineSegment coordinates)> lines)
             : this(lines, null, Color.Pink, false)

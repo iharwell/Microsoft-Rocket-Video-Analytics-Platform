@@ -11,10 +11,29 @@ using Utils.Items;
 
 namespace ProcessingPipeline
 {
+    /// <summary>
+    ///   A heavy darknet Yolo processing stage used to identify items that have been flagged by the previous stage.
+    /// </summary>
     public class HeavyDarknetProcessor : IProcessor
     {
         private DarknetDetector.CascadedDNNDarknet cascadedDNN;
 
+        /// <summary>
+        ///   Creates a new <see cref="HeavyDarknetProcessor" />.
+        /// </summary>
+        /// <param name="categories">
+        ///   A set of categories that are of interest to the analysis or an empty set if all
+        ///   categories are interesting.
+        /// </param>
+        /// <param name="resFactor">
+        ///   The resolution scaling factor used by the pipeline.
+        /// </param>
+        /// <param name="boxColor">
+        ///   The color of the box that this stage uses to mark identified items.
+        /// </param>
+        /// <param name="displayOutput">
+        ///   <see langword="true"/> to display the output of this stage; <see langword="false"/> otherwise.
+        /// </param>
         public HeavyDarknetProcessor(ISet<string> categories,
                                       double resFactor,
                                       Color boxColor,
@@ -42,6 +61,26 @@ namespace ProcessingPipeline
                 LineSegments = new Dictionary<string, LineSegment>();
             }
         }
+
+        /// <summary>
+        ///   Creates a new <see cref="HeavyDarknetProcessor" />.
+        /// </summary>
+        /// <param name="lines">
+        ///   A dictionary of lines used by the pipeline organized by name.
+        /// </param>
+        /// <param name="categories">
+        ///   A set of categories that are of interest to the analysis or an empty set if all
+        ///   categories are interesting.
+        /// </param>
+        /// <param name="resFactor">
+        ///   The resolution scaling factor used by the pipeline.
+        /// </param>
+        /// <param name="boxColor">
+        ///   The color of the box that this stage uses to mark identified items.
+        /// </param>
+        /// <param name="displayOutput">
+        ///   <see langword="true" /> to display the output of this stage; <see langword="false" /> otherwise.
+        /// </param>
         public HeavyDarknetProcessor(IDictionary<string, LineSegment> lines,
                                       ISet<string> categories,
                                       double resFactor,
@@ -52,11 +91,19 @@ namespace ProcessingPipeline
             LineSegments = lines;
         }
 
+        /// <inheritdoc/>
         public Color BoundingBoxColor { get; set; }
+
+        /// <inheritdoc/>
         public IDictionary<string, LineSegment> LineSegments { get; set; }
+
+        /// <inheritdoc/>
         public ISet<string> Categories { get; set; }
+
+        /// <inheritdoc/>
         public bool DisplayOutput { get; set; }
 
+        /// <inheritdoc/>
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
             items = cascadedDNN.Run(frame, items, LineSegments, Categories, this);

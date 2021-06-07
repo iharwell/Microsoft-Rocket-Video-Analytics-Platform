@@ -7,13 +7,28 @@ using System.Text;
 
 namespace ProcessingPipeline
 {
+    /// <summary>
+    ///   A falling edge trigger that fires when a value drops below some threshold.
+    /// </summary>
     public class FallingEdgeTrigger : IEdgeTrigger
     {
+        /// <inheritdoc/>
         public IList<double> ValueHistory { get; set; }
+
+        /// <inheritdoc/>
+        /// </summary>
         public double TriggerThreshold { get; set; }
+
+        /// <inheritdoc/>
         public double Hysteresis { get; set; }
+
+        /// <inheritdoc/>
         public int MinimumEntriesForTransition { get; set; }
+
+        /// <inheritdoc/>
         public bool CurrentState { get; protected set; }
+
+        /// <inheritdoc/>
         public bool NotifyNextValue(double value)
         {
             ValueHistory.Add(value);

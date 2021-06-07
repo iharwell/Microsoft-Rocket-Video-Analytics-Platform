@@ -49,6 +49,9 @@ namespace ProcessingPipeline
         /// </returns>
         bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage);
 
+        /// <summary>
+        ///   <see langword="true"/> to display the output of this stage; <see langword="false"/> otherwise.
+        /// </summary>
         bool DisplayOutput { get; set; }
     }
 }

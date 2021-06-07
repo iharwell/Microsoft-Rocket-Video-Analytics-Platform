@@ -48,8 +48,20 @@ namespace ProcessingPipeline
             return items;
         }
 
+        /// <summary>
+        /// The last stage in this pipeline.
+        /// </summary>
         public IProcessor LastStage => _stages[_stages.Count - 1];
 
+        /// <summary>
+        ///   Gets the <see cref="IProcessor"/> stage at the provide index.
+        /// </summary>
+        /// <param name="index">
+        ///   The index of the stage to get.
+        /// </param>
+        /// <returns>
+        ///   Returns the <see cref="IProcessor"/> at the provided index.
+        /// </returns>
         public IProcessor this[int index]
         {
             get
@@ -57,6 +69,10 @@ namespace ProcessingPipeline
                 return _stages[index];
             }
         }
+
+        /// <summary>
+        ///   The number of stages in this <see cref="Pipeline"/>.
+        /// </summary>
         public int Count
         {
             get
