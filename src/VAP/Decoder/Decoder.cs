@@ -6,7 +6,7 @@ using OpenCvSharp;
 
 namespace Decoder
 {
-    public class Decoder
+    public class Decoder : IDecoder
     {
         private VideoCapture _capture = null;
         private readonly string _inputURL;
@@ -14,6 +14,18 @@ namespace Decoder
         private readonly bool _toLoop;
 
         private int _objTotal, _objDirA, _objDirB;
+
+        public int TotalFrameNumber
+        {
+            get
+            {
+                return (int)Math.Floor(_capture.Get(VideoCaptureProperties.FrameCount));
+            }
+        }
+
+        public double FramesPerSecond => _capture.Get(VideoCaptureProperties.Fps);
+
+        public string FilePath => _inputURL;
 
         public Decoder(string input, bool loop)
         {
@@ -59,10 +71,7 @@ namespace Decoder
 
         public int GetTotalFrameNum()
         {
-            int length;
-            length = (int)Math.Floor(_capture.Get(VideoCaptureProperties.FrameCount));
-
-            return length;
+            return TotalFrameNumber;
         }
 
         public double GetVideoFPS()

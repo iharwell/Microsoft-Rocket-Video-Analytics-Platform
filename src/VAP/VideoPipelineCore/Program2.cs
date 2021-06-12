@@ -39,7 +39,6 @@ namespace VideoPipelineCore
                 Console.WriteLine("Usage: <exe> <video url> <cfg file> <samplingFactor> <resolutionFactor> <category1> <category2> ...");
                 return;
             }
-
             string videoUrl = args[0];
             bool isVideoStream;
             if (videoUrl.Substring(0, 4) == "rtmp" || videoUrl.Substring(0, 4) == "http" || videoUrl.Substring(0, 3) == "mms" || videoUrl.Substring(0, 4) == "rtsp")
@@ -75,7 +74,7 @@ namespace VideoPipelineCore
             IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(51);
 
             //-----Decoder-----
-            Decoder.Decoder decoder = new Decoder.Decoder(videoUrl, loop);
+            Decoder.Decoder2V decoder = new Decoder.Decoder2V(videoUrl, resolutionFactor, loop);
 
             Pipeline pipeline = new Pipeline();
             PreProcessorStage bgsStage = new PreProcessorStage
@@ -129,6 +128,7 @@ namespace VideoPipelineCore
             //RUN PIPELINE 
             DateTime startTime = DateTime.Now;
             DateTime prevTime = DateTime.Now;
+            decoder.BeginReading();
             while (true)
             {
                 if (!loop)

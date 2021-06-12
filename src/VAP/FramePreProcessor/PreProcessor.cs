@@ -13,13 +13,13 @@ namespace FramePreProcessor
         {
             Mat resizedFrame = null;
 
-            if (frameIndex % samplingFactor != 0) return resizedFrame;
+            if (frameIndex % samplingFactor != 0) return null;
 
             try
             {
-                resizedFrame = sourceMat.Resize(new OpenCvSharp.Size((int)(sourceMat.Size().Width * resolutionFactor), (int)(sourceMat.Size().Height * resolutionFactor)));
+                //resizedFrame = sourceMat.Clone();
                 if (display)
-                    FrameDisplay.Display(resizedFrame);
+                    FrameDisplay.Display(sourceMat);
             }
             catch (Exception e)
             {
@@ -27,7 +27,7 @@ namespace FramePreProcessor
                 Console.WriteLine("********RESET RESIZE*****");
                 return null;
             }
-            return resizedFrame;
+            return sourceMat;
         }
     }
 }

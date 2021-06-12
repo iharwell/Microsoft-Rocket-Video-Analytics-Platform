@@ -24,8 +24,8 @@ namespace BGSObjectDetector
 
         private const int PRE_BGS_BLUR_SIGMA = 2;
         //private int MEDIAN_BLUR_SIZE = 5;
-        private const int GAUSSIAN_BLUR_SIGMA = 4;
-        private const int GAUSSIAN_BLUR_THRESHOLD = 50;
+        private const int GAUSSIAN_BLUR_SIGMA = 5;
+        private const int GAUSSIAN_BLUR_THRESHOLD = 53;
         private const int MIN_BLOB_SIZE = 30;
 
         private static readonly SimpleBlobDetector.Params s_detectorParams = new SimpleBlobDetector.Params
