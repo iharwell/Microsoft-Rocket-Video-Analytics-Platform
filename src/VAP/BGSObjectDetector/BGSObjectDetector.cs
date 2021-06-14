@@ -18,15 +18,17 @@ namespace BGSObjectDetector
         private readonly Mat _fgWOShadows = new Mat();
         private readonly Mat _fgSmoothedMask2 = new Mat();
         private readonly Mat _fgSmoothedMask3 = new Mat();
-        private readonly Mat _fgSmoothedMask4 = new Mat();
+        // private readonly Mat _fgSmoothedMask4 = new Mat();
+
+        private readonly Mat _kernel;
 
         private readonly Mat _regionOfInterest = null;
 
-        private const int PRE_BGS_BLUR_SIGMA = 2;
+        private const int PRE_BGS_BLUR_SIGMA = 4;
         //private int MEDIAN_BLUR_SIZE = 5;
         private const int GAUSSIAN_BLUR_SIGMA = 5;
-        private const int GAUSSIAN_BLUR_THRESHOLD = 53;
-        private const int MIN_BLOB_SIZE = 30;
+        private const int GAUSSIAN_BLUR_THRESHOLD = 60;
+        private const int MIN_BLOB_SIZE = 80;
 
         private static readonly SimpleBlobDetector.Params s_detectorParams = new SimpleBlobDetector.Params
         {
@@ -60,11 +62,17 @@ namespace BGSObjectDetector
         };
         private readonly SimpleBlobDetector _blobDetector = SimpleBlobDetector.Create(s_detectorParams);
 
+        static BGSObjectDetector()
+        {
+            Cv2.SetUseOptimized(true);
+        }
+
         //public BGSObjectDetector(MOG2 bgs)
         public BGSObjectDetector()
         {
             //this.bgs = bgs;
             _bgs = new MOG2();
+            _kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(5, 5));
         }
 
         public IList<IFramedItem> DetectObjects(DateTime timestamp, Mat image, int frameIndex, out Mat fg, object sourceObject = null)
@@ -76,20 +84,30 @@ namespace BGSObjectDetector
 
             // fgMask is the original foreground bitmap returned by opencv MOG2
             _fgMask = _bgs.DetectForeground(_blurredFrame, frameIndex);
-            fg = _fgMask;
+            // fg = _fgMask;
             if (_fgMask == null)
+            {
+                fg = null;
                 return null;
+            }
 
             // pre-processing
-            Cv2.Threshold(_fgMask, _fgWOShadows, 200, 255, ThresholdTypes.Binary);
+            Cv2.Threshold(_fgMask, _fgWOShadows, 215, 255, ThresholdTypes.Binary);
             //Cv2.MedianBlur(fgWOShadows, fgSmoothedMask2, MEDIAN_BLUR_SIZE);
-            Cv2.GaussianBlur(_fgWOShadows, _fgSmoothedMask3, OpenCvSharp.Size.Zero, GAUSSIAN_BLUR_SIGMA * 1.8);
-            Cv2.Threshold(_fgSmoothedMask3, _fgSmoothedMask4, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
+            Cv2.MorphologyEx(_fgWOShadows, _fgSmoothedMask2, MorphTypes.Erode, _kernel);
+            Cv2.MorphologyEx(_fgSmoothedMask2, _fgWOShadows, MorphTypes.Open, _kernel);
+            Cv2.MorphologyEx(_fgWOShadows, _fgSmoothedMask2, MorphTypes.Dilate, _kernel);
+            //Cv2.GaussianBlur(_fgWOShadows, _fgSmoothedMask2, OpenCvSharp.Size.Zero, 4);
+            //Cv2.GaussianBlur(_fgSmoothedMask2, _fgWOShadows, OpenCvSharp.Size.Zero, 4);
+            Cv2.GaussianBlur(_fgSmoothedMask2, _fgWOShadows, OpenCvSharp.Size.Zero, 4);
+            //Cv2.GaussianBlur(_fgSmoothedMask2, _fgWOShadows, OpenCvSharp.Size.Zero, GAUSSIAN_BLUR_SIGMA*2);
+            //Cv2.MedianBlur(_fgSmoothedMask2, _fgWOShadows, MEDIAN_BLUR_SIZE);
+            Cv2.Threshold(_fgWOShadows, _fgSmoothedMask3, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
 
-            fg = _fgSmoothedMask4;
+            fg = _fgSmoothedMask3;
 
             //CvBlobs blobs = new CvBlobs();
-            KeyPoint[] points = _blobDetector.Detect(_fgSmoothedMask4);
+            KeyPoint[] points = _blobDetector.Detect(_fgSmoothedMask3);
             IFrame frame = new Frame(null, frameIndex)
             {
                 TimeStamp = timestamp,
@@ -128,10 +146,10 @@ namespace BGSObjectDetector
                 id++;
                 newBlobs.Add(item);
 
-                Cv2.Rectangle(_fgSmoothedMask4, new OpenCvSharp.Point(x - size, y - size), new OpenCvSharp.Point(x + size, y + size), new Scalar(255), 1);
-                Cv2.PutText(_fgSmoothedMask4, id.ToString(), new OpenCvSharp.Point(x, y - size), HersheyFonts.HersheyPlain, 1.0, new Scalar(255.0));
+                Cv2.Rectangle(_fgSmoothedMask3, new OpenCvSharp.Point(x - size, y - size), new OpenCvSharp.Point(x + size, y + size), new Scalar(255), 1);
+                Cv2.PutText(_fgSmoothedMask3, id.ToString(), new OpenCvSharp.Point(x, y - size), HersheyFonts.HersheyPlain, 1.0, new Scalar(255.0));
             }
-            Cv2.PutText(_fgSmoothedMask4, "frame: " + frameIndex, new OpenCvSharp.Point(10, 10), HersheyFonts.HersheyPlain, 1, new Scalar(255));
+            Cv2.PutText(_fgSmoothedMask3, "frame: " + frameIndex, new OpenCvSharp.Point(10, 10), HersheyFonts.HersheyPlain, 1, new Scalar(255));
 
             return newBlobs;
         }
