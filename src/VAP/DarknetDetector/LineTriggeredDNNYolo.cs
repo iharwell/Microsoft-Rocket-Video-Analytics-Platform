@@ -65,7 +65,7 @@ namespace DarknetDetector
                             // call yolo for crosscheck
                             int lineID = Array.IndexOf(counts.Keys.ToArray(), id.TriggerLine);
                             _frameDNNYolo.SetTrackingPoint(lines[lineID].coordinates.MidPoint); //only needs to check the last line in each row
-                            Mat[] frameBufferArray = _frameBufferLtDNNYolo.ToArray();
+                            //Mat[] frameBufferArray = _frameBufferLtDNNYolo.ToArray();
                             int frameIndexYolo = frameIndex - 1;
                             DateTime start = DateTime.Now;
                             List<YoloTrackingItem> analyzedTrackingItems = null;
@@ -73,7 +73,7 @@ namespace DarknetDetector
                             while (frameIndex - frameIndexYolo < DNNConfig.FRAME_SEARCH_RANGE)
                             {
                                 Console.WriteLine("** Calling Cheap on " + (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)));
-                                Mat frameYolo = frameBufferArray[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
+                                Mat frameYolo = _frameBufferLtDNNYolo[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
                                 // byte[] imgByte = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameYolo));
 
                                 analyzedTrackingItems = _frameDNNYolo.Detect(frameYolo, category, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE, frameIndexYolo);
@@ -88,7 +88,8 @@ namespace DarknetDetector
                                         {
                                             TriggerLine = lines[lineID].key,
                                             TriggerLineID = lineID,
-                                            SourceObject = sourceObject
+                                            SourceObject = sourceObject,
+                                            FurtherAnalysisTriggered = true
                                         };
                                         if (itemID.InsertIntoFramedItemList(items, out IFramedItem framedItem, frameIndexYolo))
                                         {
@@ -107,6 +108,7 @@ namespace DarknetDetector
                                     UpdateCount(counts);
                                     return items;
                                 }
+                                frameIndexYolo--;
                                 frameIndexYolo--;
                             }
                         }
@@ -135,7 +137,7 @@ namespace DarknetDetector
                             // call yolo for crosscheck
                             int lineID = Array.IndexOf(counts.Keys.ToArray(), lane);
                             _frameDNNYolo.SetTrackingPoint(lines[lineID].coordinates.MidPoint); //only needs to check the last line in each row
-                            Mat[] frameBufferArray = _frameBufferLtDNNYolo.ToArray();
+                            //Mat[] frameBufferArray = _frameBufferLtDNNYolo.ToArray();
                             int frameIndexYolo = frameIndex - 1;
                             DateTime start = DateTime.Now;
                             List<YoloTrackingItem> analyzedTrackingItems = null;
@@ -143,7 +145,7 @@ namespace DarknetDetector
                             while (frameIndex - frameIndexYolo < DNNConfig.FRAME_SEARCH_RANGE)
                             {
                                 Console.WriteLine("** Calling Cheap on " + (DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)));
-                                Mat frameYolo = frameBufferArray[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
+                                Mat frameYolo = _frameBufferLtDNNYolo[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
                                 // byte[] imgByte = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameYolo));
 
                                 analyzedTrackingItems = _frameDNNYolo.Detect(frameYolo, category, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE, frameIndexYolo);
