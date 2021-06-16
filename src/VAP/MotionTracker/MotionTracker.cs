@@ -22,7 +22,8 @@ namespace MotionTracker
             }
             int givenIndex = framedID.Frame.FrameIndex;
             // Sort the contents of the buffer by frame index.
-            var orgFrames = GroupByFrame(buffer);
+            // var orgFrames = GroupByFrame(buffer);
+            var orgFrames = buffer;
 
             int minFrame = orgFrames[0][0].Frame.FrameIndex;
             int maxFrame = orgFrames[^1][0].Frame.FrameIndex;
@@ -96,8 +97,8 @@ namespace MotionTracker
             int givenIndex = itemPath.FramedItems.First().Frame.FrameIndex;
 
             // Sort the contents of the buffer by frame index.
-            var orgFrames = GroupByFrame(buffer);
-
+            // var orgFrames = GroupByFrame(buffer);
+            var orgFrames = buffer;
             int minFrame = orgFrames[0][0].Frame.FrameIndex;
 
             int startingIndex = givenIndex - minFrame;
@@ -307,8 +308,8 @@ namespace MotionTracker
 
         public static void SealPath(IItemPath path, IList<IList<IFramedItem>> frameBuffer)
         {
-
-            var orgFrames = GroupByFrame(frameBuffer);
+            //var orgFrames = GroupByFrame(frameBuffer);
+            var orgFrames = frameBuffer;
             int x = 0;
             RemoveUsedFrames(path, orgFrames, ref x);
             int minFrame = int.MaxValue;
@@ -399,18 +400,91 @@ namespace MotionTracker
             return false;
         }
 
-        private static IList<IList<IFramedItem>> GroupByFrame(IList<IList<IFramedItem>> buffer)
+        public static IList<IList<IFramedItem>> InsertIntoSortedBuffer( IList<IList<IFramedItem>> buffer, IList<IFramedItem> unsortedSet )
+        {
+            if(unsortedSet.Count == 0)
+            {
+                return buffer;
+            }
+
+            if(buffer.Count == 0)
+            {
+                buffer.Add(unsortedSet);
+                return GroupByFrame(buffer);
+            }
+
+            int bmin = buffer[0][0].Frame.FrameIndex;
+            int bmax = buffer[^1][0].Frame.FrameIndex;
+            int min = bmin;
+            int max = bmax;
+
+
+            for (int i = 0; i < unsortedSet.Count; i++)
+            {
+                int index = unsortedSet[i].Frame.FrameIndex;
+                min = Math.Min(min, index);
+                max = Math.Max(max, index);
+            }
+
+            IList<IList<IFramedItem>> destList;
+            if (bmin == min)
+            {
+                destList = buffer;
+            }
+            else
+            {
+                destList = new List<IList<IFramedItem>>(max-min+1);
+            }
+            for (int i = min+destList.Count; i <= max; i++)
+            {
+                destList.Add(new List<IFramedItem>());
+            }
+
+            HashSet<int> shortcutFrames = new HashSet<int>();
+            foreach ( var item in unsortedSet )
+            {
+                int tgtIndex = item.Frame.FrameIndex - min;
+                IList<IFramedItem> dst = destList[tgtIndex];
+                if (item.Frame.FrameIndex > bmax)
+                {
+                    dst.Add(item);
+                    continue;
+                }
+
+                if(dst.Count == 0)
+                {
+                    shortcutFrames.Add(tgtIndex);
+                }
+                else if (dst.Count == 1 && dst[0] is FillerID)
+                {
+                    dst.RemoveAt(0);
+                    shortcutFrames.Add(tgtIndex);
+                }
+                if(shortcutFrames.Contains(tgtIndex))
+                {
+                    dst.Add(item);
+                }
+                else
+                {
+                    FramedItem.MergeIntoFramedItemList(item, ref dst);
+                }
+            }
+            return destList;
+        }
+
+        public static IList<IList<IFramedItem>> GroupByFrame(IList<IList<IFramedItem>> buffer)
         {
             var allFramedItems = from IList<IFramedItem> subList in buffer
                                  from IFramedItem item in subList
-                                 select item;
+                                 group item by item.Frame.FrameIndex;
+                                 //select item;
 
             int minFrame = buffer[0][0].Frame.FrameIndex;
             int maxFrame = buffer[0][0].Frame.FrameIndex;
 
-            foreach (var item in allFramedItems)
+            foreach (var grouping in allFramedItems)
             {
-                int frameIndex = item.Frame.FrameIndex;
+                int frameIndex = grouping.Key;
                 minFrame = Math.Min(minFrame, frameIndex);
                 maxFrame = Math.Max(maxFrame, frameIndex);
             }
@@ -422,11 +496,14 @@ namespace MotionTracker
                 organizedFrames.Add(new List<IFramedItem>());
             }
 
-            foreach (var item in allFramedItems)
+            foreach (var grouping in allFramedItems)
             {
-                int frameIndex = item.Frame.FrameIndex;
+                int frameIndex = grouping.Key;
                 IList<IFramedItem> itemSet = organizedFrames[frameIndex - minFrame];
-                FramedItem.MergeIntoFramedItemList(item, ref itemSet);
+                foreach (var item in grouping)
+                {
+                    FramedItem.MergeIntoFramedItemList(item, ref itemSet);
+                }
             }
             return organizedFrames;
         }

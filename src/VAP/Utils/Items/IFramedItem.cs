@@ -53,5 +53,7 @@ namespace Utils.Items
         ///   <see cref="IItemID" /> in this frame.
         /// </returns>
         Mat CroppedImageData(int itemIDIndex);
+
+        RectangleF MeanBounds { get; }
     }
 }

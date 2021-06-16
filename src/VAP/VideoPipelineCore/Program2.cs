@@ -162,6 +162,7 @@ namespace VideoPipelineCore
                 frame.TimeStamp = startTime.AddSeconds((frameIndex * 1.0 / frameRate));
 
                 itemList = pipeline.ProcessFrame(frame);
+
                 int frameMainIndex = frameIndex;
                 /*pipeline.SyncPostFrame(frame);
 
@@ -206,19 +207,19 @@ namespace VideoPipelineCore
                     lastStage = pipeline.LastStage;
                     secondToLastStage = pipeline[^2];
                     bool pathFound = false;
-
                     for (int i = 0; i < itemPaths.Count; i++)
                     {
                         if(MotionTracker.MotionTracker.TestAndAdd(itemList,ioUPredictor,itemPaths[i], 0.2))
                         {
                             MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
                         }
-                        else if(MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], 0.2))
+                        /*else if(MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], 0.2))
                         {
                             MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
-                        }
+                        }*/
                         WritePaths(itemPaths, frameRate, ref videoNumber, frameMainIndex, BUFFERSIZE);
                     }
+
                     foreach (var item in itemList)
                     {
                         object source = item.ItemIDs.Last().SourceObject;
@@ -258,12 +259,14 @@ namespace VideoPipelineCore
                         MotionTracker.MotionTracker.TryMergePaths(ref itemPaths);
                     }
 
-                    framedItemBuffer.Add(itemList);
+                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList);
 
-                    if (framedItemBuffer.Count > BUFFERSIZE)
+
+                    while (framedItemBuffer.Count > BUFFERSIZE || framedItemBuffer[0].Count == 0)
                     {
                         framedItemBuffer.RemoveAt(0);
                     }
+                    framedItemBuffer = MotionTracker.MotionTracker.GroupByFrame(framedItemBuffer);
                 }
                 else
                 {
@@ -271,8 +274,8 @@ namespace VideoPipelineCore
                     IFramedItem dummyItem = new FramedItem();
                     dummyItem.Frame = frame;
                     dummylist.Add(dummyItem);
-                    framedItemBuffer.Add(dummylist);
-                    if ( framedItemBuffer.Count > BUFFERSIZE)
+                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList);
+                    while ( framedItemBuffer.Count > BUFFERSIZE || (framedItemBuffer.Count>0 && framedItemBuffer[0].Count == 0))
                     {
                         framedItemBuffer.RemoveAt(0);
                     }

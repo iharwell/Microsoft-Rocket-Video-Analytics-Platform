@@ -86,12 +86,10 @@ namespace Utils.Items
 
         private static RectangleF MedianBound(IFramedItem framedItem)
         {
-            var rectangles = from IItemID itemId in framedItem.ItemIDs
+            var rectangles = from itemId in framedItem.ItemIDs
                              select itemId.BoundingBox;
 
-            var statRect = new StatisticRectangle(rectangles);
-
-            return statRect.Median;
+            return StatisticRectangle.MedianBox( rectangles );
         }
     }
 }

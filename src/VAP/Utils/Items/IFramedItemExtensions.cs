@@ -101,9 +101,9 @@ namespace Utils.Items
             {
                 rect.Height = 1;
             }
-            StatisticRectangle sr = new StatisticRectangle(item.ItemIDs);
+            //StatisticRectangle sr = new StatisticRectangle(item.ItemIDs);
 
-            var median = sr.Median;
+            var median = item.MeanBounds;
             if (median.Width == 0)
             {
                 median = new RectangleF(median.Location, new SizeF(1, median.Height));
@@ -112,7 +112,7 @@ namespace Utils.Items
             {
                 median = new RectangleF(median.Location, new SizeF(median.Width, 1));
             }
-            if (sr.Median.X <= rect.Right && rect.X <= sr.Median.Right && sr.Median.Y <= rect.Bottom && rect.Y <= sr.Median.Bottom)
+            if (median.X <= rect.Right && rect.X <= median.Right && median.Y <= rect.Bottom && rect.Y <= median.Bottom)
             {
                 // There is some overlap, so we will give a positive similarity score.
                 double ovX = Math.Max(rect.X, median.X);
@@ -132,9 +132,9 @@ namespace Utils.Items
             else
             {
                 // there is no overlap, so we'll give it a negative similarity score.
-                double distSq = PointTools.DistanceSquared(rect.Center(), sr.Median.Center());
+                double distSq = PointTools.DistanceSquared(rect.Center(), median.Center());
                 double diagSq1 = rect.DiagonalSquared();
-                double diagSq2 = sr.Median.DiagonalSquared();
+                double diagSq2 = median.DiagonalSquared();
                 double normalizedDistance1 = distSq / diagSq1;
                 double normalizedDistance2 = distSq / diagSq2;
                 double sizeFactor = Math.Max(median.Width, rect.Width) / Math.Min(median.Width, rect.Width)

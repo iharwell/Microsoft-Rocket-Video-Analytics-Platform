@@ -80,6 +80,72 @@ namespace Utils.ShapeTools
             LargestItem = largeitem;
 
         }
+
+        public static RectangleF MedianBox(IEnumerable<Rectangle> rectangles)
+        {
+            var xSet = from r in rectangles
+                       select (double)r.X;
+            var ySet = from r in rectangles
+                       select (double)r.Y;
+            var wSet = from r in rectangles
+                       select (double)r.Width;
+            var hSet = from r in rectangles
+                       select (double)r.Height;
+
+            return new RectangleF((float)xSet.Median(), (float)ySet.Median(), (float)wSet.Median(), (float)hSet.Median());
+        }
+        public static RectangleF MeanBox(IEnumerable<IItemID> ids)
+        {
+            var xSet = from id in ids
+                       select (double)id.BoundingBox.X;
+            var ySet = from id in ids
+                       select (double)id.BoundingBox.Y;
+            var wSet = from id in ids
+                       select (double)id.BoundingBox.Width;
+            var hSet = from id in ids
+                       select (double)id.BoundingBox.Height;
+
+            return new RectangleF((float)xSet.Mean(), (float)ySet.Mean(), (float)wSet.Mean(), (float)hSet.Mean());
+        }
+        public static RectangleF MeanBox(IList<IItemID> ids)
+        {
+            float sumx = 0;
+            float sumy = 0;
+            float sumw = 0;
+            float sumh = 0;
+            for (int i = 0; i < ids.Count; i++)
+            {
+                Rectangle r = ids[i].BoundingBox;
+
+                sumx += r.X;
+                sumy += r.Y;
+                sumw += r.Width;
+                sumh += r.Height;
+            }
+            int c = ids.Count;
+
+            return new RectangleF((float)sumx/c, (float)sumy/c, (float)sumw/c, (float)sumh/c);
+        }
+        public static RectangleF UpdateMeanBox(IList<IItemID> ids, RectangleF oldMean, int oldCount)
+        {
+            float sumx = oldMean.X*oldCount;
+            float sumy = oldMean.Y*oldCount;
+            float sumw = oldMean.Width*oldCount;
+            float sumh = oldMean.Height * oldCount;
+            for (int i = oldCount; i < ids.Count; i++)
+            {
+                Rectangle r = ids[i].BoundingBox;
+
+                sumx += r.X;
+                sumy += r.Y;
+                sumw += r.Width;
+                sumh += r.Height;
+            }
+            int c = ids.Count;
+
+            return new RectangleF((float)sumx / c, (float)sumy / c, (float)sumw / c, (float)sumh / c);
+        }
+
         public StatisticRectangle(IEnumerable<Rectangle> rectangles)
         {
             Rectangle runningSum = new Rectangle(0, 0, 0, 0);
