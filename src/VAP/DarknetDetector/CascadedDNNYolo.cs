@@ -72,8 +72,14 @@ namespace DarknetDetector
 
                     if (ltDNNID is LineTriggeredItemID lineTriggered)
                     {
-                        _frameDNNYolo.SetTrackingPoint(lines[lineTriggered.TriggerLineID].coordinates.MidPoint); //only needs to check the last line in each row
-                        analyzedTrackingItems = _frameDNNYolo.Detect(imgByte, category, lineTriggered.TriggerLineID, System.Drawing.Color.Red, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL, realFrameIndex);
+                        //_frameDNNYolo.SetTrackingPoint(lines[lineTriggered.TriggerLineID].coordinates.MidPoint); //only needs to check the last line in each row
+                        analyzedTrackingItems = _frameDNNYolo.AnalyzeAndDetect(imgByte,
+                                                                     category,
+                                                                     lineTriggered.TriggerLineID,
+                                                                     System.Drawing.Color.Red,
+                                                                     DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL,
+                                                                     lines[lineTriggered.TriggerLineID].coordinates.MidPoint,
+                                                                     realFrameIndex);
                     }
                     else
                     {
@@ -118,15 +124,15 @@ namespace DarknetDetector
             {
                 IFramedItem ltDNNItem = ltDNNItemList[i];
                 var ltDNNID = ltDNNItem.ItemIDs.Last();
-                if (ltDNNID.Confidence >= DNNConfig.CONFIDENCE_THRESHOLD)
+                if (ltDNNID.Confidence == 0 || ltDNNID.Confidence >= DNNConfig.CONFIDENCE_THRESHOLD)
                 {
                     continue;
                 }
-                if (!(ltDNNID is LineTriggeredItemID trigID && trigID.TriggerLine != null))
+                if (!ltDNNID.FurtherAnalysisTriggered)
                 {
                     continue;
                 }
-                if (ltDNNID.Confidence == 0)
+                if (!(ltDNNID is ILineTriggeredItemID trigID && trigID.TriggerLine != null))
                 {
                     continue;
                 }
@@ -141,12 +147,13 @@ namespace DarknetDetector
 
                     if (ltDNNID is LineTriggeredItemID lineTriggered)
                     {
-                        _frameDNNYolo.SetTrackingPoint(lines[lineTriggered.TriggerLine].MidPoint); //only needs to check the last line in each row
-                        analyzedTrackingItems = _frameDNNYolo.Detect(imgByte,
+                        //_frameDNNYolo.SetTrackingPoint(lines[lineTriggered.TriggerLine].MidPoint); //only needs to check the last line in each row
+                        analyzedTrackingItems = _frameDNNYolo.AnalyzeAndDetect(imgByte,
                                                                      category,
                                                                      lineTriggered.TriggerLineID,
                                                                      Color.Red,
                                                                      DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_SMALL,
+                                                                     lines[lineTriggered.TriggerLine].MidPoint,
                                                                      realFrameIndex);
                     }
                     else

@@ -143,7 +143,7 @@ namespace LineDetector
                         Cv2.Line(frame.ForegroundMask, p1.X, p1.Y, p2.X, p2.Y, new Scalar(255, 0, 255, 255), 5);
                     }
                     Cv2.ImShow("BGS Output", frame.ForegroundMask);
-                    Cv2.WaitKey(1);
+                    //Cv2.WaitKey(1);
                 }
             }
             _counts = _multiLaneDetector.GetCounts();
@@ -205,7 +205,7 @@ namespace LineDetector
                         Cv2.Line(frame.ForegroundMask, p1.X, p1.Y, p2.X, p2.Y, new Scalar(255, 0, 255, 255), 5);
                     }
                     Cv2.ImShow("BGS Output", frame.ForegroundMask);
-                    Cv2.WaitKey(1);
+                    //Cv2.WaitKey(1);
                 }
             }
             _counts = _multiLaneDetector.GetCounts();

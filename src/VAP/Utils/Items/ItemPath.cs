@@ -21,6 +21,7 @@ namespace Utils.Items
     [KnownType(typeof(Frame))]
     [KnownType(typeof(OpenCvSharp.Mat))]
     [KnownType(typeof(List<IItemID>))]
+    [KnownType(typeof(FillerID))]
     public class ItemPath : IItemPath
     {
         public ItemPath()
@@ -42,7 +43,7 @@ namespace Utils.Items
         public string Category { get; }
         public double Confidence { get; }
 
-        protected int HighestConfidenceFrameIndex
+        public int HighestConfidenceFrameIndex
         {
             get
             {
@@ -54,7 +55,7 @@ namespace Utils.Items
             }
         }
 
-        protected int HighestConfidenceIDIndex
+        public int HighestConfidenceIDIndex
         {
             get
             {

@@ -34,4 +34,13 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Decoder2.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LibAvSharp.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

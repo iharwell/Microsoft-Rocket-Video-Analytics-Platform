@@ -73,5 +73,7 @@ namespace Utils.Items
         ///   generated the object.
         /// </remarks>
         object SourceObject { get; set; }
+
+        bool FurtherAnalysisTriggered { get; }
     }
 }

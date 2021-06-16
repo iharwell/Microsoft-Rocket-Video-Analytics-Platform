@@ -76,6 +76,10 @@ namespace Utils.Items
         public string IdentificationMethod { get; set; }
 
         /// <inheritdoc />
+        [DataMember]
+        public bool FurtherAnalysisTriggered { get; set; }
+
+        /// <inheritdoc />
         public object SourceObject { get; set; }
 
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)

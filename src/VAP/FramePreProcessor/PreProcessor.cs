@@ -11,13 +11,10 @@ namespace FramePreProcessor
     {
         public static Mat ReturnFrame(Mat sourceMat, int frameIndex, int samplingFactor, double resolutionFactor, bool display)
         {
-            Mat resizedFrame = null;
-
             if (frameIndex % samplingFactor != 0) return null;
 
             try
             {
-                //resizedFrame = sourceMat.Clone();
                 if (display)
                     FrameDisplay.Display(sourceMat);
             }

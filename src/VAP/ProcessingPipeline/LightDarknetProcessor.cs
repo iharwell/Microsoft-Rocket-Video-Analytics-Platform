@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using Utils;
 using Utils.Items;
@@ -82,10 +83,12 @@ namespace ProcessingPipeline
                 counts.Add(entry.Key, 0);
             }
 
-            for (int i = 0; i < items.Count; i++)
+            var trigItems = Utils.Utils.GetItemsForFurtherProcessing(items);
+
+            foreach ( var trigFramedItem in trigItems )
             {
-                var itemIDs = items[i].ItemIDs;
-                for (int j = 0; j < items[i].ItemIDs.Count; j++)
+                var itemIDs = trigFramedItem.ItemIDs;
+                for (int j = 0; j < itemIDs.Count; j++)
                 {
                     if (object.ReferenceEquals(itemIDs[j].SourceObject, previousStage))
                     {
@@ -104,7 +107,13 @@ namespace ProcessingPipeline
                 }
             }
 
+            //var res2 = _darknet.RunOld(frame, counts, lines, Categories, items, this);
             var res = _darknet.Run(frame, counts, lines, Categories, items, this);
+
+            /*if((res.Count>0 && res.Last().ItemIDs.Last().SourceObject == this) || (res2.Count > 0 && res2.Last().ItemIDs.Last().SourceObject == this))
+            {
+                Console.WriteLine("\tItem Found");
+            }*/
 
             for (int i = res.Count - 1; i > 0; --i)
             {

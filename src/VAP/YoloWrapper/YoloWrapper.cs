@@ -22,7 +22,7 @@ namespace Wrapper.Yolo
         private readonly Dictionary<int, string> _objectType = new Dictionary<int, string>();
         private readonly ImageAnalyzer _imageAnalyzer = new ImageAnalyzer();
 
-        public DetectionSystem _detectionSystem = DetectionSystem.Unknown;
+        public DetectionSystem _detectionSystem = DetectionSystem.GPU;
         public DNNMode _dnnMode = DNNMode.Unknown;
         public EnvironmentReport EnvironmentReport { get; private set; }
 
@@ -355,6 +355,40 @@ namespace Wrapper.Yolo
             {
                 // Free the unmanaged memory.
                 Marshal.FreeHGlobal(pnt);
+            }
+
+            return this.Convert(container);
+        }
+
+        public IEnumerable<YoloItem> TrackUnmanaged(IntPtr data, int dataSize)
+        {
+            var container = new BboxContainer();
+            try
+            {
+                var count = 0;
+                switch (this._detectionSystem)
+                {
+                    case DetectionSystem.CPU:
+                        count = TrackImageCpu(data, dataSize, (float)0.3, (float)0.2, ref container);
+                        break;
+                    case DetectionSystem.GPU:
+                        switch (this._dnnMode)
+                        {
+                            case DNNMode.Frame:
+                            case DNNMode.LT:
+                                count = TrackImageGpuLt(data, dataSize, (float)0.3, (float)0.2, ref container);
+                                break;
+                            case DNNMode.CC:
+                                count = TrackImageGpuCc(data, dataSize, (float)0.3, (float)0.2, ref container);
+                                break;
+                        }
+                        break;
+                }
+
+            }
+            catch (Exception)
+            {
+                return null;
             }
 
             return this.Convert(container);

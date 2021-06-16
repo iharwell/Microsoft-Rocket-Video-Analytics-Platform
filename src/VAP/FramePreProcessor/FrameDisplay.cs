@@ -53,7 +53,7 @@ namespace FramePreProcessor
             }
 
             Cv2.ImShow("Raw Frame", frameToDisplay);
-            Cv2.WaitKey(1);
+            //Cv2.WaitKey(1);
         }
 
         public static void UpdateKVPairs(Dictionary<string, string> kvpairs)

@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using OpenCvSharp;
+using Utils.Items;
 using Point = System.Drawing.Point;
 namespace Utils
 {
@@ -129,6 +130,34 @@ namespace Utils
             image.Save(memoryStream2, ImageFormat.Bmp);
             return memoryStream2.ToArray();
         }
+        public static byte[] DrawImage(Mat imageData, int x, int y, int w, int h, Color color, string annotation = "")
+        {
+            Mat output = imageData.Clone();
+            Cv2.Rectangle(output, new Rect(x, y, w, h), new Scalar(color.B, color.G, color.R), 2);
+            if (annotation != null && annotation.Length > 0)
+            {
+                Cv2.PutText(output, annotation, new OpenCvSharp.Point(x, y - 20), HersheyFonts.HersheyPlain, 16, new Scalar(0, color.B, color.G, color.R));
+            }
+            /*canvas.DrawRectangle(pen, x, y, w, h);
+            canvas.DrawString(annotation, new Font("Arial", 16), new SolidBrush(color), new PointF(x, y - 20));
+            canvas.Flush();
+
+            using var memoryStream2 = new MemoryStream();
+            image.Save(memoryStream2, ImageFormat.Bmp);*/
+            return output.ToBytes(".bmp");
+        }
+
+        public static IEnumerable<IFramedItem> GetItemsForFurtherProcessing( IEnumerable<IFramedItem> items )
+        {
+            foreach(var item in items)
+            {
+                IItemID lastID = item.ItemIDs[^1];
+                if(lastID.FurtherAnalysisTriggered)
+                {
+                    yield return item;
+                }
+            }
+        }
 
         public static byte[] CropImage(byte[] imageData, int x, int y, int w, int h)
         {
@@ -141,6 +170,21 @@ namespace Utils
             using var memoryStream2 = new MemoryStream();
             croppedImage.Save(memoryStream2, ImageFormat.Bmp);
             return memoryStream2.ToArray();
+        }
+
+        public static byte[] CropImage(Mat imageData, int x, int y, int w, int h)
+        {
+            return imageData.SubMat(y, Math.Min(y + h, imageData.Rows - 1), x, Math.Min(x + w, imageData.Cols - 1)).ToBytes(".bmp");
+
+            /*using var memoryStream = new MemoryStream(imageData);
+            using var image = Image.FromStream(memoryStream);
+            Rectangle cropRect = new Rectangle(x, y, Math.Min(image.Width - x, w), Math.Min(image.Height - y, h));
+            Bitmap bmpImage = new Bitmap(image);
+            Image croppedImage = bmpImage.Clone(cropRect, bmpImage.PixelFormat);
+
+            using var memoryStream2 = new MemoryStream();
+            croppedImage.Save(memoryStream2, ImageFormat.Bmp);
+            return memoryStream2.ToArray();*/
         }
 
         public static List<Tuple<string, int[]>> ConvertLines(List<(string key, LineSegment coordinates)> lines)

@@ -189,10 +189,157 @@ namespace Utils.Items
 
             for (int i = 0; i < source.Count; i++)
             {
-                target.Add(source[i]);
+                var pids = PositiveIDIndices(source[i].ItemIDs);
+                if(pids.Count>0)
+                {
+                    MergeUsingName(source[i], ref target, BestIDName(source[i].ItemIDs));
+                }
+                else
+                {
+                    MergeWithoutName(source[i], ref target);
+                }
             }
 
             return target;
+        }
+
+        public static IList<IFramedItem> MergeIntoFramedItemList(IFramedItem item, ref IList<IFramedItem> target)
+        {
+            //TODO(iharwell): Add algorithm to merge IFramedItems based on very high similarity scores.
+            if (item is null)
+            {
+                return target;
+            }
+
+            if (target.Count == 0)
+            {
+                target.Add(item);
+            }
+            else
+            {
+                var pids = PositiveIDIndices(item.ItemIDs);
+                if (pids.Count > 0)
+                {
+                    MergeUsingName(item, ref target, BestIDName(item.ItemIDs));
+                }
+                else
+                {
+                    MergeWithoutName(item, ref target);
+                }
+            }
+
+            return target;
+        }
+
+        private static IList<IFramedItem> MergeWithoutName(IFramedItem framedItem, ref IList<IFramedItem> target)
+        {
+            IFramedItem bestMatch = null;
+            double overlapValue = -999999999999;
+            StatisticRectangle srcRect = new StatisticRectangle(framedItem.ItemIDs);
+            int frameNum = framedItem.Frame.FrameIndex;
+
+            foreach (IFramedItem item in target)
+            {
+                if (item.Frame.FrameIndex != frameNum)
+                {
+                    continue;
+                }
+                string targetName = BestIDName(item.ItemIDs);
+                var tgtRect = new StatisticRectangle(item.ItemIDs);
+                double s2t = framedItem.Similarity(tgtRect.Median);
+                double t2s = item.Similarity(srcRect.Median);
+                double avg = (s2t + t2s) / 2;
+                if (avg > overlapValue)
+                {
+                    overlapValue = avg;
+                    bestMatch = item;
+                }
+            }
+            if (overlapValue >= 0.4)
+            {
+                for (int i = 0; i < framedItem.ItemIDs.Count; i++)
+                {
+                    bestMatch.ItemIDs.Add(framedItem.ItemIDs[i]);
+                }
+            }
+            else
+            {
+                // No match found
+                target.Add(framedItem);
+            }
+            return target;
+        }
+
+        private static IList<IFramedItem> MergeUsingName(IFramedItem framedItem, ref IList<IFramedItem> target, string v)
+        {
+            IFramedItem bestMatch = null;
+            double overlapValue = -999999999999;
+            StatisticRectangle srcRect = new StatisticRectangle(framedItem.ItemIDs);
+            int frameNum = framedItem.Frame.FrameIndex;
+
+            foreach(IFramedItem item in target)
+            {
+                if(item.Frame.FrameIndex != frameNum)
+                {
+                    continue;
+                }
+                string targetName = BestIDName(item.ItemIDs);
+                double mergeBoost = 0.0;
+                if (targetName != null && targetName.CompareTo(v) == 0)
+                {
+                    mergeBoost = 0.15;
+                }
+                var tgtRect = new StatisticRectangle(item.ItemIDs);
+                double s2t = framedItem.Similarity(tgtRect.Median);
+                double t2s = item.Similarity(srcRect.Median);
+                double avg = (s2t + t2s) / 2 + mergeBoost;
+                if (avg > overlapValue)
+                {
+                    overlapValue = avg;
+                    bestMatch = item;
+                }
+            }
+            if (overlapValue >= 0.4)
+            {
+                for (int i = 0; i < framedItem.ItemIDs.Count; i++)
+                {
+                    bestMatch.ItemIDs.Add(framedItem.ItemIDs[i]);
+                }
+            }
+            else
+            {
+                // No match found
+                target.Add(framedItem);
+            }
+            return target;
+        }
+
+        private static IList<int> PositiveIDIndices( IList<IItemID> itemIDs )
+        {
+            List<int> indices = new List<int>();
+            for (int i = 0; i < itemIDs.Count; i++)
+            {
+                if(itemIDs[i].Confidence > 0 && itemIDs[i].ObjName != null)
+                {
+                    indices.Add(i);
+                }
+            }
+            return indices;
+        }
+
+        private static string BestIDName(IList<IItemID> itemIDs)
+        {
+            string name = null;
+            double bestConfidence = 0;
+            for (int i = 0; i < itemIDs.Count; i++)
+            {
+                if (itemIDs[i].Confidence > bestConfidence)
+                {
+                    name = itemIDs[i].ObjName;
+                    bestConfidence = itemIDs[i].Confidence;
+                }
+            }
+            return name;
         }
     }
 }

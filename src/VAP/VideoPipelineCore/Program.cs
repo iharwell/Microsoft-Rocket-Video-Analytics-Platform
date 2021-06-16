@@ -72,7 +72,7 @@ namespace VideoPipelineCore
             IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(51);
 
             //-----Decoder-----
-            Decoder.Decoder decoder = new Decoder.Decoder(videoUrl, loop);
+            Decoder.SingleDecoder decoder = new Decoder.SingleDecoder(videoUrl, loop);
 
             //-----Background Subtraction-based Detector-----
             BGSObjectDetector.BGSObjectDetector bgs = new BGSObjectDetector.BGSObjectDetector();
@@ -207,7 +207,7 @@ namespace VideoPipelineCore
                 }
 
                 //decoder
-                Mat frame = decoder.GetNextFrame();
+                Mat frame = decoder.GetNextFrameImage();
 
 
                 //frame pre-processor

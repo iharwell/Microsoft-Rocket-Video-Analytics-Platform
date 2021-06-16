@@ -73,7 +73,7 @@ namespace ProcessingPipeline
         /// <inheritdoc/>
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
-            frame.FrameData = FramePreProcessor.PreProcessor.ReturnFrame(frame.FrameData, frame.FrameIndex, SamplingFactor, ResolutionFactor, DisplayOutput);
+            //frame.FrameData = FramePreProcessor.PreProcessor.ReturnFrame(frame.FrameData, frame.FrameIndex, SamplingFactor, ResolutionFactor, DisplayOutput);
 
             if (frame.FrameData == null)
             {

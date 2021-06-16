@@ -11,7 +11,7 @@ namespace DarknetDetector
 {
     internal class FrameBuffer
     {
-        private readonly List<Mat> _frameBufferList;
+        private readonly List<(Mat, int)> _frameBufferList;
         //private readonly Queue<Mat> _frameBuffer;
         private readonly int _bSize;
 
@@ -19,10 +19,10 @@ namespace DarknetDetector
         {
             _bSize = size;
             // _frameBuffer = new Queue<Mat>(_bSize);
-            _frameBufferList = new List<Mat>(_bSize);
+            _frameBufferList = new List<(Mat,int)>(_bSize);
         }
 
-        public void Buffer(Mat frame)
+        public int Buffer(Mat frame, int frameNumber)
         {
             /*
             if( _frameBuffer.Count > _bSize-1 )
@@ -31,19 +31,29 @@ namespace DarknetDetector
             }
             _frameBuffer.Enqueue(frame);
             */
-
+            int retNum = -1;
             if( _frameBufferList.Count > _bSize -1)
             {
+                retNum = _frameBufferList[0].Item2;
                 _frameBufferList.RemoveAt(0);
+
             }
-            _frameBufferList.Add(frame);
+            _frameBufferList.Add((frame,frameNumber));
+            return retNum;
         }
 
-        public Mat this[int index] => _frameBufferList[index];
-
-        public Mat[] ToArray()
+        public Mat GetByFrameNumber( int frameNumber )
         {
-            return _frameBufferList.ToArray();
+            for (int i = 0; i < _frameBufferList.Count; i++)
+            {
+                if( _frameBufferList[i].Item2 == frameNumber )
+                {
+                    return _frameBufferList[i].Item1;
+                }
+            }
+            return null;
         }
+
+        public Mat this[int index] =>  _frameBufferList[index].Item1;
     }
 }

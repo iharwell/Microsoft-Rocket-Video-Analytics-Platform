@@ -25,8 +25,11 @@ namespace MotionTracker
             var orgFrames = GroupByFrame(buffer);
 
             int minFrame = orgFrames[0][0].Frame.FrameIndex;
+            int maxFrame = orgFrames[^1][0].Frame.FrameIndex;
 
             int startingIndex = givenIndex - minFrame;
+            startingIndex = Math.Max(minFrame, startingIndex) - minFrame;
+            startingIndex = Math.Min(maxFrame - minFrame, startingIndex);
             List<int> counts = new List<int>();
 
             InductionPass(predictor, (similarityThreshold + 0.5) / 1.5, itemPath, orgFrames, ref startingIndex);
@@ -150,6 +153,10 @@ namespace MotionTracker
                              orderby frame
                              select frame;
 
+            List<int> usedIndices = new List<int>(usedFrames);
+
+            int startingFrameNumber = orgFrames[0][0].Frame.FrameIndex + startingIndex;
+
             /*int i = 0;
             foreach ( int used in usedFrames )
             {
@@ -182,9 +189,9 @@ namespace MotionTracker
                     ++i;
                 }
             }*/
-
-            for (int i = 0; i < orgFrames.Count; i++)
-            {
+            int i = 0;
+            while (i < orgFrames.Count)
+            {/*
                 if (orgFrames[i].Count == 0)
                 {
                     // Remove empty
@@ -204,13 +211,56 @@ namespace MotionTracker
                     }
                     orgFrames.RemoveAt(i);
                     --i;
+                }*/
+                if (orgFrames[i].Count == 0)
+                {
+                    // Remove empty
+                    if (i <= startingIndex && startingIndex > 0)
+                    {
+                        --startingIndex;
+                    }
+                    orgFrames.RemoveAt(i);
+                    continue; // New item is now present at index i
+                }
+                int orgFramesFrameNumber = orgFrames[i][0].Frame.FrameIndex;
+                if (usedIndices.BinarySearch(orgFramesFrameNumber) >= 0)
+                {
+                    // This index is already used.
+                    if (i <= startingIndex && startingIndex > 0)
+                    {
+                        --startingIndex;
+                    }
+                    orgFrames.RemoveAt(i);
+                    continue; // New item is now present at index i
+                }
+                ++i;
+            }
+
+            // Verify that the resulting startingIndex is the closest option to the initial starting frame number available.
+
+            int bestStart = startingIndex;
+            int bestStartDistance = 99999;
+
+            for (int j = 0; j < orgFrames.Count; j++)
+            {
+                int frameNumber = orgFrames[j][0].Frame.FrameIndex;
+                int distance = Math.Abs(startingFrameNumber - frameNumber);
+                if (distance < bestStartDistance)
+                {
+                    bestStart = j;
+                    bestStartDistance = distance;
+                }
+                if (distance == 0)
+                {
+                    break;
                 }
             }
+            startingIndex = bestStart;
         }
 
         private static void InductTriggeredFrame(IItemPath itemPath, IList<IList<IFramedItem>> orgFrames)
         {
-            ITriggeredItem triggeredItemID = null;
+            IItemID triggeredItemID = null;
 
             var lastFrame = orgFrames.Last();
             for (int i = lastFrame.Count - 1; i >= 0; --i)
@@ -219,9 +269,9 @@ namespace MotionTracker
                 for (int j = framedItem.ItemIDs.Count - 1; j >= 0; --j)
                 {
                     var itemID = framedItem.ItemIDs[j];
-                    if (itemID is ITriggeredItem item && item.FurtherAnalysisTriggered)
+                    if (itemID.FurtherAnalysisTriggered)
                     {
-                        triggeredItemID = item;
+                        triggeredItemID = itemID;
                         break;
                     }
                 }
@@ -255,6 +305,36 @@ namespace MotionTracker
             }
         }
 
+        public static void SealPath(IItemPath path, IList<IList<IFramedItem>> frameBuffer)
+        {
+
+            var orgFrames = GroupByFrame(frameBuffer);
+            int x = 0;
+            RemoveUsedFrames(path, orgFrames, ref x);
+            int minFrame = int.MaxValue;
+            int maxFrame = int.MinValue;
+            for (int i = 0; i < path.FramedItems.Count; i++)
+            {
+                int frameNum = path.FrameIndex(i);
+                minFrame = Math.Min(minFrame, frameNum);
+                maxFrame = Math.Max(maxFrame, frameNum);
+            }
+
+            for (int i = 0; i < orgFrames.Count; i++)
+            {
+                var frameGroup = orgFrames[i];
+                for (int j = 0; j < frameGroup.Count; j++)
+                {
+                    IFrame f = frameGroup[j].Frame;
+                    int fgNum = frameGroup[j].Frame.FrameIndex;
+                    if (fgNum > minFrame && fgNum < maxFrame)
+                    {
+                        path.FramedItems.Add(new FramedItem(f, new FillerID()));
+                        break;
+                    }
+                }
+            }
+        }
         private static void InductionPass(IPathPredictor predictor, double similarityThreshold, IItemPath itemPath, IList<IList<IFramedItem>> orgFrames, ref int startingIndex)
         {
             int lowIndex = startingIndex - 1;
@@ -288,11 +368,11 @@ namespace MotionTracker
             }
         }
 
-        private static void TestAndAdd(IList<IFramedItem> itemsInFrame, IPathPredictor predictor, IItemPath itemPath, double similarityThreshold)
+        public static bool TestAndAdd(IList<IFramedItem> itemsInFrame, IPathPredictor predictor, IItemPath itemPath, double similarityThreshold)
         {
             if (itemsInFrame.Count == 0)
             {
-                return;
+                return false;
             }
 
             int frameIndex = itemsInFrame.First().Frame.FrameIndex;
@@ -314,8 +394,9 @@ namespace MotionTracker
             if (bestSim > similarityThreshold)
             {
                 itemPath.FramedItems.Add(itemsInFrame[closestIndex]);
+                return true;
             }
-
+            return false;
         }
 
         private static IList<IList<IFramedItem>> GroupByFrame(IList<IList<IFramedItem>> buffer)
@@ -334,7 +415,7 @@ namespace MotionTracker
                 maxFrame = Math.Max(maxFrame, frameIndex);
             }
 
-            IList<IList<IFramedItem>> organizedFrames = new List<IList<IFramedItem>>(maxFrame - minFrame);
+            IList<IList<IFramedItem>> organizedFrames = new List<IList<IFramedItem>>(maxFrame - minFrame + 1);
 
             for (int i = minFrame; i <= maxFrame; i++)
             {
@@ -344,9 +425,155 @@ namespace MotionTracker
             foreach (var item in allFramedItems)
             {
                 int frameIndex = item.Frame.FrameIndex;
-                organizedFrames[frameIndex - minFrame].Add(item);
+                IList<IFramedItem> itemSet = organizedFrames[frameIndex - minFrame];
+                FramedItem.MergeIntoFramedItemList(item, ref itemSet);
             }
             return organizedFrames;
+        }
+
+        public static void TryMergePaths(ref IList<IItemPath> paths)
+        {
+            IList<IItemPath> outPaths = new List<IItemPath>();
+
+            Dictionary<IItemPath, (int minFrame, int maxFrame)> boundaries = new Dictionary<IItemPath, (int minFrame, int maxFrame)>();
+
+            foreach ( var path in paths)
+            {
+                boundaries.Add(path, path.GetPathBounds());
+            }
+            bool outOfRange;
+            for (int i = 0; i < paths.Count; i++)
+            {
+                var path = paths[i];
+                outOfRange = false;
+                int minFrame;
+                int maxFrame;
+                (minFrame, maxFrame) = boundaries[path];
+
+                for (int j = i+1; j < paths.Count; j++)
+                {
+                    var tgtPath = paths[j];
+                    int tgtMin;
+                    int tgtMax;
+
+                    (tgtMin, tgtMax) = boundaries[path];
+
+                    if( tgtMax - maxFrame > 250 )
+                    {
+                        outOfRange = true;
+                        break;
+                    }
+
+                    for (int k = Math.Max(tgtMin,minFrame); k < Math.Min(tgtMax,maxFrame); k++)
+                    {
+                        var tgtFi = GetFramedItemByFrameNumber(tgtPath, k);
+                        if(tgtFi == null)
+                        {
+                            continue;
+                        }
+                        var srcFi = GetFramedItemByFrameNumber(path, k);
+                        if(srcFi == null)
+                        {
+                            continue;
+                        }
+                        if( AreFramedItemsMatched(srcFi, tgtFi))
+                        {
+                            foreach (var fi in tgtPath.FramedItems)
+                            {
+                                var dest = GetFramedItemByFrameNumber(path, fi.Frame.FrameIndex);
+                                if (dest == null)
+                                {
+                                    path.FramedItems.Add(fi);
+                                }
+                                else
+                                {
+                                    foreach (var id in fi.ItemIDs)
+                                    {
+                                        if (dest.ItemIDs.Contains(id))
+                                        {
+                                            continue;
+                                        }
+                                        else if (HasSimilarID(id, dest.ItemIDs))
+                                        {
+                                            continue;
+                                        }
+                                        else
+                                        {
+                                            dest.ItemIDs.Add(id);
+                                        }
+                                    }
+                                }
+                            }
+                            maxFrame = Math.Max(maxFrame, tgtMax);
+                            minFrame = Math.Min(minFrame, tgtMin);
+                            ++i;
+                        }
+                    }
+
+                }
+                outPaths.Add(path);
+            }
+
+            paths = outPaths;
+        }
+
+        private static bool HasSimilarID( IItemID id, IList<IItemID> idlist)
+        {
+            if( id is FillerID )
+            {
+                return true;
+            }
+            if(idlist.Count == 1 && idlist[0] is FillerID)
+            {
+                return false;
+            }
+            for (int i = 0; i < idlist.Count; i++)
+            {
+                if( id.BoundingBox == idlist[i].BoundingBox)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool AreFramedItemsMatched( IFramedItem item1, IFramedItem item2)
+        {
+            if( item1.Frame.FrameIndex != item2.Frame.FrameIndex)
+            {
+                return false;
+            }
+            for (int i = 0; i < item1.ItemIDs.Count; i++)
+            {
+                var id1 = item1.ItemIDs[i];
+                for (int j = 0; j < item2.ItemIDs.Count; j++)
+                {
+                    var id2 = item2.ItemIDs[j];
+
+                    if(id1.Confidence == id2.Confidence && id1.Confidence>0)
+                    {
+                        return true;
+                    }
+                    if(id1.BoundingBox.Location == id2.BoundingBox.Location && id1.BoundingBox.Size == id2.BoundingBox.Size)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private static IFramedItem GetFramedItemByFrameNumber( IItemPath path, int frameNumber )
+        {
+            for (int i = 0; i < path.FramedItems.Count; i++)
+            {
+                var fi = path.FramedItems[i];
+                if ( fi.Frame.FrameIndex == frameNumber )
+                {
+                    return fi;
+                }
+            }
+            return null;
         }
     }
 }

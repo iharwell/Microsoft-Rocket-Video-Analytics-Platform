@@ -129,7 +129,7 @@ namespace Utils.Items
 
         private static readonly ImageEncodingParam[] s_encodingParamsJPG = new ImageEncodingParam[]
         {
-            new ImageEncodingParam(ImwriteFlags.JpegQuality, 70),
+            new ImageEncodingParam(ImwriteFlags.JpegQuality, 50),
             new ImageEncodingParam(ImwriteFlags.JpegOptimize, 1)
         };
         private static readonly ImageEncodingParam[] s_encodingParamsPNG = new ImageEncodingParam[]

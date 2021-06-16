@@ -9,6 +9,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Utils\Utils.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Decoder2">
       <HintPath>..\..\..\..\..\LibAvCodecSharp\Decoder2\bin\Debug\net5.0\Decoder2.dll</HintPath>
     </Reference>
@@ -32,6 +36,9 @@
     </None>
     <None Update="avutil-57.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Decoder2.deps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Decoder2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

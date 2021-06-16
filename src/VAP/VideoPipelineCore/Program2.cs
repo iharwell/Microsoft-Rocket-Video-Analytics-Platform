@@ -23,12 +23,17 @@ using System.Xml.Serialization;
 using TFDetector;
 using Utils;
 using Utils.Items;
+using Utils.ShapeTools;
 
 namespace VideoPipelineCore
 {
     internal class Program2
     {
-        private const int BUFFERSIZE = 90;
+        private const int BUFFERSIZE = 180;
+        private const int UPDATEPERIOD = 64;
+        private const int UPDATEMASK = UPDATEPERIOD - 1;
+        private const int GCPERIOD = 256;
+        private const int GCMASK = GCPERIOD - 1;
 
         internal static void Main(string[] args)
         {
@@ -36,7 +41,7 @@ namespace VideoPipelineCore
             if (args.Length < 4)
             {
                 Console.WriteLine(args.Length);
-                Console.WriteLine("Usage: <exe> <video url> <cfg file> <samplingFactor> <resolutionFactor> <category1> <category2> ...");
+                Console.WriteLine("Usage: <exe> <folder> <cfg file> <samplingFactor> <resolutionFactor> <category1> <category2> ...");
                 return;
             }
             string videoUrl = args[0];
@@ -48,11 +53,13 @@ namespace VideoPipelineCore
             else
             {
                 isVideoStream = false;
-                videoUrl = @"..\..\..\..\..\..\media\" + args[0];
+                videoUrl = args[0];
             }
-            string lineFile = @"..\..\..\..\..\..\cfg\" + args[1];
+            string lineFile = args[1];
             int samplingFactor = int.Parse(args[2]);
             double resolutionFactor = double.Parse(args[3]);
+            var decoder = Decoder.DecoderFFMPEG.GetDirectoryDecoder(videoUrl, resolutionFactor);
+            decoder.BeginReading();
 
             HashSet<string> category = new HashSet<string>();
             for (int i = 4; i < args.Length; i++)
@@ -74,7 +81,7 @@ namespace VideoPipelineCore
             IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(51);
 
             //-----Decoder-----
-            Decoder.Decoder2V decoder = new Decoder.Decoder2V(videoUrl, resolutionFactor, loop);
+            //Decoder.Decoder2V decoder = new Decoder.Decoder2V(videoUrl, resolutionFactor, loop);
 
             Pipeline pipeline = new Pipeline();
             PreProcessorStage bgsStage = new PreProcessorStage
@@ -117,6 +124,7 @@ namespace VideoPipelineCore
             double frameRate = decoder.GetVideoFPS();
             int frameIndex = 0;
             int videoTotalFrame = decoder.GetTotalFrameNum();
+            int videoNumber = 0;
 
             IList<IFramedItem> itemList = null;
             IList<IItemPath> itemPaths = new List<IItemPath>();
@@ -125,39 +133,52 @@ namespace VideoPipelineCore
             object lastStage = pipeline.LastStage;
             object secondToLastStage = pipeline[^2];
 
+            IFrame frameOut;
+
+            //pipeline.SpoolPipeline();
             //RUN PIPELINE 
             DateTime startTime = DateTime.Now;
             DateTime prevTime = DateTime.Now;
-            decoder.BeginReading();
+
+            int prevFrame = 0;
             while (true)
             {
                 if (!loop)
                 {
-                    if (!isVideoStream && frameIndex >= videoTotalFrame - 1)
+                    if (!isVideoStream && !decoder.HasMoreFrames)
                     {
                         break;
                     }
                 }
                 itemList = null;
                 //decoder
-                IFrame frame = new Frame
-                {
-                    FrameData = decoder.GetNextFrame()
-                };
+                IFrame frame = decoder.GetNextFrame();
+
                 if (frame.FrameData == null)
                 {
                     continue;
                 }
                 frame.FrameIndex = frameIndex;
-                frame.SourceName = args[0];
-                frame.TimeStamp = startTime.AddSeconds((frameIndex * 1.0 / frameRate * TimeSpan.TicksPerSecond));
+                frame.TimeStamp = startTime.AddSeconds((frameIndex * 1.0 / frameRate));
 
                 itemList = pipeline.ProcessFrame(frame);
+                int frameMainIndex = frameIndex;
+                /*pipeline.SyncPostFrame(frame);
+
+                if( !pipeline.TryReceiveList(out itemList,out frameOut) )
+                {
+                    frameIndex++;
+                    continue;
+                }
+
+                int frameMainIndex = frameOut.FrameIndex;*/
+
+                //itemList = pipeline.ProcessFrame(frame);
 
                 if (frame == null) continue;
 
 
-                if ((frameIndex & 0x3F) == 0)
+                if ((frameMainIndex & GCMASK) == 0)
                 {
                     GC.Collect();
                 }
@@ -180,33 +201,61 @@ namespace VideoPipelineCore
                                 break;
                             }
                         }
-                        it.Frame.SourceName = videoUrl;
-                        it.Frame.TimeStamp = videoTimeStamp.AddTicks((long)(TimeSpan.TicksPerSecond * it.Frame.FrameIndex / frameRate));
                     }
                     FramePreProcessor.FrameDisplay.UpdateKVPairs(kvpairs);
-                    object lastSource = itemList.Last().ItemIDs.Last().SourceObject;
-                    // string lastMethod = ItemList.Last().ItemIDs.Last().IdentificationMethod;
-                    // Currently requires the use of a detection line filter, as it generates too many ItemPaths without it.
-                    if (object.ReferenceEquals(lastSource, lastStage) || object.ReferenceEquals(lastSource, secondToLastStage))
-                    {
-                        var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer(itemList.Last(), framedItemBuffer, polyPredictor, 0.3);
-                        int prevCount;
-                        int currentCount = path.FramedItems.Count;
-                        do
-                        {
-                            prevCount = currentCount;
-                            MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, ioUPredictor, 0.3);
-                            currentCount = path.FramedItems.Count;
+                    lastStage = pipeline.LastStage;
+                    secondToLastStage = pipeline[^2];
+                    bool pathFound = false;
 
-                            if (currentCount > prevCount)
+                    for (int i = 0; i < itemPaths.Count; i++)
+                    {
+                        if(MotionTracker.MotionTracker.TestAndAdd(itemList,ioUPredictor,itemPaths[i], 0.2))
+                        {
+                            MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
+                        }
+                        else if(MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], 0.2))
+                        {
+                            MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
+                        }
+                        WritePaths(itemPaths, frameRate, ref videoNumber, frameMainIndex, BUFFERSIZE);
+                    }
+                    foreach (var item in itemList)
+                    {
+                        object source = item.ItemIDs.Last().SourceObject;
+                        // string lastMethod = ItemList.Last().ItemIDs.Last().IdentificationMethod;
+                        // Currently requires the use of a detection line filter, as it generates too many ItemPaths without it.
+                        if(!item.ItemIDs.Last().FurtherAnalysisTriggered)
+                        {
+                            continue;
+                        }
+
+                        if (source.GetType() == lastStage.GetType() || source.GetType() == secondToLastStage.GetType())
+                        {
+                            var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer(item, framedItemBuffer, ioUPredictor, 0.2);
+                            int prevCount;
+                            int currentCount = path.FramedItems.Count;
+                            do
                             {
                                 prevCount = currentCount;
-                                MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, polyPredictor, 0.3);
+                                MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, polyPredictor, 0.2);
                                 currentCount = path.FramedItems.Count;
-                            }
-                        } while (currentCount > prevCount)
-                            ;
-                        itemPaths.Add(path);
+
+                                if (currentCount > prevCount)
+                                {
+                                    prevCount = currentCount;
+                                    MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, ioUPredictor, 0.2);
+                                    currentCount = path.FramedItems.Count;
+                                }
+                            } while (currentCount > prevCount)
+                                ;
+                            MotionTracker.MotionTracker.SealPath(path, framedItemBuffer);
+                            itemPaths.Add(path);
+                            pathFound = true;
+                        }
+                    }
+                    if (pathFound)
+                    {
+                        MotionTracker.MotionTracker.TryMergePaths(ref itemPaths);
                     }
 
                     framedItemBuffer.Add(itemList);
@@ -216,37 +265,159 @@ namespace VideoPipelineCore
                         framedItemBuffer.RemoveAt(0);
                     }
                 }
+                else
+                {
+                    List<IFramedItem> dummylist = new List<IFramedItem>();
+                    IFramedItem dummyItem = new FramedItem();
+                    dummyItem.Frame = frame;
+                    dummylist.Add(dummyItem);
+                    framedItemBuffer.Add(dummylist);
+                    if ( framedItemBuffer.Count > BUFFERSIZE)
+                    {
+                        framedItemBuffer.RemoveAt(0);
+                    }
+                }
 
 
                 //print out stats
-                if ((frameIndex & 0xF) == 0)
+                if ((frameMainIndex & UPDATEMASK) == 0)
                 {
-                    double fps = 1000 * (double)(1) / (DateTime.Now - prevTime).TotalMilliseconds;
-                    double avgFps = 1000 * (long)frameIndex / (DateTime.Now - startTime).TotalMilliseconds;
+                    double fps = 1000 * (double)(UPDATEPERIOD) / (DateTime.Now - prevTime).TotalMilliseconds;
+                    /*if (fps > 1000 )
+                    {
+                        Console.Write("Weird ");
+                    }*/
+                    double avgFps = 1000 * (long)frameMainIndex / (DateTime.Now - startTime).TotalMilliseconds;
                     Console.WriteLine("{0} {1,-5} {2} {3,-5} {4} {5,-15} {6} {7,-10:N2} {8} {9,-10:N2}",
                                         "sFactor:", samplingFactor, "rFactor:", resolutionFactor, "FrameID:", frameIndex, "FPS:", fps, "avgFPS:", avgFps);
+                    prevTime = DateTime.Now;
                 }
+                if (frameMainIndex != 0 && frameMainIndex != 1 && frameMainIndex != prevFrame && frameMainIndex != prevFrame + 1)
+                {
+                    Console.WriteLine("Out of order.");
+                }
+                prevFrame = frameMainIndex;
                 ++frameIndex;
-                prevTime = DateTime.Now;
             }
             for (int i = 0; i < itemPaths.Count; i++)
             {
                 Console.WriteLine("Item path length " + (i + 1) + ": " + itemPaths[i].FramedItems.Count);
             }
-            string output = "output";
-            DataContractSerializer serializer = new DataContractSerializer(typeof(ItemPath));
-            for (int i = 0; i < itemPaths.Count; i++)
+            IList<IList<IFramedItem>> positiveIds = new List<IList<IFramedItem>>();
+            IList<IList<int>> frameNums = new List<IList<int>>();
+            foreach (var path in itemPaths)
             {
-                if (itemPaths[i] is ItemPath path)
+                positiveIds.Add(new List<IFramedItem>(GetPositiveIDItems(path)));
+                frameNums.Add(frameNumbers(path));
+            }
+            WritePaths(itemPaths, frameRate, ref videoNumber, frameIndex + BUFFERSIZE + 1, BUFFERSIZE);
+            Console.WriteLine("Done!");
+        }
+
+        private static IEnumerable<IFramedItem> GetPositiveIDItems(IItemPath path)
+        {
+            for (int i = 0; i < path.FramedItems.Count; i++)
+            {
+                var item = path.FramedItems[i];
+                for (int j = 0; j < item.ItemIDs.Count; j++)
                 {
-                    string name = output + i;
-                    using StreamWriter writer = new StreamWriter(name + ".xml");
-                    serializer.WriteObject(writer.BaseStream, path);
-                    writer.Flush();
-                    writer.Close();
+                    var id = item.ItemIDs[j];
+                    if( id.Confidence>0 )
+                    {
+                        yield return item;
+                        break;
+                    }
                 }
             }
-            Console.WriteLine("Done!");
+        }
+
+        private static IList<int> frameNumbers(IItemPath path)
+        {
+            List<int> frameNumbers = new List<int>();
+            foreach(var framedItem in path.FramedItems)
+            {
+                frameNumbers.Add(framedItem.Frame.FrameIndex);
+            }
+            frameNumbers.Sort();
+            return frameNumbers;
+        }
+
+        private static void WriteVideos(ref IList<IItemPath> paths, double frameRate)
+        {
+            for (int i = 0; i < paths.Count; i++)
+            {
+                var path = paths[i];
+                int conFrameIndex = path.HighestConfidenceFrameIndex;
+                int conIDIndex = path.HighestConfidenceIDIndex;
+                IFrame conframe = path.FramedItems[conFrameIndex].Frame;
+                string name = path.FramedItems[conFrameIndex].ItemIDs[conIDIndex].ObjName + " " + i + ".mp4";
+                OpenCvSharp.VideoWriter writer = new VideoWriter(name, FourCC.H265, frameRate, conframe.FrameData.Size());
+
+                var fItems = from fi in path.FramedItems
+                             let f = fi.Frame
+                             orderby f.FrameIndex
+                             select fi;
+
+                foreach (IFramedItem frameItem in fItems)
+                {
+                    Mat frameData = frameItem.Frame.FrameData.Clone();
+                    if(!(frameItem.ItemIDs.Count == 1 && frameItem.ItemIDs[0] is FillerID))
+                    {
+                        StatisticRectangle sr = new StatisticRectangle(frameItem.ItemIDs);
+                        var median = sr.Median;
+
+                        Cv2.Rectangle(frameData, new Rect((int)median.X, (int)median.Y, (int)median.Width, (int)median.Height), Scalar.Red);
+                    }
+
+                    writer.Write(frameData);
+                }
+                writer.Release();
+            }
+        }
+        private static void WritePaths(IList<IItemPath> paths, double frameRate,ref int videoNumber, int currentFrame, int bufferDepth)
+        {
+            while (paths.Count > 0 && paths[0].GetPathBounds().maxFrame < currentFrame - bufferDepth)
+            {
+                var path = paths[0];
+                int conFrameIndex = path.HighestConfidenceFrameIndex;
+                int conIDIndex = path.HighestConfidenceIDIndex;
+                IFrame conframe = path.FramedItems[conFrameIndex].Frame;
+                string name = path.FramedItems[conFrameIndex].ItemIDs[conIDIndex].ObjName + " " + videoNumber + ".mp4";
+                OpenCvSharp.VideoWriter writer = new VideoWriter(name, FourCC.H265, frameRate, conframe.FrameData.Size());
+
+                var fItems = from fi in path.FramedItems
+                             let f = fi.Frame
+                             orderby f.FrameIndex
+                             select fi;
+
+                foreach (IFramedItem frameItem in fItems)
+                {
+                    Mat frameData = frameItem.Frame.FrameData.Clone();
+                    if (!(frameItem.ItemIDs.Count == 1 && frameItem.ItemIDs[0] is FillerID))
+                    {
+                        StatisticRectangle sr = new StatisticRectangle(frameItem.ItemIDs);
+                        var median = sr.Median;
+
+                        Cv2.Rectangle(frameData, new Rect((int)median.X, (int)median.Y, (int)median.Width, (int)median.Height), Scalar.Red);
+                    }
+
+                    writer.Write(frameData);
+                }
+                writer.Release();
+
+                string output = "output";
+                DataContractSerializer serializer = new DataContractSerializer(typeof(ItemPath));
+                if (paths[0] is ItemPath p)
+                {
+                    string xmlname = output + videoNumber;
+                    using StreamWriter swriter = new StreamWriter(xmlname + ".xml");
+                    serializer.WriteObject(swriter.BaseStream, p);
+                    swriter.Flush();
+                    swriter.Close();
+                }
+                ++videoNumber;
+                paths.RemoveAt(0);
+            }
         }
 
         private static void CompressIFrames(IList<IFramedItem> itemList)

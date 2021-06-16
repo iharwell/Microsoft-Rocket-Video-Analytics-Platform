@@ -23,5 +23,8 @@ namespace Utils.Items
         ///   it was found.
         /// </summary>
         IList<IFramedItem> FramedItems { get; }
+
+        int HighestConfidenceFrameIndex { get; }
+        int HighestConfidenceIDIndex { get; }
     }
 }

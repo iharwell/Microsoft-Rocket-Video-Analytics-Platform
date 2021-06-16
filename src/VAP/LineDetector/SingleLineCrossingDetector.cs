@@ -96,7 +96,7 @@ namespace LineDetector
         {
             (_occupancy, _bbox) = _line.IsOccupied(boxes, mask, signature);
             bool crossingResult = _lineCrossingDetector.NotifyOccupancy(frameNo, _occupancy);
-            if (_bbox != null && _bbox.ItemIDs[_bbox.ItemIDs.Count - 1] is ITriggeredItem trig)
+            if (_bbox != null && _bbox.ItemIDs[_bbox.ItemIDs.Count - 1] is ILineTriggeredItemID trig)
             {
                 trig.FurtherAnalysisTriggered = crossingResult;
             }

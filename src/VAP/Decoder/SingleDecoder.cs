@@ -3,10 +3,11 @@
 
 using System;
 using OpenCvSharp;
+using Utils.Items;
 
 namespace Decoder
 {
-    public class Decoder : IDecoder
+    public class SingleDecoder : IDecoder
     {
         private VideoCapture _capture = null;
         private readonly string _inputURL;
@@ -27,7 +28,7 @@ namespace Decoder
 
         public string FilePath => _inputURL;
 
-        public Decoder(string input, bool loop)
+        public SingleDecoder(string input, bool loop)
         {
             _capture = new VideoCapture(input);
             _inputURL = input;
@@ -35,7 +36,7 @@ namespace Decoder
             _toLoop = loop;
         }
 
-        public Mat GetNextFrame()
+        public Mat GetNextFrameImage()
         {
             Mat sourceMat = new Mat();
 
@@ -67,6 +68,14 @@ namespace Decoder
             }
 
             return sourceMat;
+        }
+
+        public IFrame GetNextFrame()
+        {
+            Frame frame = new Frame();
+            frame.FrameData = GetNextFrameImage();
+            frame.SourceName = FilePath;
+            return frame;
         }
 
         public int GetTotalFrameNum()
