@@ -169,7 +169,8 @@ namespace DarknetDetector
                             Rectangle bounds = new Rectangle(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height);
                             ItemID itemID = new ItemID(bounds, yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, yoloTrackingItem.Index, nameof(CascadedDNNDarknet))
                             {
-                                SourceObject = sourceObject
+                                SourceObject = sourceObject,
+                                FurtherAnalysisTriggered = true
                             };
 
                             ltDNNItem.ItemIDs.Add(itemID);
