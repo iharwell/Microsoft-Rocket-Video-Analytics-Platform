@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 
 using OpenCvSharp;
-using OpenCvSharp.Blob;
+//using OpenCvSharp.Blob;
 
 namespace BGSObjectDetector
 {
@@ -88,7 +88,7 @@ namespace BGSObjectDetector
 
             fg = fgSmoothedMask4;
 
-            CvBlobs blobs = new CvBlobs();
+            //CvBlobs blobs = new CvBlobs();
             KeyPoint[] points = _blobDetector.Detect(fgSmoothedMask4);
             //blobs.FilterByArea(MIN_BLOB_SIZE, int.MaxValue);
 
