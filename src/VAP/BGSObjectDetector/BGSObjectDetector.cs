@@ -69,47 +69,45 @@ namespace BGSObjectDetector
             var inputUMat = new UMat(UMatUsageFlags.DeviceMemory);
             image.CopyTo(inputUMat);
 
+            var outputUMat = new UMat(UMatUsageFlags.DeviceMemory);
+
             {
-                var blurredFrame = new UMat(UMatUsageFlags.DeviceMemory);
-                Cv2.GaussianBlur(image, blurredFrame, Size.Zero, PRE_BGS_BLUR_SIGMA);
-                ExchangeAndRelease(ref inputUMat, ref blurredFrame);
+                Cv2.GaussianBlur(image, outputUMat, Size.Zero, PRE_BGS_BLUR_SIGMA);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
             }
 
             {
                 // fgMask is the original foreground bitmap returned by opencv MOG2
-                UMat fgMask = bgs.DetectForeground(inputUMat, frameIndex);
-                if (fgMask == null)
+                if (!bgs.DetectForeground(inputUMat, outputUMat, frameIndex))
                 {
+                    inputUMat.Dispose();
+                    outputUMat.Dispose();
                     fg = null;
                     return null;
                 }
 
-                ExchangeAndRelease(ref inputUMat, ref fgMask);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
             }
 
             // pre-processing
             {
-                UMat fgWOShadows = new UMat(UMatUsageFlags.DeviceMemory);
-                Cv2.Threshold(inputUMat, fgWOShadows, 200, 255, ThresholdTypes.Binary);
-                ExchangeAndRelease(ref inputUMat, ref fgWOShadows);
+                Cv2.Threshold(inputUMat, outputUMat, 200, 255, ThresholdTypes.Binary);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
             }
 
             {
-                UMat fgSmoothedMask2 = new UMat(UMatUsageFlags.DeviceMemory);
-                Cv2.MedianBlur(inputUMat, fgSmoothedMask2, MEDIAN_BLUR_SIZE);
-                ExchangeAndRelease(ref inputUMat, ref fgSmoothedMask2);
+                Cv2.MedianBlur(inputUMat, outputUMat, MEDIAN_BLUR_SIZE);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
             }
 
             {
-                UMat fgSmoothedMask3 = new UMat(UMatUsageFlags.DeviceMemory);
-                Cv2.GaussianBlur(inputUMat, fgSmoothedMask3, Size.Zero, GAUSSIAN_BLUR_SIGMA);
-                ExchangeAndRelease(ref inputUMat, ref fgSmoothedMask3);
+                Cv2.GaussianBlur(inputUMat, outputUMat, Size.Zero, GAUSSIAN_BLUR_SIGMA);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
             }
 
             {
-                UMat fgSmoothedMask4 = new UMat(UMatUsageFlags.DeviceMemory);
-                Cv2.Threshold(inputUMat, fgSmoothedMask4, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
-                ExchangeAndRelease(ref inputUMat, ref fgSmoothedMask4);
+                Cv2.Threshold(inputUMat, outputUMat, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
             }
 
             fg = new Mat();
@@ -117,6 +115,7 @@ namespace BGSObjectDetector
 
             //CvBlobs blobs = new CvBlobs();
             KeyPoint[] points = _blobDetector.Detect(inputUMat);
+            outputUMat.Dispose();
             inputUMat.Dispose();
             //blobs.FilterByArea(MIN_BLOB_SIZE, int.MaxValue);
 
@@ -152,13 +151,6 @@ namespace BGSObjectDetector
             newBlobs.ForEach(b => b.Time = timestamp);
             newBlobs.ForEach(b => b.Timestamp = frameIndex);
             return newBlobs;
-
-            void ExchangeAndRelease(ref UMat priorInput, ref UMat output)
-            {
-                priorInput?.Dispose();
-                priorInput = output;
-                output = null;
-            }
         }
     }
 }

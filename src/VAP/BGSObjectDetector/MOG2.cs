@@ -17,28 +17,23 @@ namespace BGSObjectDetector
             regionOfInterest = null;
         }
 
-        public UMat DetectForeground(UMat image, int nFrames)
+        public bool DetectForeground(UMat image, UMat output, int nFrames)
         {
-            UMat fgMask0 = new UMat(UMatUsageFlags.DeviceMemory);
-            fgDetector.Apply(image, fgMask0);
+            fgDetector.Apply(image, output);
+            if (nFrames < N_FRAMES_TO_LEARN)
+            {
+                return false;
+            }
 
             if (regionOfInterest != null)
             {
                 UMat fgMask = new UMat(UMatUsageFlags.DeviceMemory);
-                Cv2.BitwiseAnd(fgMask0, regionOfInterest, fgMask);
-                fgMask0.Dispose();
-                fgMask0 = fgMask;
+                Cv2.BitwiseAnd(output, regionOfInterest, fgMask);
+                fgMask.CopyTo(output);
+                fgMask.Dispose();
             }
 
-            if (nFrames < N_FRAMES_TO_LEARN)
-            {
-                fgMask0.Dispose();
-                return null;
-            }
-            else
-            {
-                return fgMask0;
-            }
+            return true;
         }
 
         public void SetRegionOfInterest(Mat roi)
