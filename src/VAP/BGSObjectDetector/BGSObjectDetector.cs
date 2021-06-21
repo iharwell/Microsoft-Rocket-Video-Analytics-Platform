@@ -13,12 +13,6 @@ namespace BGSObjectDetector
     {
         MOG2 bgs;
 
-        Mat blurredFrame = new Mat();
-        Mat fgMask = new Mat();
-        Mat fgWOShadows = new Mat();
-        Mat fgSmoothedMask2 = new Mat();
-        Mat fgSmoothedMask3 = new Mat();
-        Mat fgSmoothedMask4 = new Mat();
 
         Mat regionOfInterest = null;
 
@@ -72,24 +66,58 @@ namespace BGSObjectDetector
             if (regionOfInterest != null)
                 bgs.SetRegionOfInterest(regionOfInterest);
 
-            Cv2.GaussianBlur(image, blurredFrame, Size.Zero, PRE_BGS_BLUR_SIGMA);
+            var inputUMat = new UMat(UMatUsageFlags.DeviceMemory);
+            image.CopyTo(inputUMat);
 
-            // fgMask is the original foreground bitmap returned by opencv MOG2
-            fgMask = bgs.DetectForeground(blurredFrame, frameIndex);
-            fg = fgMask;
-            if (fgMask == null)
-                return null;
+            {
+                var blurredFrame = new UMat(UMatUsageFlags.DeviceMemory);
+                Cv2.GaussianBlur(image, blurredFrame, Size.Zero, PRE_BGS_BLUR_SIGMA);
+                ExchangeAndRelease(ref inputUMat, ref blurredFrame);
+            }
+
+            {
+                // fgMask is the original foreground bitmap returned by opencv MOG2
+                UMat fgMask = bgs.DetectForeground(inputUMat, frameIndex);
+                if (fgMask == null)
+                {
+                    fg = null;
+                    return null;
+                }
+
+                ExchangeAndRelease(ref inputUMat, ref fgMask);
+            }
 
             // pre-processing
-            Cv2.Threshold(fgMask, fgWOShadows, 200, 255, ThresholdTypes.Binary);
-            Cv2.MedianBlur(fgWOShadows, fgSmoothedMask2, MEDIAN_BLUR_SIZE);
-            Cv2.GaussianBlur(fgSmoothedMask2, fgSmoothedMask3, Size.Zero, GAUSSIAN_BLUR_SIGMA);
-            Cv2.Threshold(fgSmoothedMask3, fgSmoothedMask4, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
+            {
+                UMat fgWOShadows = new UMat(UMatUsageFlags.DeviceMemory);
+                Cv2.Threshold(inputUMat, fgWOShadows, 200, 255, ThresholdTypes.Binary);
+                ExchangeAndRelease(ref inputUMat, ref fgWOShadows);
+            }
 
-            fg = fgSmoothedMask4;
+            {
+                UMat fgSmoothedMask2 = new UMat(UMatUsageFlags.DeviceMemory);
+                Cv2.MedianBlur(inputUMat, fgSmoothedMask2, MEDIAN_BLUR_SIZE);
+                ExchangeAndRelease(ref inputUMat, ref fgSmoothedMask2);
+            }
+
+            {
+                UMat fgSmoothedMask3 = new UMat(UMatUsageFlags.DeviceMemory);
+                Cv2.GaussianBlur(inputUMat, fgSmoothedMask3, Size.Zero, GAUSSIAN_BLUR_SIGMA);
+                ExchangeAndRelease(ref inputUMat, ref fgSmoothedMask3);
+            }
+
+            {
+                UMat fgSmoothedMask4 = new UMat(UMatUsageFlags.DeviceMemory);
+                Cv2.Threshold(inputUMat, fgSmoothedMask4, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
+                ExchangeAndRelease(ref inputUMat, ref fgSmoothedMask4);
+            }
+
+            fg = new Mat();
+            inputUMat.CopyTo(fg);
 
             //CvBlobs blobs = new CvBlobs();
-            KeyPoint[] points = _blobDetector.Detect(fgSmoothedMask4);
+            KeyPoint[] points = _blobDetector.Detect(inputUMat);
+            inputUMat.Dispose();
             //blobs.FilterByArea(MIN_BLOB_SIZE, int.MaxValue);
 
             //// filter overlapping blobs
@@ -116,14 +144,21 @@ namespace BGSObjectDetector
                 id++;
                 newBlobs.Add(box);
 
-                Cv2.Rectangle(fgSmoothedMask4, new OpenCvSharp.Point(x - size, y - size), new OpenCvSharp.Point(x + size, y + size), new Scalar(255), 1);
-                Cv2.PutText(fgSmoothedMask4, box.ID.ToString(), new OpenCvSharp.Point(x, y - size), HersheyFonts.HersheyPlain, 1.0, new Scalar(255.0, 255.0, 255.0));
+                Cv2.Rectangle(image, new OpenCvSharp.Point(x - size, y - size), new OpenCvSharp.Point(x + size, y + size), new Scalar(255), 1);
+                Cv2.PutText(image, box.ID.ToString(), new OpenCvSharp.Point(x, y - size), HersheyFonts.HersheyPlain, 1.0, new Scalar(255.0, 255.0, 255.0));
             }
-            Cv2.PutText(fgSmoothedMask4, "frame: " + frameIndex, new OpenCvSharp.Point(10, 10), HersheyFonts.HersheyPlain, 1, new Scalar(255, 255, 255));
+            Cv2.PutText(image, "frame: " + frameIndex, new OpenCvSharp.Point(10, 10), HersheyFonts.HersheyPlain, 1, new Scalar(255, 255, 255));
 
             newBlobs.ForEach(b => b.Time = timestamp);
             newBlobs.ForEach(b => b.Timestamp = frameIndex);
             return newBlobs;
+
+            void ExchangeAndRelease(ref UMat priorInput, ref UMat output)
+            {
+                priorInput?.Dispose();
+                priorInput = output;
+                output = null;
+            }
         }
     }
 }
