@@ -88,40 +88,78 @@ namespace BGSObjectDetector
             get => _regionOfInterest;
             set => _regionOfInterest = value;
         }
-
-        public IList<IFramedItem> DetectObjects(DateTime timestamp, Mat image, int frameIndex, out Mat fg, object sourceObject = null)
+        public List<Box> DetectObjects(DateTime timestamp, Mat image, int frameIndex, out Mat fg)
         {
-            if (_regionOfInterest != null)
-                _bgs.SetRegionOfInterest(_regionOfInterest);
+            if (regionOfInterest != null)
+                bgs.SetRegionOfInterest(regionOfInterest);
 
-            Cv2.GaussianBlur(image, _blurredFrame, OpenCvSharp.Size.Zero, PRE_BGS_BLUR_SIGMA);
+            var inputUMat = new UMat(UMatUsageFlags.DeviceMemory);
+            image.CopyTo(inputUMat);
 
-            // fgMask is the original foreground bitmap returned by opencv MOG2
-            _fgMask = _bgs.DetectForeground(_blurredFrame, frameIndex);
-            // fg = _fgMask;
-            if (_fgMask == null)
+            var outputUMat = new UMat(UMatUsageFlags.DeviceMemory);
+
             {
-                fg = null;
-                return null;
+                Cv2.GaussianBlur(image, outputUMat, Size.Zero, PRE_BGS_BLUR_SIGMA);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
             }
-            Cv2.MorphologyEx(_fgMask, _fgSmoothedMask2, MorphTypes.Open, _kernel2);
-            Cv2.MorphologyEx(_fgSmoothedMask2, _fgWOShadows, MorphTypes.Erode, _kernel2);
-            Cv2.MorphologyEx(_fgWOShadows, _fgSmoothedMask2, MorphTypes.Close, _kernel5);
-            // pre-processing
-            //Cv2.Threshold(_fgMask, _fgWOShadows, 210, 255, ThresholdTypes.Binary);
-            //Cv2.GaussianBlur(_fgSmoothedMask2, _fgWOShadows, OpenCvSharp.Size.Zero, 4);
-            //Cv2.Threshold(_fgWOShadows, _fgSmoothedMask2, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
-            Cv2.MorphologyEx(_fgSmoothedMask2, _fgSmoothedMask3, MorphTypes.Dilate, _kernel5);
 
-            fg = _fgSmoothedMask3;
-
-            KeyPoint[] points = _blobDetector.Detect(_fgSmoothedMask3);
-            IFrame frame = new Frame(null, frameIndex)
             {
-                TimeStamp = timestamp,
-                FrameData = image
-            };
-            List<IFramedItem> newBlobs = new List<IFramedItem>();
+                // fgMask is the original foreground bitmap returned by opencv MOG2
+                if (!bgs.DetectForeground(inputUMat, outputUMat, frameIndex))
+                {
+                    inputUMat.Dispose();
+                    outputUMat.Dispose();
+                    fg = null;
+                    return null;
+                }
+
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
+            }
+
+            // pre-processing
+            {
+                Cv2.Threshold(inputUMat, outputUMat, 200, 255, ThresholdTypes.Binary);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
+            }
+
+            {
+                Cv2.MedianBlur(inputUMat, outputUMat, MEDIAN_BLUR_SIZE);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
+            }
+
+            {
+                Cv2.GaussianBlur(inputUMat, outputUMat, Size.Zero, GAUSSIAN_BLUR_SIGMA);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
+            }
+
+            {
+                Cv2.Threshold(inputUMat, outputUMat, GAUSSIAN_BLUR_THRESHOLD, 255, ThresholdTypes.Binary);
+                (inputUMat, outputUMat) = (outputUMat, inputUMat);
+            }
+
+            fg = new Mat();
+            inputUMat.CopyTo(fg);
+
+            //CvBlobs blobs = new CvBlobs();
+            KeyPoint[] points = _blobDetector.Detect(inputUMat);
+            outputUMat.Dispose();
+            inputUMat.Dispose();
+            //blobs.FilterByArea(MIN_BLOB_SIZE, int.MaxValue);
+
+            //// filter overlapping blobs
+            //HashSet<uint> blobIdsToRemove = new HashSet<uint>();
+            //foreach (var b0 in blobs)
+            //    foreach (var b1 in blobs)
+            //    {
+            //        if (b0.Key == b1.Key) continue;
+            //        if (b0.Value.BoundingBox.Contains(b1.Value.BoundingBox))
+            //            blobIdsToRemove.Add(b1.Key);
+            //    }
+            //foreach (uint blobid in blobIdsToRemove)
+            //    blobs.Remove(blobid);
+
+            // adding text to boxes and foreground frame
+            List<Box> newBlobs = new List<Box>();
             uint id = 0;
             foreach (var point in points)
             {
@@ -139,13 +177,13 @@ namespace BGSObjectDetector
                 newBlobs.Add(item);
                 if (DrawBoxes)
                 {
-                    Cv2.Rectangle(_fgSmoothedMask3, new OpenCvSharp.Point(x - size, y - size), new OpenCvSharp.Point(x + size, y + size), new Scalar(255), 1);
-                    Cv2.PutText(_fgSmoothedMask3, id.ToString(), new OpenCvSharp.Point(x, y - size), HersheyFonts.HersheyPlain, 1.0, new Scalar(255.0));
+                Cv2.Rectangle(image, new OpenCvSharp.Point(x - size, y - size), new OpenCvSharp.Point(x + size, y + size), new Scalar(255), 1);
+                Cv2.PutText(image, box.ID.ToString(), new OpenCvSharp.Point(x, y - size), HersheyFonts.HersheyPlain, 1.0, new Scalar(255.0, 255.0, 255.0));
                 }
             }
             if (DrawBoxes)
             {
-                Cv2.PutText(_fgSmoothedMask3, "frame: " + frameIndex, new OpenCvSharp.Point(10, 10), HersheyFonts.HersheyPlain, 1, new Scalar(255));
+			    Cv2.PutText(image, "frame: " + frameIndex, new OpenCvSharp.Point(10, 10), HersheyFonts.HersheyPlain, 1, new Scalar(255, 255, 255));
             }
 
             return newBlobs;
