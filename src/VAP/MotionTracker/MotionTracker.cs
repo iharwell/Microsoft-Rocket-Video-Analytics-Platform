@@ -194,6 +194,11 @@ namespace MotionTracker
 
         private static void RemoveUsedFrames(IItemPath itemPath, IList<IList<IFramedItem>> orgFrames, ref int startingIndex)
         {
+            if(orgFrames == null || orgFrames.Count == 0)
+            {
+                return;
+            }
+
             var usedFrames = from framedItem in itemPath.FramedItems
                              let frame = framedItem.Frame.FrameIndex
                              orderby frame

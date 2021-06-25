@@ -9,12 +9,11 @@ namespace BGSObjectDetector
     {
         private const int N_FRAMES_TO_LEARN = 60;
         private readonly BackgroundSubtractorMOG2 _fgDetector = BackgroundSubtractorMOG2.Create(250, 20); //try sweeping (also set it higher than 25)
-        private readonly Mat _fgMask = new Mat();
-        private readonly Mat _fgMask0 = new Mat();
-        private Mat _regionOfInterest = null;
+
+        private UMat _regionOfInterest = null;
         // Why do we need this?
 
-        public Mat RegionOfInterest
+        public UMat RegionOfInterest
         {
             get => _regionOfInterest;
             set => _regionOfInterest = value;
@@ -23,8 +22,6 @@ namespace BGSObjectDetector
         public MOG2()
         {
             _regionOfInterest = null;
-            _fgMask0 = new Mat();
-            _fgMask = new Mat();
         }
 
         public double BackgroundRatio
@@ -51,26 +48,30 @@ namespace BGSObjectDetector
             set => _fgDetector.History = value;
         }
 
-        public Mat DetectForeground(Mat image, int nFrames)
+        public bool DetectForeground(UMat image, UMat output, int nFrames)
         {
-            _fgDetector.Apply(image, _fgMask0);
-
-            if (_regionOfInterest != null)
-                Cv2.BitwiseAnd(_fgMask0, _regionOfInterest, _fgMask);
-
+            _fgDetector.Apply(image, output);
             if (nFrames < N_FRAMES_TO_LEARN)
-                return null;
+            {
+                return false;
+            }
+
             else if (_regionOfInterest != null)
-                return _fgMask;
-            else
-                return _fgMask0;
+            {
+                UMat fgMask = new UMat(UMatUsageFlags.DeviceMemory);
+                Cv2.BitwiseAnd(output, _regionOfInterest, fgMask);
+                fgMask.CopyTo(output);
+                fgMask.Dispose();
+            }
+
+            return true;
         }
 
         public void SetRegionOfInterest(Mat roi)
         {
             if (roi != null)
             {
-                _regionOfInterest = new Mat();
+                _regionOfInterest = new UMat();
                 roi.CopyTo(_regionOfInterest);
             }
         }
