@@ -35,6 +35,8 @@ namespace VideoPipelineCore
         private const int GCPERIOD = 256;
         private const int GCMASK = GCPERIOD - 1;
 
+        private const double SimilarityThreshold = 0.25;
+
         internal static void Main(string[] args)
         {
             //parse arguments
@@ -74,7 +76,7 @@ namespace VideoPipelineCore
             bool displayBGSVideo = false;
             Utils.Utils.CleanFolderAll();
 
-            PolyPredictor polyPredictor = new PolyPredictor();
+            var polyPredictor = new PiecewisePredictor(8.0);
             IoUPredictor ioUPredictor = new IoUPredictor();
 
             //-----FramedItem buffer for tracking item paths-----
@@ -209,14 +211,14 @@ namespace VideoPipelineCore
                     bool pathFound = false;
                     for (int i = 0; i < itemPaths.Count; i++)
                     {
-                        if(MotionTracker.MotionTracker.TestAndAdd(itemList,ioUPredictor,itemPaths[i], 0.2))
+                        if(MotionTracker.MotionTracker.TestAndAdd(itemList,ioUPredictor,itemPaths[i], SimilarityThreshold))
                         {
                             MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
                         }
-                        /*else if(MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], 0.2))
+                        else if(MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], SimilarityThreshold))
                         {
                             MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
-                        }*/
+                        }/**/
                         WritePaths(itemPaths, frameRate, ref videoNumber, frameMainIndex, BUFFERSIZE);
                     }
 
@@ -232,19 +234,19 @@ namespace VideoPipelineCore
 
                         if (source.GetType() == lastStage.GetType() || source.GetType() == secondToLastStage.GetType())
                         {
-                            var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer(item, framedItemBuffer, ioUPredictor, 0.2);
+                            var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer(item, framedItemBuffer, ioUPredictor, SimilarityThreshold);
                             int prevCount;
                             int currentCount = path.FramedItems.Count;
                             do
                             {
                                 prevCount = currentCount;
-                                MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, polyPredictor, 0.2);
+                                MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, polyPredictor, SimilarityThreshold);
                                 currentCount = path.FramedItems.Count;
 
                                 if (currentCount > prevCount)
                                 {
                                     prevCount = currentCount;
-                                    MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, ioUPredictor, 0.2);
+                                    MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, ioUPredictor, SimilarityThreshold);
                                     currentCount = path.FramedItems.Count;
                                 }
                             } while (currentCount > prevCount)

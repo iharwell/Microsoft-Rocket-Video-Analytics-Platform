@@ -4,10 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Runtime.Serialization;
-using System.Text;
 using OpenCvSharp;
 using Utils.ShapeTools;
 
@@ -24,6 +21,9 @@ namespace Utils.Items
     [KnownType(typeof(LineTriggeredItemID))]
     public class FramedItem : IFramedItem
     {
+        private const double SimThreshWOName = 0.6;
+        private const double NameBoost = 0.2;
+
         /// <summary>
         ///   Creates an empty <see cref="FramedItem" />.
         /// </summary>
@@ -66,6 +66,35 @@ namespace Utils.Items
         [DataMember]
         public IList<IItemID> ItemIDs { get; protected set; }
 
+        public int HighestConfidenceIndex
+        {
+            get
+            {
+                if (_highestConfidenceItemCount == ItemIDs.Count && _highestConfidenceIndex.HasValue)
+                {
+                    return _highestConfidenceIndex.Value;
+                }
+                else
+                {
+                    int maxIndex = -1;
+                    double maxValue = -1;
+                    for (int i = 0; i < ItemIDs.Count; i++)
+                    {
+                        if(ItemIDs[i].Confidence > maxValue)
+                        {
+                            maxIndex = i;
+                            maxValue = ItemIDs[i].Confidence;
+                        }
+                    }
+                    _highestConfidenceIndex = maxIndex;
+                    _highestConfidenceItemCount = ItemIDs.Count;
+                }
+                return _highestConfidenceIndex.Value;
+            }
+        }
+
+        private int? _highestConfidenceIndex;
+        private int _highestConfidenceItemCount;
         private RectangleF? _median;
         private int _medianItemCount;
 
@@ -73,9 +102,14 @@ namespace Utils.Items
         {
             get
             {
-                if ( _medianItemCount != ItemIDs.Count || !_median.HasValue)
+                if (_medianItemCount != ItemIDs.Count || !_median.HasValue)
                 {
-                    if( ItemIDs.Count < _medianItemCount || !_median.HasValue)
+                    if (ItemIDs[HighestConfidenceIndex].Confidence > 0)
+                    {
+                        _median = ItemIDs[HighestConfidenceIndex].BoundingBox;
+                        _medianItemCount = ItemIDs.Count;
+                    }
+                    else if (ItemIDs.Count < _medianItemCount || !_median.HasValue)
                     {
                         _median = StatisticRectangle.MeanBox(ItemIDs);
                         _medianItemCount = ItemIDs.Count;
@@ -159,7 +193,6 @@ namespace Utils.Items
             }
         }
 
-
         public static bool InsertIntoFramedItemList(IList<IFramedItem> framedItems, IItemID itemID, out IFramedItem framedItem, int frameIndex = -1)
         {
             int bestIndex = 0;
@@ -177,7 +210,7 @@ namespace Utils.Items
                     }
                 }
             }
-            if (bestSimilarity > 0)
+            if (bestSimilarity > SimThreshWOName)
             {
                 framedItem = framedItems[bestIndex];
                 framedItem.ItemIDs.Add(itemID);
@@ -213,7 +246,7 @@ namespace Utils.Items
             for (int i = 0; i < source.Count; i++)
             {
                 var pids = PositiveIDIndices(source[i].ItemIDs);
-                if(pids.Count>0)
+                if (pids.Count > 0)
                 {
                     MergeUsingName(source[i], ref target, BestIDName(source[i].ItemIDs), false);
                 }
@@ -283,15 +316,13 @@ namespace Utils.Items
                 }
                 var tgtRect = item.MeanBounds;
                 double s2t = framedItem.Similarity(tgtRect);
-                double t2s = item.Similarity(srcRect);
-                double avg = (s2t + t2s) / 2;
-                if (avg > overlapValue)
+                if (s2t > overlapValue)
                 {
-                    overlapValue = avg;
+                    overlapValue = s2t;
                     bestMatch = item;
                 }
             }
-            if (overlapValue >= 0.4)
+            if (overlapValue >= SimThreshWOName)
             {
                 for (int i = 0; i < framedItem.ItemIDs.Count; i++)
                 {
@@ -307,14 +338,14 @@ namespace Utils.Items
             return target;
         }
 
-        private static void RemoveFiller( ref IList<IFramedItem> list)
+        private static void RemoveFiller(ref IList<IFramedItem> list)
         {
             bool fillerFound = false;
-            if( list.Count>1)
+            if (list.Count > 1)
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    if(list[i] is FillerID)
+                    if (list[i] is FillerID)
                     {
                         list.RemoveAt(i);
                     }
@@ -329,18 +360,18 @@ namespace Utils.Items
             RectangleF srcRect = framedItem.MeanBounds;
             int frameNum = framedItem.Frame.FrameIndex;
 
-            if( framedItem is FillerID)
+            if (framedItem is FillerID)
             {
-                if( target.Count == 0)
+                if (target.Count == 0)
                 {
                     target.Add(framedItem);
                 }
                 return target;
             }
 
-            foreach(IFramedItem item in target)
+            foreach (IFramedItem item in target)
             {
-                if(item.Frame.FrameIndex != frameNum)
+                if (item.Frame.FrameIndex != frameNum)
                 {
                     continue;
                 }
@@ -348,19 +379,18 @@ namespace Utils.Items
                 double mergeBoost = 0.0;
                 if (targetName != null && targetName.CompareTo(v) == 0)
                 {
-                    mergeBoost = 0.15;
+                    mergeBoost = NameBoost;
                 }
                 var tgtRect = item.MeanBounds;
                 double s2t = framedItem.Similarity(tgtRect);
-                double t2s = item.Similarity(srcRect);
-                double avg = (s2t + t2s) / 2 + mergeBoost;
+                double avg = s2t + mergeBoost;
                 if (avg > overlapValue)
                 {
                     overlapValue = avg;
                     bestMatch = item;
                 }
             }
-            if (overlapValue >= 0.4)
+            if (overlapValue >= SimThreshWOName)
             {
                 for (int i = 0; i < framedItem.ItemIDs.Count; i++)
                 {
@@ -376,12 +406,12 @@ namespace Utils.Items
             return target;
         }
 
-        private static IList<int> PositiveIDIndices( IList<IItemID> itemIDs )
+        private static IList<int> PositiveIDIndices(IList<IItemID> itemIDs)
         {
             List<int> indices = new List<int>();
             for (int i = 0; i < itemIDs.Count; i++)
             {
-                if(itemIDs[i].Confidence > 0 && itemIDs[i].ObjName != null)
+                if (itemIDs[i].Confidence > 0 && itemIDs[i].ObjName != null)
                 {
                     indices.Add(i);
                 }

@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using System.Text;
 
 using OpenCvSharp;
+using Utils.Items;
 
 namespace DarknetDetector
 {
     internal class FrameBuffer
     {
-        private readonly List<(Mat, int)> _frameBufferList;
+        private readonly List<IFrame> _frameBufferList;
         //private readonly Queue<Mat> _frameBuffer;
         private readonly int _bSize;
 
@@ -19,10 +20,10 @@ namespace DarknetDetector
         {
             _bSize = size;
             // _frameBuffer = new Queue<Mat>(_bSize);
-            _frameBufferList = new List<(Mat,int)>(_bSize);
+            _frameBufferList = new List<IFrame>(_bSize+1);
         }
 
-        public int Buffer(Mat frame, int frameNumber)
+        public int Buffer(IFrame frame)
         {
             /*
             if( _frameBuffer.Count > _bSize-1 )
@@ -34,26 +35,32 @@ namespace DarknetDetector
             int retNum = -1;
             if( _frameBufferList.Count > _bSize -1)
             {
-                retNum = _frameBufferList[0].Item2;
+                retNum = _frameBufferList[0].FrameIndex;
                 _frameBufferList.RemoveAt(0);
 
             }
-            _frameBufferList.Add((frame,frameNumber));
+            _frameBufferList.Add(frame);
             return retNum;
         }
 
-        public Mat GetByFrameNumber( int frameNumber )
+        public IFrame GetByFrameNumber( int frameNumber )
         {
+            int minFrame = _frameBufferList[0].FrameIndex;
+            if (_frameBufferList[frameNumber - minFrame].FrameIndex == frameNumber)
+            {
+                return _frameBufferList[frameNumber - minFrame];
+            }
+
             for (int i = 0; i < _frameBufferList.Count; i++)
             {
-                if( _frameBufferList[i].Item2 == frameNumber )
+                if (_frameBufferList[i].FrameIndex == frameNumber)
                 {
-                    return _frameBufferList[i].Item1;
+                    return _frameBufferList[i];
                 }
             }
             return null;
         }
 
-        public Mat this[int index] =>  _frameBufferList[index].Item1;
+        public IFrame this[int index] =>  _frameBufferList[index];
     }
 }

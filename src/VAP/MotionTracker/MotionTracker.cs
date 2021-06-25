@@ -10,8 +10,29 @@ using Utils.ShapeTools;
 
 namespace MotionTracker
 {
+    /// <summary>
+    /// Provides motion tracking support for <see cref="IFramedItem"/> sets.
+    /// </summary>
     public class MotionTracker
     {
+        /// <summary>
+        ///   Builds a path using the provided positive id, buffer, and prediction method.
+        /// </summary>
+        /// <param name="framedID">
+        ///   The primary <see cref="IFramedItem"/> to build a path from.
+        /// </param>
+        /// <param name="buffer">
+        ///   A buffer of <see cref="IFramedItem">IFramedItems</see> available to build the path from.
+        /// </param>
+        /// <param name="predictor">
+        ///   The <see cref="IPathPredictor"/> used to predict the location of an item in some other frame.
+        /// </param>
+        /// <param name="similarityThreshold">
+        ///   The threshold required to include an <see cref="IFramedItem"/> from the buffer in the path when compared to a predicted location in the same frame.
+        /// </param>
+        /// <returns>
+        ///   Returns the <see cref="IItemPath"/> representing the path of the object through some series of frames.
+        /// </returns>
         public static IItemPath GetPathFromIdAndBuffer(IFramedItem framedID, IList<IList<IFramedItem>> buffer, IPathPredictor predictor, double similarityThreshold)
         {
             IItemPath itemPath = new ItemPath();
@@ -87,11 +108,35 @@ namespace MotionTracker
             return itemPath;
         }
 
+        /// <summary>
+        ///   Given an <see cref="IItemPath"/>, attempt to expand it using the provided 
+        ///   frame buffer. This function is usually used to build paths in stages using
+        ///   different <see cref="IPathPredictor">IPathPredictors</see>.
+        /// </summary>
+        /// <param name="itemPath">
+        ///   The existing <see cref="IItemPath"/> to try to expand.
+        /// </param>
+        /// <param name="buffer">
+        ///   The buffer of frames available to expand the path.
+        /// </param>
+        /// <param name="predictor">
+        ///   The <see cref="IPathPredictor"/> to use to expand the path.
+        /// </param>
+        /// <param name="similarityThreshold">
+        ///   The threshold required to include an <see cref="IFramedItem"/> from the buffer in the path when compared to a predicted location in the same frame.
+        /// </param>
+        /// <returns>
+        ///   Returns the expanded <see cref="IItemPath"/>.
+        /// </returns>
         public static IItemPath ExpandPathFromBuffer(IItemPath itemPath, IList<IList<IFramedItem>> buffer, IPathPredictor predictor, double similarityThreshold)
         {
             if (buffer.Count == 0)
             {
                 return itemPath;
+            }
+            if(similarityThreshold < 0)
+            {
+                similarityThreshold = 0;
             }
 
             int givenIndex = itemPath.FramedItems.First().Frame.FrameIndex;
@@ -306,6 +351,15 @@ namespace MotionTracker
             }
         }
 
+        /// <summary>
+        ///   Fills in an <see cref="IItemPath"/> to ensure that there are no missing frames.
+        /// </summary>
+        /// <param name="path">
+        ///   The path to fill in.
+        /// </param>
+        /// <param name="frameBuffer">
+        ///   The frames available to fill in the path.
+        /// </param>
         public static void SealPath(IItemPath path, IList<IList<IFramedItem>> frameBuffer)
         {
             //var orgFrames = GroupByFrame(frameBuffer);
@@ -336,6 +390,7 @@ namespace MotionTracker
                 }
             }
         }
+
         private static void InductionPass(IPathPredictor predictor, double similarityThreshold, IItemPath itemPath, IList<IList<IFramedItem>> orgFrames, ref int startingIndex)
         {
             int lowIndex = startingIndex - 1;
@@ -369,6 +424,24 @@ namespace MotionTracker
             }
         }
 
+        /// <summary>
+        ///   Checks the provided list of items and selects up to one to add into the <see cref="IItemPath"/>.
+        /// </summary>
+        /// <param name="itemsInFrame">
+        ///   A set of items, usually all in a single frame, to check.
+        /// </param>
+        /// <param name="predictor">
+        ///   The <see cref="IPathPredictor"/> to use to test the items.
+        /// </param>
+        /// <param name="itemPath">
+        ///   The <see cref="IItemPath"/> to add entries to.
+        /// </param>
+        /// <param name="similarityThreshold">
+        ///   The threshold required to include an <see cref="IFramedItem"/> from the buffer in the path when compared to a predicted location in the same frame.
+        /// </param>
+        /// <returns>
+        ///   Returns <see langword="true"/> if an item was added; <see langword="false"/> otherwise.
+        /// </returns>
         public static bool TestAndAdd(IList<IFramedItem> itemsInFrame, IPathPredictor predictor, IItemPath itemPath, double similarityThreshold)
         {
             if (itemsInFrame.Count == 0)
@@ -379,7 +452,7 @@ namespace MotionTracker
             int frameIndex = itemsInFrame.First().Frame.FrameIndex;
             Rectangle prediction = predictor.Predict(itemPath, frameIndex);
 
-            double bestSim = 0;
+            double bestSim = similarityThreshold - 1;
             int closestIndex = -1;
             for (int j = 0; j < itemsInFrame.Count; j++)
             {
@@ -400,6 +473,18 @@ namespace MotionTracker
             return false;
         }
 
+        /// <summary>
+        ///   Places the items from an unsorted set into a buffer that is sorted by frame number.
+        /// </summary>
+        /// <param name="buffer">
+        ///   The sorted buffer to add items to.
+        /// </param>
+        /// <param name="unsortedSet">
+        ///   The unsorted set of items to add.
+        /// </param>
+        /// <returns>
+        ///   Returns the merged, sorted set of combined items.
+        /// </returns>
         public static IList<IList<IFramedItem>> InsertIntoSortedBuffer( IList<IList<IFramedItem>> buffer, IList<IFramedItem> unsortedSet )
         {
             if(unsortedSet.Count == 0)
@@ -472,6 +557,15 @@ namespace MotionTracker
             return destList;
         }
 
+        /// <summary>
+        ///   Sorts a buffer of items with arbitruary order by frame number.
+        /// </summary>
+        /// <param name="buffer">
+        ///   The buffer to sort.
+        /// </param>
+        /// <returns>
+        ///   Returns a sorted buffer where the first index corresponds to a specific frame number common to all items at that index.
+        /// </returns>
         public static IList<IList<IFramedItem>> GroupByFrame(IList<IList<IFramedItem>> buffer)
         {
             var allFramedItems = from IList<IFramedItem> subList in buffer
@@ -508,6 +602,12 @@ namespace MotionTracker
             return organizedFrames;
         }
 
+        /// <summary>
+        ///   Attempts to merge paths together when they share a common <see cref="IItemID"/>.
+        /// </summary>
+        /// <param name="paths">
+        ///   The set of paths to merge together.
+        /// </param>
         public static void TryMergePaths(ref IList<IItemPath> paths)
         {
             IList<IItemPath> outPaths = new List<IItemPath>();

@@ -41,7 +41,7 @@ namespace DarknetDetector
         public IList<IFramedItem> RunOld(IFrame frame, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, ISet<string> category, IList<IFramedItem> items, object sourceObject = null)
         {
             // buffer frame
-            _frameBufferLtDNNYolo.Buffer(frame.FrameData,frame.FrameIndex);
+            _frameBufferLtDNNYolo.Buffer(frame);
             int frameIndex = frame.FrameIndex;
             if (_counts_prev.Count != 0)
             {
@@ -77,10 +77,10 @@ namespace DarknetDetector
                                 {
                                     --frameIndexYolo;
                                 }
-                                Mat frameYolo = _frameBufferLtDNNYolo[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
+                                IFrame frameYolo = _frameBufferLtDNNYolo[DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)];
                                 // byte[] imgByte = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameYolo));
-                                var analyzedItemCache = GetDnnResults(frameYolo, category, System.Drawing.Color.Pink, frameIndexYolo);
-                                analyzedTrackingItems = _frameDNNYolo.CachedDetect(frameYolo, analyzedItemCache, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
+                                var analyzedItemCache = GetDnnResults(frameYolo.FrameData, category, System.Drawing.Color.Pink, frameIndexYolo);
+                                analyzedTrackingItems = _frameDNNYolo.CachedDetect(frameYolo.FrameData, analyzedItemCache, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
                                 /*analyzedTrackingItems = _frameDNNYolo.Detect(frameYolo,
                                                                              category,
                                                                              lineID,
@@ -104,10 +104,7 @@ namespace DarknetDetector
                                         };
                                         if (itemID.InsertIntoFramedItemList(items, out IFramedItem framedItem, frameIndexYolo))
                                         {
-                                            var f = framedItem.Frame;
-                                            f.FrameIndex = frameIndexYolo;
-                                            f.SourceName = null;
-                                            f.FrameData = frameYolo;
+                                            framedItem.Frame = frameYolo;
                                         }
 
                                         // output cheap YOLO results
@@ -133,7 +130,7 @@ namespace DarknetDetector
         public IList<IFramedItem> Run(IFrame frame, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, ISet<string> category, IList<IFramedItem> items, object sourceObject = null)
         {
             // buffer frame
-            int n = _frameBufferLtDNNYolo.Buffer(frame.FrameData, frame.FrameIndex);
+            int n = _frameBufferLtDNNYolo.Buffer(frame);
             if(n >= 0 && _cached_dnn_outputs.ContainsKey(n))
             {
                 _cached_dnn_outputs.Remove(n);
@@ -158,9 +155,9 @@ namespace DarknetDetector
                         int bufferIndex = DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo)-1;
                         //int lineID = Array.IndexOf(counts.Keys.ToArray(), id.TriggerLine);
                         Console.WriteLine("** Calling Cheap on " + bufferIndex + "    Actual Frame: " + frameIndexYolo);
-                        Mat frameYolo = _frameBufferLtDNNYolo[bufferIndex];
+                        IFrame frameYolo = _frameBufferLtDNNYolo[bufferIndex];
 
-                        var analyzedItemCache = GetDnnResults(frameYolo, category, System.Drawing.Color.Pink, frameIndexYolo);
+                        var analyzedItemCache = GetDnnResults(frameYolo.FrameData, category, System.Drawing.Color.Pink, frameIndexYolo);
                         if ( analyzedItemCache == null )
                         {
                             --frameIndexYolo;
@@ -191,12 +188,9 @@ namespace DarknetDetector
                                     };
                                     if (itemID.InsertIntoFramedItemList(items, out IFramedItem framedItem, frameIndexYolo))
                                     {
-                                        var f = framedItem.Frame;
-                                        f.FrameIndex = frameIndexYolo;
-                                        f.SourceName = null;
-                                        f.FrameData = frameYolo;
+                                        framedItem.Frame = frameYolo;
                                     }
-                                    _frameDNNYolo.BuildImageData(yoloTrackingItem, Color.Pink, frameYolo);
+                                    _frameDNNYolo.BuildImageData(yoloTrackingItem, Color.Pink, frameYolo.FrameData);
                                     // output cheap YOLO results
                                     string blobName_Cheap = $@"frame-{frameIndexYolo}-Cheap-{yoloTrackingItem.Confidence}.jpg";
                                     string fileName_Cheap = @OutputFolder.OutputFolderLtDNN + blobName_Cheap;
@@ -220,9 +214,7 @@ namespace DarknetDetector
                                     };
                                     if (itemID.InsertIntoFramedItemList(items, out var framedItem, frameIndexYolo))
                                     {
-                                        framedItem.Frame.FrameIndex = frameIndexYolo;
-                                        framedItem.Frame.SourceName = null;
-                                        framedItem.Frame.FrameData = frameYolo;
+                                        framedItem.Frame = frameYolo;
                                     }
                                 }
 
@@ -282,7 +274,7 @@ namespace DarknetDetector
             foreach (var set in cachedSets)
             {
                 int frameNum = set.Key;
-                Mat frameYolo = _frameBufferLtDNNYolo.GetByFrameNumber(frameNum);
+                IFrame frameYolo = _frameBufferLtDNNYolo.GetByFrameNumber(frameNum);
                 foreach (var yoloTrackingItem in set.Value)
                 {
                     Rectangle bounds = new Rectangle(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height);
@@ -293,9 +285,7 @@ namespace DarknetDetector
                     };
                     if (itemID.InsertIntoFramedItemList(items, out var framedItem, frameNum))
                     {
-                        framedItem.Frame.FrameIndex = frameNum;
-                        framedItem.Frame.SourceName = null;
-                        framedItem.Frame.FrameData = frameYolo;
+                        framedItem.Frame = frameYolo;
                     }
                 }
             }
@@ -333,10 +323,10 @@ namespace DarknetDetector
             return output;
         }
 
-        public IList<IFramedItem> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, ISet<string> category, IList<IFramedItem> items, object sourceObject = null)
+        /*public IList<IFramedItem> Run(Mat frame, int frameIndex, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, ISet<string> category, IList<IFramedItem> items, object sourceObject = null)
         {
             // buffer frame
-            _frameBufferLtDNNYolo.Buffer(frame,frameIndex);
+            _frameBufferLtDNNYolo.Buffer(frame);
 
             if (_counts_prev.Count != 0)
             {
@@ -362,13 +352,13 @@ namespace DarknetDetector
                                 // byte[] imgByte = Utils.Utils.ImageToByteBmp(OpenCvSharp.Extensions.BitmapConverter.ToBitmap(frameYolo));
                                 var tmp = GetDnnResults(frame, category, Color.Pink, frameIndex);
                                 analyzedTrackingItems = _frameDNNYolo.CachedDetect(frameYolo, tmp, lineID, System.Drawing.Color.Pink, DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE);
-                                /*analyzedTrackingItems = _frameDNNYolo.Detect(frameYolo,
+                                analyzedTrackingItems = _frameDNNYolo.Detect(frameYolo,
                                                                              category,
                                                                              lineID,
                                                                              System.Drawing.Color.Pink,
                                                                              DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE,
                                                                              lines[lineID].coordinates.MidPoint,
-                                                                             frameIndexYolo);*/
+                                                                             frameIndexYolo);
 
                                 // object detected by cheap YOLO
                                 if (analyzedTrackingItems != null)
@@ -408,7 +398,7 @@ namespace DarknetDetector
             UpdateCount(counts);
 
             return items;
-        }
+        }*/
 
         private Item Item(YoloTrackingItem yoloTrackingItem)
         {

@@ -57,18 +57,68 @@ namespace Utils.Items
                 double overlapArea = ovW * ovH;
                 double srArea = median.Width * median.Height;
                 double rectArea = rect.Width * rect.Height;
-                /*
-                double overlapPercentRect = overlapArea/(rect.Width*rect.Height);
-                double overlapPercentMean = overlapArea/(sr.Median.Width *sr.Median.Height);
-                return overlapPercentRect * overlapPercentMean;*/
+                return (overlapArea) / (srArea + rectArea - overlapArea);
+            }
+            else
+            {
+                // there is no overlap, so we'll give it a negative similarity score, but faster
+                return double.MinValue;
+            }
+        }
+
+        /// <summary>
+        ///   Calculates a similarity score between the provided rectangle and the items in this <see cref="IFramedItem" />.
+        /// </summary>
+        /// <param name="item">
+        ///   The <see cref="IFramedItem" /> to calculate the score for.
+        /// </param>
+        /// <param name="rect">
+        ///   The rectangle under consideration.
+        /// </param>
+        /// <returns>
+        ///   Returns a value no greater than 1, with greater numbers representing a closer match
+        ///   and positive values indicating some degree of overlap.
+        /// </returns>
+        public static double SimilarityFull(this IFramedItem item, RectangleF rect)
+        {
+            if (rect.Width == 0)
+            {
+                rect.Width = 1;
+            }
+            if (rect.Height == 0)
+            {
+                rect.Height = 1;
+            }
+            //StatisticRectangle sr = new StatisticRectangle(item.ItemIDs);
+
+            var median = item.MeanBounds;
+            if (median.Width == 0)
+            {
+                median = new RectangleF(median.Location, new SizeF(1, median.Height));
+            }
+            if (median.Height == 0)
+            {
+                median = new RectangleF(median.Location, new SizeF(median.Width, 1));
+            }
+            if (median.X <= rect.Right && rect.X <= median.Right && median.Y <= rect.Bottom && rect.Y <= median.Bottom)
+            {
+                // There is some overlap, so we will give a positive similarity score.
+                double ovX = Math.Max(rect.X, median.X);
+                double ovY = Math.Max(rect.Y, median.Y);
+                double ovW = Math.Min(rect.Right, median.Right) - ovX;
+                double ovH = Math.Min(rect.Bottom, median.Bottom) - ovY;
+
+                double overlapArea = ovW * ovH;
+                double srArea = median.Width * median.Height;
+                double rectArea = rect.Width * rect.Height;
                 return (overlapArea) / (srArea + rectArea - overlapArea);
             }
             else
             {
                 // there is no overlap, so we'll give it a negative similarity score.
-                double distSq = PointTools.DistanceSquared(rect.Center(), sr.Median.Center());
+                double distSq = PointTools.DistanceSquared(rect.Center(), median.Center());
                 double diagSq1 = rect.DiagonalSquared();
-                double diagSq2 = sr.Median.DiagonalSquared();
+                double diagSq2 = median.DiagonalSquared();
                 double normalizedDistance1 = distSq / diagSq1;
                 double normalizedDistance2 = distSq / diagSq2;
                 double sizeFactor = Math.Max(median.Width, rect.Width) / Math.Min(median.Width, rect.Width)
@@ -77,6 +127,7 @@ namespace Utils.Items
                 return -(normalizedDistance1 * normalizedDistance2) * sizeFactor;
             }
         }
+
 
         /// <summary>
         ///   Calculates a similarity score between the provided rectangle and the items in this <see cref="IFramedItem" />.
@@ -131,16 +182,7 @@ namespace Utils.Items
             }
             else
             {
-                // there is no overlap, so we'll give it a negative similarity score.
-                double distSq = PointTools.DistanceSquared(rect.Center(), median.Center());
-                double diagSq1 = rect.DiagonalSquared();
-                double diagSq2 = median.DiagonalSquared();
-                double normalizedDistance1 = distSq / diagSq1;
-                double normalizedDistance2 = distSq / diagSq2;
-                double sizeFactor = Math.Max(median.Width, rect.Width) / Math.Min(median.Width, rect.Width)
-                                  * Math.Max(median.Height, rect.Height) / Math.Min(median.Height, rect.Height);
-
-                return -(normalizedDistance1 * normalizedDistance2) * sizeFactor;
+                return float.MinValue;
             }
         }
 
@@ -172,6 +214,12 @@ namespace Utils.Items
             int bestIndex = 0;
             IFramedItem bestItem = null;
             double bestSimilarity = double.NegativeInfinity;
+
+            if( itemID is FillerID )
+            {
+                framedItem = null;
+                return false;
+            }
 
             var fiInSameFrame = FilterByFrame(framedItems, frameIndex);
 
