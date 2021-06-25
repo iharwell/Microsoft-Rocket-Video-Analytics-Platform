@@ -26,7 +26,7 @@ namespace VideoPipelineCore
 {
     internal class Program
     {
-        private const int BUFFERSIZE = 90;
+        /*private const int BUFFERSIZE = 90;
 
         private static void Main2(string[] args)
         {
@@ -218,7 +218,7 @@ namespace VideoPipelineCore
 
 
                 //background subtractor
-                IList<IFramedItem> foregroundBoxes = bgs.DetectObjects(DateTime.Now, frame, frameIndex, out var fgmask);
+                IList<IFramedItem> foregroundBoxes = bgs.DetectObjects(DateTime.Now, frame, bgs);
 
                 if (foregroundBoxes != null && foregroundBoxes.Count > 0)
                 {
@@ -397,6 +397,6 @@ namespace VideoPipelineCore
                 }
             }
 
-        }
+        }*/
     }
 }
