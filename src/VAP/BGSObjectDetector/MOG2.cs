@@ -1,4 +1,4 @@
-﻿a// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
 using OpenCvSharp;
@@ -50,16 +50,16 @@ namespace BGSObjectDetector
 
         public bool DetectForeground(UMat image, UMat output, int nFrames)
         {
-            fgDetector.Apply(image, output);
+            _fgDetector.Apply(image, output);
             if (nFrames < N_FRAMES_TO_LEARN)
             {
                 return false;
             }
 
-            else if (regionOfInterest != null)
+            else if (_regionOfInterest != null)
             {
                 UMat fgMask = new UMat(UMatUsageFlags.DeviceMemory);
-                Cv2.BitwiseAnd(output, regionOfInterest, fgMask);
+                Cv2.BitwiseAnd(output, _regionOfInterest, fgMask);
                 fgMask.CopyTo(output);
                 fgMask.Dispose();
             }
