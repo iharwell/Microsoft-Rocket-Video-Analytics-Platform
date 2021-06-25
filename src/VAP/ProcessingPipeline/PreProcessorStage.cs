@@ -80,8 +80,7 @@ namespace ProcessingPipeline
                 return false;
             }
 
-            var bgsItems = Detector.DetectObjects(frame.TimeStamp, frame.FrameData, frame.FrameIndex, out Mat fg, this);
-            frame.ForegroundMask = fg;
+            var bgsItems = Detector.DetectObjects(frame.TimeStamp, frame, this);
             FramedItem.MergeIntoFramedItemList(bgsItems, ref items);
             return bgsItems != null && bgsItems.Count > 0;
         }
