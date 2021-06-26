@@ -43,8 +43,7 @@ namespace LibAvSharp.Util
 
         public int LineSizeItem( int index )
         {
-            
-            return (&_frame->linesize0)[index];
+            return _frame->linesize(index);
         }
 
         public IntPtr HWFramesContext => (IntPtr)_frame->hw_frames_ctx;

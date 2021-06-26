@@ -24,6 +24,8 @@ namespace Utils
         public static void CleanFolderAll()
         {
             CleanFolder(Config.OutputFolder.OutputFolderAll);
+            CleanFolder(Config.OutputFolder.OutputFolderVideo);
+            CleanFolder(Config.OutputFolder.OutputFolderXML);
             CleanFolder(Config.OutputFolder.OutputFolderBGSLine);
             CleanFolder(Config.OutputFolder.OutputFolderLtDNN);
             CleanFolder(Config.OutputFolder.OutputFolderCcDNN);

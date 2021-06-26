@@ -2,6 +2,25 @@
 {
     unsafe public struct AVFrame
     {
+        // Sure would be nice if this worked:
+        // public fixed byte* data[8];
+        public byte* data(int index)
+        {
+            switch (index)
+            {
+                case 0: return data0;
+                case 1: return data1;
+                case 2: return data2;
+                case 3: return data3;
+                case 4: return data4;
+                case 5: return data5;
+                case 6: return data6;
+                case 7: return data7;
+                default:
+                    throw new System.IndexOutOfRangeException();
+            }
+        }
+
         public byte* data0;
         public byte* data1;
         public byte* data2;
@@ -10,6 +29,23 @@
         public byte* data5;
         public byte* data6;
         public byte* data7;
+
+        public int linesize(int index)
+        {
+            switch (index)
+            {
+                case 0: return linesize0;
+                case 1: return linesize1;
+                case 2: return linesize2;
+                case 3: return linesize3;
+                case 4: return linesize4;
+                case 5: return linesize5;
+                case 6: return linesize6;
+                case 7: return linesize7;
+                default:
+                    throw new System.IndexOutOfRangeException();
+            }
+        }
         public int linesize0;
         public int linesize1;
         public int linesize2;
@@ -39,6 +75,40 @@
         public long reordered_opaque;
         public int sample_rate;
         public ulong channel_layout;
+
+
+        // Sure would be nice if this worked.
+        // public fixed AVBufferRef* buf[8];
+        public AVBufferRef* buf(int index)
+        {
+            if (index >= 8 || index < 0)
+            {
+                throw new System.IndexOutOfRangeException();
+            }
+            switch (index)
+            {
+                case 0:
+                    return buf0;
+                case 1:
+                    return buf1;
+                case 2:
+                    return buf2;
+                case 3:
+                    return buf3;
+                case 4:
+                    return buf4;
+                case 5:
+                    return buf5;
+                case 6:
+                    return buf6;
+                case 7:
+                    return buf7;
+                default:
+                    throw new System.IndexOutOfRangeException();
+            }
+
+        }
+
         public AVBufferRef* buf0;
         public AVBufferRef* buf1;
         public AVBufferRef* buf2;

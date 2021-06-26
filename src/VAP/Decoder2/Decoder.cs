@@ -1,5 +1,4 @@
 ﻿using System;
-using LibAvSharp;
 using LibAvSharp.Codec;
 using LibAvSharp.Format;
 using LibAvSharp.Native;
@@ -10,10 +9,11 @@ namespace Decoder2
 {
     public class Decoder
     {
-        const int maxAttempts = 512;
-        const int error_eof = -('E'|('O'<<8)|('F'<<16)|(' '<<24));
-        const long AV_NOPTS_VALUE = long.MinValue;
-        const int AVERROR_EAGAIN = -11;
+        private const int maxAttempts = 512;
+        private const int error_eof = -('E' | ('O' << 8) | ('F' << 16) | (' ' << 24));
+        private const long AV_NOPTS_VALUE = long.MinValue;
+        private const int AVERROR_EAGAIN = -11;
+
         internal unsafe struct AV_CV_IMAGE
         {
             internal byte* _data;
@@ -29,8 +29,6 @@ namespace Decoder2
         private int _streamIndex;
         private LibAvSharp.Format.AVStream _stream;
 
-        byte[] buffer;
-
         private Frame _picture;
         private Frame _rgb_frame;
         private Packet _packet;
@@ -40,10 +38,11 @@ namespace Decoder2
         private bool rawMode;
         private bool rawModeInitialized;
         private long frameNumber;
-        long picture_pts;
+        private long picture_pts;
         private long firstFrameNumber;
 
         private IntPtr img_convert_ctx;
+
         static Decoder()
         {
             LibAvSharp.Native.AVDeviceC.avdevice_register_all();
@@ -54,27 +53,29 @@ namespace Decoder2
             get
             {
                 long f = _stream.NumberFrames;
-                if ( f == 0 )
+                if (f == 0)
                 {
                     return (long)(Math.Floor(_stream.Duration * (double)_stream.TimeBase * get_fps() + 0.5));
                 }
                 return f;
             }
         }
+
         public double FPS => get_fps();
-        public Decoder( string file )
-            : this( file, 1.0, AVPixelFormat.AV_PIX_FMT_NONE )
+
+        public Decoder(string file)
+            : this(file, 1.0, AVPixelFormat.AV_PIX_FMT_NONE)
         {
         }
 
-        public Decoder( string file, double scaleFactor, AVPixelFormat format )
+        public Decoder(string file, double scaleFactor, AVPixelFormat format)
         {
             _file = file;
             _fctx = new FormatContext();
             _fctx.OpenInput(file);
             _fctx.FindStreamInfo();
             _streamIndex = 0;
-            _vctx = _fctx.OpenCodecContext(ref _streamIndex, LibAvSharp.Native.AVMediaType.AVMEDIA_TYPE_VIDEO, format);
+            _vctx = _fctx.OpenCodecContext(ref _streamIndex, AVMediaType.AVMEDIA_TYPE_VIDEO, format);
             _stream = _fctx.StreamItem(_streamIndex);
             _picture = new Frame();
             _rgb_frame = new Frame();
@@ -93,9 +94,9 @@ namespace Decoder2
             _fctx.Close();
         }
 
-        unsafe public OpenCvSharp.Mat GetNextFrame()
+        public unsafe OpenCvSharp.Mat GetNextFrame()
         {
-            IntPtr data= IntPtr.Zero;
+            IntPtr data = IntPtr.Zero;
             int step = 0;
             int width = 0;
             int height = 0;
@@ -139,23 +140,23 @@ namespace Decoder2
                 {
                     continue;
                 }
-                if( ret == error_eof )
+                if (ret == error_eof)
                 {
                     if (rawMode)
                         break;
                     _packet.FlushToIndex(_streamIndex);
                 }
-                if( _packet.StreamIndex != _streamIndex)
+                if (_packet.StreamIndex != _streamIndex)
                 {
                     _packet.Unref();
                     ++count_errs;
-                    if( count_errs > maxAttempts)
+                    if (count_errs > maxAttempts)
                     {
                         break;
                     }
                     continue;
                 }
-                if( rawMode )
+                if (rawMode)
                 {
                     valid = processRawPacket();
                     break;
@@ -181,7 +182,7 @@ namespace Decoder2
                     }
                     valid = true;
                 }
-                else if( ret == AVERROR_EAGAIN )
+                else if (ret == AVERROR_EAGAIN)
                 {
                     continue;
                 }
@@ -195,11 +196,11 @@ namespace Decoder2
                 }
             }
 
-            if( valid )
+            if (valid)
             {
                 ++frameNumber;
             }
-            if( !rawMode && valid && firstFrameNumber < 0)
+            if (!rawMode && valid && firstFrameNumber < 0)
             {
                 firstFrameNumber = dts_to_frame_number(picture_pts);
             }
@@ -212,17 +213,16 @@ namespace Decoder2
             {
                 return false;
             }
-            if( !rawModeInitialized)
+            if (!rawModeInitialized)
             {
                 rawModeInitialized = true;
                 //var evideoCodec = _stream.CodecID;
                 //string filterName = null;
-                
             }
             return true;
         }
 
-        private long dts_to_frame_number( long dts )
+        private long dts_to_frame_number(long dts)
         {
             double sec = dts_to_sec(dts);
             return (long)(get_fps() * sec + 0.5);
@@ -231,32 +231,32 @@ namespace Decoder2
         private double get_fps()
         {
             double fps = (double)_stream.AverageFrameRate;
-            if ( fps < double.Epsilon )
+            if (fps < double.Epsilon)
             {
                 fps = (double)_stream.AverageFrameRate;
             }
-            if( fps < double.Epsilon)
+            if (fps < double.Epsilon)
             {
                 fps = 1.0 / (double)(_vctx.TimeBase);
             }
             return fps;
         }
 
-        private double dts_to_sec( long dts )
+        private double dts_to_sec(long dts)
         {
             return (double)(dts - _stream.StartTime) * ((double)_stream.TimeBase);
         }
 
-        private void RotateFrame( Mat tmp )
+        private void RotateFrame(Mat tmp)
         {
             throw new NotImplementedException();
         }
 
-
         public double ScaleFactor { get; set; }
-        unsafe private bool cvRetrieveFrame( int n, ref IntPtr data, ref int step, ref int width, ref int height, ref int cn )
+
+        private unsafe bool cvRetrieveFrame(int n, ref IntPtr data, ref int step, ref int width, ref int height, ref int cn)
         {
-            if( rawMode )
+            if (rawMode)
             {
                 data = _packet.Data;
                 step = _packet.Size;
@@ -268,10 +268,10 @@ namespace Decoder2
 
             Frame f = _picture;
 
-            if (_picture != null && _picture.HWFramesContext != IntPtr.Zero )
+            if (_picture != null && _picture.HWFramesContext != IntPtr.Zero)
             {
                 f = new Frame();
-                if ( Frame.TransferHWFrame(f, _picture, 0) < 0 )
+                if (Frame.TransferHWFrame(f, _picture, 0) < 0)
                 {
                     throw new OpenCVException("Error copying data from GPU to CPU (av_hwframe_transfer_data)");
                     return false;
@@ -283,10 +283,10 @@ namespace Decoder2
                 return false;
             }
 
-            if( img_convert_ctx == IntPtr.Zero ||
+            if (img_convert_ctx == IntPtr.Zero ||
                 _image._width != _vctx.Width ||
                 _image._height != _vctx.Height ||
-                _image._data == null )
+                _image._data == null)
             {
                 // Need to scale
                 int bufferWidth = _vctx.CodedWidth;
@@ -296,12 +296,12 @@ namespace Decoder2
                                     img_convert_ctx,
                                     bufferWidth, bufferHeight,
                                     f.Format,
-                                    (int)(bufferWidth*ScaleFactor), (int)(bufferHeight*ScaleFactor),
+                                    (int)(bufferWidth * ScaleFactor), (int)(bufferHeight * ScaleFactor),
                                     LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_BGR24,
                                     LibAvSharp.Native.SWS_Flags.SWS_FAST_BILINEAR,
                                     IntPtr.Zero, IntPtr.Zero, null);
 
-                if ( img_convert_ctx == IntPtr.Zero )
+                if (img_convert_ctx == IntPtr.Zero)
                 {
                     return false;
                 }
@@ -311,7 +311,7 @@ namespace Decoder2
                 _rgb_frame.Height = (int)(bufferHeight * ScaleFactor);
                 _rgb_frame.Width = (int)(bufferWidth * ScaleFactor);
 
-                if( 0 != _rgb_frame.GetBuffer(64) )
+                if (0 != _rgb_frame.GetBuffer(64))
                 {
                     return false;
                 }
@@ -342,19 +342,19 @@ namespace Decoder2
             return true;
         }
 
-        private static int CV_MAKETYPE( OpenCvSharp.MatType depth, int cn )
+        private static int CV_MAKETYPE(OpenCvSharp.MatType depth, int cn)
         {
             return (CV_MAT_DEPTH(depth) + (((cn) - 1) << CV_CN_SHIFT));
         }
 
         private const int CV_CN_SHIFT = 3;
 
-        private static int CV_MAT_DEPTH( int flags )
+        private static int CV_MAT_DEPTH(int flags)
         {
             return flags & CV_MAT_DEPTH_MASK;
         }
 
         private const int CV_MAT_DEPTH_MASK = CV_DEPTH_MAX - 1;
-        private const int CV_DEPTH_MAX = 1<<CV_CN_SHIFT;
+        private const int CV_DEPTH_MAX = 1 << CV_CN_SHIFT;
     }
 }

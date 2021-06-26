@@ -24,13 +24,17 @@ namespace BGSObjectDetector
         private int _iterations1;
         private int _iterations2;*/
 
+        private const int MaxSize = 5;
+
+        public int InterStageThreshold { get; set; }
+
         public FastGaussian(double sigma, MatType type)
         {
             _sigma = sigma;
 
             _medianSizes = new List<int>();
             _iterations = new List<int>();
-
+            InterStageThreshold = 0;
 
             BuildIterations(sigma);
             /*double sigSq = _sigma * _sigma;
@@ -105,32 +109,57 @@ namespace BGSObjectDetector
                 BuildIterations(sigma, _medianSizes);
                 prevIterations = medianIterations;
                 medianIterations = _iterations.Sum();
-                if(medianIterations == prevIterations)
+                if (medianIterations == prevIterations)
                 {
                     break;
                 }
                 nextMedianSize = nextMedianSize + 2;
+                if(nextMedianSize > MaxSize)
+                {
+                    break;
+                }
             }
             while (medianIterations > 8)
                     ;
+
+            if (medianIterations < 4)
+            {
+                _medianSizes.RemoveAt(_medianSizes.Count-1);
+                BuildIterations(sigma, _medianSizes);
+            }
         }
 
         private void BuildIterations(double sigma, List<int> sizes)
         {
-            _medianSizes.Clear();
-            for (int i = 0; i < sizes.Count; i++)
+            if (!object.ReferenceEquals(sizes, _medianSizes))
             {
-                _medianSizes.Add(0);
+                _medianSizes.Clear();
+                _iterations.Clear();
+                for (int i = 0; i < sizes.Count; i++)
+                {
+                    _medianSizes.Add(sizes[i]);
+                    _iterations.Add(0);
+                }
+            }
+            else
+            {
+                _iterations.Clear();
+                for (int i = 0; i < sizes.Count; i++)
+                {
+                    _iterations.Add(0);
+                }
             }
 
-            double runningSigma = sigma;
+
+
+            double runningSigmaSq = sigma * sigma;
 
             for (int i = sizes.Count-1; i >= 0; --i)
             {
                 double dev = MedianBlurStdDev(sizes[i]);
-                int iterations = (int)(runningSigma / dev);
+                int iterations = (int)(runningSigmaSq / dev);
                 _iterations[i] = iterations;
-                runningSigma -= dev * iterations;
+                runningSigmaSq -= dev * iterations;
             }
         }
 
@@ -150,14 +179,20 @@ namespace BGSObjectDetector
                 //Cv2.Filter2D(input, output, ddepth, k);
                 k.Dispose();
             }*/
-
+            bool swapAgain = false;
             for (int i = 0; i < _medianSizes.Count; i++)
             {
                 int size = _medianSizes[i];
                 for (int j = 0; j < _iterations[i]; j++)
                 {
+                    swapAgain = true;
                     Cv2.MedianBlur(input, output, size);
                     (input, output) = (output, input);
+                    if(InterStageThreshold > 0)
+                    {
+                        Cv2.Threshold(input, output, InterStageThreshold, 255, ThresholdTypes.Binary);
+                        (input, output) = (output, input);
+                    }
                 }
             }
             /*
@@ -171,7 +206,11 @@ namespace BGSObjectDetector
                 Cv2.MedianBlur(input, output, _medianSize2);
                 (input, output) = (output, input);
             }*/
-            (input, output) = (output, input);
+
+            if (swapAgain)
+            {
+                (input, output) = (output, input);
+            }
         }
 
         private double MedianBlurStdDev(int blurSize)

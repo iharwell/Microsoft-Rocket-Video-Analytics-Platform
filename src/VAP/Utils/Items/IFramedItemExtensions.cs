@@ -221,6 +221,7 @@ namespace Utils.Items
                 return false;
             }
 
+
             var fiInSameFrame = FilterByFrame(framedItems, frameIndex);
 
             foreach ( var item in fiInSameFrame )
@@ -295,7 +296,7 @@ namespace Utils.Items
             RectangleF srcRect = framedItem.MeanBounds;
             int frameNum = framedItem.Frame.FrameIndex;
 
-            if (framedItem is FillerID)
+            if (framedItem.ItemIDs.Count == 1 && framedItem.ItemIDs[0] is FillerID)
             {
                 if (target.Count == 0)
                 {
@@ -347,7 +348,7 @@ namespace Utils.Items
             RectangleF srcRect = framedItem.MeanBounds;
             int frameNum = framedItem.Frame.FrameIndex;
 
-            if (framedItem is FillerID)
+            if (framedItem.ItemIDs.Count == 1 && framedItem.ItemIDs[0] is FillerID)
             {
                 if (target.Count == 0)
                 {
@@ -362,6 +363,7 @@ namespace Utils.Items
                 {
                     continue;
                 }
+
                 var tgtRect = item.MeanBounds;
                 double s2t = framedItem.Similarity(tgtRect);
                 if (s2t > overlapValue)

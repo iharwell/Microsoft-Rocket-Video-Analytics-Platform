@@ -29,21 +29,24 @@ namespace VideoPipelineCore
 {
     internal class Program2
     {
+
         private const int BUFFERSIZE = 180;
         private const int UPDATEPERIOD = 128;
         private const int UPDATEMASK = UPDATEPERIOD - 1;
         private const int GCPERIOD = 256;
         private const int GCMASK = GCPERIOD - 1;
 
-        private const double SimilarityThreshold = 0.2;
+        private const double MergeSimThreshold = 0.2;
+        private const double IoUSimThreshold = 0.15;
+        private const double PolySimThreshold = 0.15;
 
         internal static void Main(string[] args)
         {
             //parse arguments
-            if (args.Length < 4)
+            if (args.Length < 5)
             {
                 Console.WriteLine(args.Length);
-                Console.WriteLine("Usage: <exe> <folder> <cfg file> <samplingFactor> <resolutionFactor> <category1> <category2> ...");
+                Console.WriteLine("Usage: <exe> <folder or file> <cfg file> <output folder> <samplingFactor> <resolutionFactor> <category1> <category2> ...");
                 return;
             }
             string videoUrl = args[0];
@@ -58,13 +61,14 @@ namespace VideoPipelineCore
                 videoUrl = args[0];
             }
             string lineFile = args[1];
-            int samplingFactor = int.Parse(args[2]);
-            double resolutionFactor = double.Parse(args[3]);
+            Utils.Config.OutputFolder.OutputFolderBase = args[2];
+            int samplingFactor = int.Parse(args[3]);
+            double resolutionFactor = double.Parse(args[4]);
             var decoder = Decoder.DecoderFFMPEG.GetDirectoryDecoder(videoUrl, resolutionFactor);
             decoder.BeginReading();
 
             HashSet<string> category = new HashSet<string>();
-            for (int i = 4; i < args.Length; i++)
+            for (int i = 5; i < args.Length; i++)
             {
                 category.Add(args[i]);
             }
@@ -76,8 +80,8 @@ namespace VideoPipelineCore
             bool displayBGSVideo = false;
             Utils.Utils.CleanFolderAll();
 
-            var polyPredictor = new PiecewisePredictor(8.0);
-            IoUPredictor ioUPredictor = new IoUPredictor();
+            var polyPredictor = new Utils.Items.CenterPolyPredictor();
+            var ioUPredictor = new Utils.Items.PiecewisePredictor(6.0);
 
             //-----FramedItem buffer for tracking item paths-----
             IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(51);
@@ -211,15 +215,14 @@ namespace VideoPipelineCore
                     bool pathFound = false;
                     for (int i = 0; i < itemPaths.Count; i++)
                     {
-                        if(MotionTracker.MotionTracker.TestAndAdd(itemList,ioUPredictor,itemPaths[i], SimilarityThreshold))
+                        if (MotionTracker.MotionTracker.TestAndAdd(itemList, ioUPredictor, itemPaths[i], IoUSimThreshold))
                         {
                             MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
                         }
-                        else if(MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], SimilarityThreshold))
+                        else if(MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], PolySimThreshold))
                         {
                             MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
                         }/**/
-                        WritePaths(itemPaths, frameRate, ref videoNumber, frameMainIndex, BUFFERSIZE);
                     }
 
                     foreach (var item in itemList)
@@ -234,19 +237,19 @@ namespace VideoPipelineCore
 
                         if (source.GetType() == lastStage.GetType() || source.GetType() == secondToLastStage.GetType())
                         {
-                            var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer(item, framedItemBuffer, ioUPredictor, SimilarityThreshold);
+                            var path = MotionTracker.MotionTracker.GetPathFromIdAndBuffer(item, framedItemBuffer, ioUPredictor, IoUSimThreshold);
                             int prevCount;
                             int currentCount = path.FramedItems.Count;
                             do
                             {
                                 prevCount = currentCount;
-                                MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, polyPredictor, SimilarityThreshold);
+                                MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, polyPredictor, PolySimThreshold);
                                 currentCount = path.FramedItems.Count;
 
                                 if (currentCount > prevCount)
                                 {
                                     prevCount = currentCount;
-                                    MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, ioUPredictor, SimilarityThreshold);
+                                    MotionTracker.MotionTracker.ExpandPathFromBuffer(path, framedItemBuffer, ioUPredictor, IoUSimThreshold);
                                     currentCount = path.FramedItems.Count;
                                 }
                             } while (currentCount > prevCount)
@@ -258,17 +261,18 @@ namespace VideoPipelineCore
                     }
                     if (pathFound)
                     {
-                        MotionTracker.MotionTracker.TryMergePaths(ref itemPaths);
+                        MotionTracker.MotionTracker.TryMergePaths(ref itemPaths, MergeSimThreshold);
                     }
 
-                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, SimilarityThreshold, SimilarityThreshold / 2);
+                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, MergeSimThreshold, MergeSimThreshold / 2);
 
+                    WritePaths(itemPaths, frameRate, ref videoNumber, frameMainIndex, BUFFERSIZE);
 
                     while (framedItemBuffer.Count > BUFFERSIZE || framedItemBuffer[0].Count == 0)
                     {
                         framedItemBuffer.RemoveAt(0);
                     }
-                    framedItemBuffer = MotionTracker.MotionTracker.GroupByFrame(framedItemBuffer, SimilarityThreshold, SimilarityThreshold / 2);
+                    framedItemBuffer = MotionTracker.MotionTracker.GroupByFrame(framedItemBuffer, MergeSimThreshold, MergeSimThreshold / 2);
                 }
                 else
                 {
@@ -276,7 +280,7 @@ namespace VideoPipelineCore
                     IFramedItem dummyItem = new FramedItem();
                     dummyItem.Frame = frame;
                     dummylist.Add(dummyItem);
-                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, SimilarityThreshold, SimilarityThreshold / 2);
+                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, MergeSimThreshold, MergeSimThreshold / 2);
                     while ( framedItemBuffer.Count > BUFFERSIZE || (framedItemBuffer.Count>0 && framedItemBuffer[0].Count == 0))
                     {
                         framedItemBuffer.RemoveAt(0);
@@ -356,7 +360,7 @@ namespace VideoPipelineCore
                 int conIDIndex = path.HighestConfidenceIDIndex;
                 IFrame conframe = path.FramedItems[conFrameIndex].Frame;
                 string name = path.FramedItems[conFrameIndex].ItemIDs[conIDIndex].ObjName + " " + i + ".mp4";
-                OpenCvSharp.VideoWriter writer = new VideoWriter(name, FourCC.H265, frameRate, conframe.FrameData.Size());
+                OpenCvSharp.VideoWriter writer = new VideoWriter(Utils.Config.OutputFolder.OutputFolderVideo+name, FourCC.H265, frameRate, conframe.FrameData.Size());
 
                 var fItems = from fi in path.FramedItems
                              let f = fi.Frame
@@ -388,7 +392,7 @@ namespace VideoPipelineCore
                 int conIDIndex = path.HighestConfidenceIDIndex;
                 IFrame conframe = path.FramedItems[conFrameIndex].Frame;
                 string name = path.FramedItems[conFrameIndex].ItemIDs[conIDIndex].ObjName + " " + videoNumber + ".mp4";
-                OpenCvSharp.VideoWriter writer = new VideoWriter(name, FourCC.H265, frameRate, conframe.FrameData.Size());
+                OpenCvSharp.VideoWriter writer = new VideoWriter(Utils.Config.OutputFolder.OutputFolderVideo + name, FourCC.H265, frameRate, conframe.FrameData.Size());
 
                 var fItems = from fi in path.FramedItems
                              let f = fi.Frame
@@ -415,7 +419,7 @@ namespace VideoPipelineCore
                 if (paths[0] is ItemPath p)
                 {
                     string xmlname = output + videoNumber;
-                    using StreamWriter swriter = new StreamWriter(xmlname + ".xml");
+                    using StreamWriter swriter = new StreamWriter(Utils.Config.OutputFolder.OutputFolderXML+xmlname + ".xml");
                     serializer.WriteObject(swriter.BaseStream, p);
                     swriter.Flush();
                     swriter.Close();

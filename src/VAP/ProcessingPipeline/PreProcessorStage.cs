@@ -22,6 +22,7 @@ namespace ProcessingPipeline
         public PreProcessorStage()
         {
             Detector = new BGSObjectDetector.BGSObjectDetector();
+            Detector.DrawBoxes = true;
             BoundingBoxColor = Color.Gray;
             SamplingFactor = 1;
             ResolutionFactor = 1;
@@ -45,6 +46,7 @@ namespace ProcessingPipeline
         public PreProcessorStage(Color bboxColor, int samplingFactor, double resolutionFactor)
         {
             Detector = new BGSObjectDetector.BGSObjectDetector();
+            Detector.DrawBoxes = true;
             BoundingBoxColor = bboxColor;
             SamplingFactor = samplingFactor;
             ResolutionFactor = resolutionFactor;
@@ -68,7 +70,7 @@ namespace ProcessingPipeline
         public double ResolutionFactor { get; set; }
 
         /// <inheritdoc/>
-        public bool DisplayOutput { get; set; }
+        public bool DisplayOutput { get => Detector.DisplayBGS; set => Detector.DisplayBGS = value; }
 
         public double MergeThreshold { get; set; }
 

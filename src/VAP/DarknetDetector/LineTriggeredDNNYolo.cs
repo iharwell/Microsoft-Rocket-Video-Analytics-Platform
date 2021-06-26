@@ -164,6 +164,7 @@ namespace DarknetDetector
                             --frameIndexYolo;
                             continue;
                         }
+
                         for (int i = 0; i < trigItems.Count && trigItems.Count>0; i++)
                         {
                             int lineID = Array.IndexOf(counts.Keys.ToArray(), trigItems[i].trigId.TriggerLine);

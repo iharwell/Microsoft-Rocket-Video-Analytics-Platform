@@ -613,7 +613,7 @@ namespace MotionTracker
         /// <param name="paths">
         ///   The set of paths to merge together.
         /// </param>
-        public static void TryMergePaths(ref IList<IItemPath> paths)
+        public static void TryMergePaths(ref IList<IItemPath> paths, double similarityThreshold)
         {
             IList<IItemPath> outPaths = new List<IItemPath>();
 
@@ -658,7 +658,7 @@ namespace MotionTracker
                         {
                             continue;
                         }
-                        if( AreFramedItemsMatched(srcFi, tgtFi))
+                        if( AreFramedItemsMatched(srcFi, tgtFi, similarityThreshold))
                         {
                             foreach (var fi in tgtPath.FramedItems)
                             {
@@ -719,7 +719,7 @@ namespace MotionTracker
             return false;
         }
 
-        private static bool AreFramedItemsMatched( IFramedItem item1, IFramedItem item2)
+        private static bool AreFramedItemsMatched( IFramedItem item1, IFramedItem item2, double similarityThreshold)
         {
             if( item1.Frame.FrameIndex != item2.Frame.FrameIndex)
             {
@@ -741,6 +741,10 @@ namespace MotionTracker
                         return true;
                     }
                 }
+            }
+            if(item1.Similarity(item2.MeanBounds) >= similarityThreshold)
+            {
+                return true;
             }
             return false;
         }
