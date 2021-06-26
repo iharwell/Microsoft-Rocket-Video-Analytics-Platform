@@ -30,12 +30,12 @@ namespace VideoPipelineCore
     internal class Program2
     {
         private const int BUFFERSIZE = 180;
-        private const int UPDATEPERIOD = 64;
+        private const int UPDATEPERIOD = 128;
         private const int UPDATEMASK = UPDATEPERIOD - 1;
         private const int GCPERIOD = 256;
         private const int GCMASK = GCPERIOD - 1;
 
-        private const double SimilarityThreshold = 0.25;
+        private const double SimilarityThreshold = 0.2;
 
         internal static void Main(string[] args)
         {
@@ -261,14 +261,14 @@ namespace VideoPipelineCore
                         MotionTracker.MotionTracker.TryMergePaths(ref itemPaths);
                     }
 
-                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList);
+                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, SimilarityThreshold, SimilarityThreshold / 2);
 
 
                     while (framedItemBuffer.Count > BUFFERSIZE || framedItemBuffer[0].Count == 0)
                     {
                         framedItemBuffer.RemoveAt(0);
                     }
-                    framedItemBuffer = MotionTracker.MotionTracker.GroupByFrame(framedItemBuffer);
+                    framedItemBuffer = MotionTracker.MotionTracker.GroupByFrame(framedItemBuffer, SimilarityThreshold, SimilarityThreshold / 2);
                 }
                 else
                 {
@@ -276,7 +276,7 @@ namespace VideoPipelineCore
                     IFramedItem dummyItem = new FramedItem();
                     dummyItem.Frame = frame;
                     dummylist.Add(dummyItem);
-                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList);
+                    MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, SimilarityThreshold, SimilarityThreshold / 2);
                     while ( framedItemBuffer.Count > BUFFERSIZE || (framedItemBuffer.Count>0 && framedItemBuffer[0].Count == 0))
                     {
                         framedItemBuffer.RemoveAt(0);

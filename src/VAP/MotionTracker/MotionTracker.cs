@@ -490,7 +490,7 @@ namespace MotionTracker
         /// <returns>
         ///   Returns the merged, sorted set of combined items.
         /// </returns>
-        public static IList<IList<IFramedItem>> InsertIntoSortedBuffer( IList<IList<IFramedItem>> buffer, IList<IFramedItem> unsortedSet )
+        public static IList<IList<IFramedItem>> InsertIntoSortedBuffer(IList<IList<IFramedItem>> buffer, IList<IFramedItem> unsortedSet, double mergeThreshold, double nameBoost)
         {
             if(unsortedSet.Count == 0)
             {
@@ -500,7 +500,7 @@ namespace MotionTracker
             if(buffer.Count == 0)
             {
                 buffer.Add(unsortedSet);
-                return GroupByFrame(buffer);
+                return GroupByFrame(buffer, mergeThreshold, nameBoost);
             }
 
             int bmin = buffer[0][0].Frame.FrameIndex;
@@ -556,7 +556,7 @@ namespace MotionTracker
                 }
                 else
                 {
-                    FramedItem.MergeIntoFramedItemList(item, ref dst);
+                    item.MergeIntoFramedItemList(ref dst, false, mergeThreshold, nameBoost);
                 }
             }
             return destList;
@@ -571,7 +571,7 @@ namespace MotionTracker
         /// <returns>
         ///   Returns a sorted buffer where the first index corresponds to a specific frame number common to all items at that index.
         /// </returns>
-        public static IList<IList<IFramedItem>> GroupByFrame(IList<IList<IFramedItem>> buffer)
+        public static IList<IList<IFramedItem>> GroupByFrame(IList<IList<IFramedItem>> buffer, double mergeThreshold, double nameBoost)
         {
             var allFramedItems = from IList<IFramedItem> subList in buffer
                                  from IFramedItem item in subList
@@ -601,7 +601,7 @@ namespace MotionTracker
                 IList<IFramedItem> itemSet = organizedFrames[frameIndex - minFrame];
                 foreach (var item in grouping)
                 {
-                    FramedItem.MergeIntoFramedItemList(item, ref itemSet);
+                    item.MergeIntoFramedItemList(ref itemSet, false, mergeThreshold, nameBoost);
                 }
             }
             return organizedFrames;

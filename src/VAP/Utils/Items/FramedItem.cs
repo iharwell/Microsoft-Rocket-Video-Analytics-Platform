@@ -21,9 +21,6 @@ namespace Utils.Items
     [KnownType(typeof(LineTriggeredItemID))]
     public class FramedItem : IFramedItem
     {
-        private const double SimThreshWOName = 0.6;
-        private const double NameBoost = 0.2;
-
         /// <summary>
         ///   Creates an empty <see cref="FramedItem" />.
         /// </summary>
@@ -104,12 +101,12 @@ namespace Utils.Items
             {
                 if (_medianItemCount != ItemIDs.Count || !_median.HasValue)
                 {
-                    if (ItemIDs[HighestConfidenceIndex].Confidence > 0)
+                    /*if (ItemIDs[HighestConfidenceIndex].Confidence > 0)
                     {
                         _median = ItemIDs[HighestConfidenceIndex].BoundingBox;
                         _medianItemCount = ItemIDs.Count;
                     }
-                    else if (ItemIDs.Count < _medianItemCount || !_median.HasValue)
+                    else */if (ItemIDs.Count < _medianItemCount || !_median.HasValue)
                     {
                         _median = StatisticRectangle.MeanBox(ItemIDs);
                         _medianItemCount = ItemIDs.Count;
@@ -160,39 +157,7 @@ namespace Utils.Items
             return output;
             //return TaggedImageData( itemIDIndex, new SolidBrush( tagColor ) );
         }
-
-        /// <inheritdoc />
-        public double Similarity(Rectangle rect)
-        {
-            if (MeanBounds.X <= rect.Right && rect.X <= MeanBounds.Right && MeanBounds.Y <= rect.Bottom && rect.Y <= MeanBounds.Bottom)
-            {
-                // There is some overlap, so we will give a positive similarity score.
-                double ovX = Math.Max(rect.X, MeanBounds.X);
-                double ovY = Math.Max(rect.Y, MeanBounds.Y);
-                double ovW = Math.Min(rect.Right, MeanBounds.Right) - ovX;
-                double ovH = Math.Min(rect.Bottom, MeanBounds.Bottom) - ovY;
-
-                double overlapArea = ovW * ovH;
-                // Percent of rect in the mean.
-                double overlapPercentRect = overlapArea / (rect.Width * rect.Height);
-                double overlapPercentMean = overlapArea / (MeanBounds.Width * MeanBounds.Height);
-                return overlapPercentRect * overlapPercentMean;
-            }
-            else
-            {
-                // there is no overlap, so we'll give it a negative similarity score.
-                double distSq = PointTools.DistanceSquared(rect.Center(), MeanBounds.Center());
-                double diagSq1 = rect.DiagonalSquared();
-                double diagSq2 = MeanBounds.DiagonalSquared();
-                double normalizedDistance1 = distSq / diagSq1;
-                double normalizedDistance2 = distSq / diagSq2;
-                double sizeFactor = Math.Max(MeanBounds.Width, rect.Width) / Math.Min(MeanBounds.Width, rect.Width)
-                                  * Math.Max(MeanBounds.Height, rect.Height) / Math.Min(MeanBounds.Height, rect.Height);
-
-                return -(normalizedDistance1 * normalizedDistance2) * sizeFactor;
-            }
-        }
-
+        /*
         public static bool InsertIntoFramedItemList(IList<IFramedItem> framedItems, IItemID itemID, out IFramedItem framedItem, int frameIndex = -1)
         {
             int bestIndex = 0;
@@ -223,7 +188,7 @@ namespace Utils.Items
                 return true;
             }
         }
-
+        */
         private static Rect ToRect(Rectangle r)
         {
             OpenCvSharp.Point p = new OpenCvSharp.Point(r.X, r.Y);
@@ -231,9 +196,8 @@ namespace Utils.Items
             return new Rect(p, s);
         }
 
-        public static IList<IFramedItem> MergeIntoFramedItemList(IList<IFramedItem> source, ref IList<IFramedItem> target)
+        public static IList<IFramedItem> MergeFramedItemLists(IList<IFramedItem> source, ref IList<IFramedItem> target, double mergeThreshold, double nameBoost)
         {
-            //TODO(iharwell): Add algorithm to merge IFramedItems based on very high similarity scores.
             if (target is null)
             {
                 target = source;
@@ -245,20 +209,20 @@ namespace Utils.Items
 
             for (int i = 0; i < source.Count; i++)
             {
-                var pids = PositiveIDIndices(source[i].ItemIDs);
+                var pids = source[i].PositiveIDIndices();
                 if (pids.Count > 0)
                 {
-                    MergeUsingName(source[i], ref target, BestIDName(source[i].ItemIDs), false);
+                    source[i].MergeUsingName(ref target, source[i].BestIDName(), false, mergeThreshold, nameBoost);
                 }
                 else
                 {
-                    MergeWithoutName(source[i], ref target, false);
+                    source[i].MergeWithoutName(ref target, false, mergeThreshold);
                 }
             }
 
             return target;
         }
-
+        /*
         public static IList<IFramedItem> MergeIntoFramedItemList(IFramedItem item, ref IList<IFramedItem> target, bool includeFiller)
         {
             //TODO(iharwell): Add algorithm to merge IFramedItems based on very high similarity scores.
@@ -405,7 +369,6 @@ namespace Utils.Items
             RemoveFiller(ref target);
             return target;
         }
-
         private static IList<int> PositiveIDIndices(IList<IItemID> itemIDs)
         {
             List<int> indices = new List<int>();
@@ -432,6 +395,6 @@ namespace Utils.Items
                 }
             }
             return name;
-        }
+        }*/
     }
 }

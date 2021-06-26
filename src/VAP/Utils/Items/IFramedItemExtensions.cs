@@ -246,7 +246,7 @@ namespace Utils.Items
                     }
                 }
             }*/
-            if (bestSimilarity > 0.2)
+            if (bestSimilarity > 0.05)
             {
                 framedItem = framedItems[bestIndex];
                 framedItem.ItemIDs.Add(itemID);
@@ -260,11 +260,190 @@ namespace Utils.Items
             }
         }
 
+        public static IList<IFramedItem> MergeIntoFramedItemList(this IFramedItem item, ref IList<IFramedItem> target, bool includeFiller, double mergeThreshold, double nameBoost)
+        {
+            //TODO(iharwell): Add algorithm to merge IFramedItems based on very high similarity scores.
+            if (item is null)
+            {
+                return target;
+            }
+
+            if (target.Count == 0)
+            {
+                target.Add(item);
+            }
+            else
+            {
+                var pids = PositiveIDIndices(item.ItemIDs);
+                if (pids.Count > 0)
+                {
+                    MergeUsingName(item, ref target, item.BestIDName(), includeFiller, mergeThreshold, nameBoost);
+                }
+                else
+                {
+                    MergeWithoutName(item, ref target, includeFiller, mergeThreshold);
+                }
+            }
+
+            return target;
+        }
+
+        public static IList<IFramedItem> MergeUsingName(this IFramedItem framedItem, ref IList<IFramedItem> target, string v, bool includeFiller, double mergeThreshold, double nameBoost)
+        {
+            IFramedItem bestMatch = null;
+            double overlapValue = -999999999999;
+            RectangleF srcRect = framedItem.MeanBounds;
+            int frameNum = framedItem.Frame.FrameIndex;
+
+            if (framedItem is FillerID)
+            {
+                if (target.Count == 0)
+                {
+                    target.Add(framedItem);
+                }
+                return target;
+            }
+
+            foreach (IFramedItem item in target)
+            {
+                if (item.Frame.FrameIndex != frameNum)
+                {
+                    continue;
+                }
+                string targetName = item.BestIDName();
+                double mergeBoost = 0.0;
+                if (targetName != null && targetName.CompareTo(v) == 0)
+                {
+                    mergeBoost = nameBoost;
+                }
+                var tgtRect = item.MeanBounds;
+                double s2t = framedItem.Similarity(tgtRect);
+                double avg = s2t + mergeBoost;
+                if (avg > overlapValue)
+                {
+                    overlapValue = avg;
+                    bestMatch = item;
+                }
+            }
+            if (overlapValue >= mergeThreshold)
+            {
+                for (int i = 0; i < framedItem.ItemIDs.Count; i++)
+                {
+                    bestMatch.ItemIDs.Add(framedItem.ItemIDs[i]);
+                }
+            }
+            else
+            {
+                // No match found
+                target.Add(framedItem);
+            }
+            RemoveFiller(ref target);
+            return target;
+        }
+        public static IList<IFramedItem> MergeWithoutName(this IFramedItem framedItem, ref IList<IFramedItem> target, bool includeFiller, double mergeThreshold)
+        {
+            IFramedItem bestMatch = null;
+            double overlapValue = -999999999999;
+            RectangleF srcRect = framedItem.MeanBounds;
+            int frameNum = framedItem.Frame.FrameIndex;
+
+            if (framedItem is FillerID)
+            {
+                if (target.Count == 0)
+                {
+                    target.Add(framedItem);
+                }
+                return target;
+            }
+
+            foreach (IFramedItem item in target)
+            {
+                if (item.Frame.FrameIndex != frameNum)
+                {
+                    continue;
+                }
+                var tgtRect = item.MeanBounds;
+                double s2t = framedItem.Similarity(tgtRect);
+                if (s2t > overlapValue)
+                {
+                    overlapValue = s2t;
+                    bestMatch = item;
+                }
+            }
+            if (overlapValue >= mergeThreshold)
+            {
+                for (int i = 0; i < framedItem.ItemIDs.Count; i++)
+                {
+                    bestMatch.ItemIDs.Add(framedItem.ItemIDs[i]);
+                }
+            }
+            else
+            {
+                // No match found
+                target.Add(framedItem);
+            }
+            RemoveFiller(ref target);
+            return target;
+        }
+        public static string BestIDName(this IFramedItem item)
+        {
+            string name = null;
+            double bestConfidence = 0;
+            for (int i = 0; i < item.ItemIDs.Count; i++)
+            {
+                if (item.ItemIDs[i].Confidence > bestConfidence)
+                {
+                    name = item.ItemIDs[i].ObjName;
+                    bestConfidence = item.ItemIDs[i].Confidence;
+                }
+            }
+            return name;
+        }
+        public static IList<int> PositiveIDIndices(this IFramedItem item)
+        {
+            List<int> indices = new List<int>();
+            for (int i = 0; i < item.ItemIDs.Count; i++)
+            {
+                if (item.ItemIDs[i].Confidence > 0 && item.ItemIDs[i].ObjName != null)
+                {
+                    indices.Add(i);
+                }
+            }
+            return indices;
+        }
+
+        public static IList<int> PositiveIDIndices(IList<IItemID> itemIDs)
+        {
+            List<int> indices = new List<int>();
+            for (int i = 0; i < itemIDs.Count; i++)
+            {
+                if (itemIDs[i].Confidence > 0 && itemIDs[i].ObjName != null)
+                {
+                    indices.Add(i);
+                }
+            }
+            return indices;
+        }
+
         private static IEnumerable<IFramedItem> FilterByFrame(IList<IFramedItem> framedItems, int frameIndex)
         {
             return from item in framedItems
                    where item.Frame.FrameIndex == frameIndex
                    select item;
+        }
+        public static void RemoveFiller(ref IList<IFramedItem> list)
+        {
+            bool fillerFound = false;
+            if (list.Count > 1)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (list[i] is FillerID)
+                    {
+                        list.RemoveAt(i);
+                    }
+                }
+            }
         }
     }
 }

@@ -70,6 +70,10 @@ namespace ProcessingPipeline
         /// <inheritdoc/>
         public bool DisplayOutput { get; set; }
 
+        public double MergeThreshold { get; set; }
+
+        public double NameBoost { get; set; }
+
         /// <inheritdoc/>
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
@@ -81,7 +85,7 @@ namespace ProcessingPipeline
             }
 
             var bgsItems = Detector.DetectObjects(frame.TimeStamp, frame, this);
-            FramedItem.MergeIntoFramedItemList(bgsItems, ref items);
+            FramedItem.MergeFramedItemLists(bgsItems, ref items, MergeThreshold, NameBoost);
             return bgsItems != null && bgsItems.Count > 0;
         }
     }
