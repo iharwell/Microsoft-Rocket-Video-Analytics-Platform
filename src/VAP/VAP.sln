@@ -37,6 +37,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotionTracker", "MotionTrac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessingPipeline", "ProcessingPipeline\ProcessingPipeline.csproj", "{6075DA20-D9EA-4A2D-984D-9FBF40E7991C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibAvSharp", "LibAvSharp\LibAvSharp.csproj", "{9A38583C-F304-4C66-A264-857933189507}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Decoder2", "Decoder2\Decoder2.csproj", "{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +185,22 @@ Global
 		{6075DA20-D9EA-4A2D-984D-9FBF40E7991C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6075DA20-D9EA-4A2D-984D-9FBF40E7991C}.Release|x64.ActiveCfg = Release|x64
 		{6075DA20-D9EA-4A2D-984D-9FBF40E7991C}.Release|x64.Build.0 = Release|x64
+		{9A38583C-F304-4C66-A264-857933189507}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A38583C-F304-4C66-A264-857933189507}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A38583C-F304-4C66-A264-857933189507}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9A38583C-F304-4C66-A264-857933189507}.Debug|x64.Build.0 = Debug|Any CPU
+		{9A38583C-F304-4C66-A264-857933189507}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A38583C-F304-4C66-A264-857933189507}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A38583C-F304-4C66-A264-857933189507}.Release|x64.ActiveCfg = Release|Any CPU
+		{9A38583C-F304-4C66-A264-857933189507}.Release|x64.Build.0 = Release|Any CPU
+		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Debug|x64.Build.0 = Debug|Any CPU
+		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Release|x64.ActiveCfg = Release|Any CPU
+		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
