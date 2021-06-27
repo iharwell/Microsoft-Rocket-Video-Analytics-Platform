@@ -81,10 +81,10 @@ namespace VideoPipelineCore
             Utils.Utils.CleanFolderAll();
 
             var polyPredictor = new Utils.Items.CenterPolyPredictor();
-            var ioUPredictor = new Utils.Items.PiecewisePredictor(6.0);
+            var ioUPredictor = new Utils.Items.PiecewisePredictor(8.0);
 
             //-----FramedItem buffer for tracking item paths-----
-            IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(51);
+            IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(BUFFERSIZE+1);
 
             //-----Decoder-----
             //Decoder.Decoder2V decoder = new Decoder.Decoder2V(videoUrl, resolutionFactor, loop);
