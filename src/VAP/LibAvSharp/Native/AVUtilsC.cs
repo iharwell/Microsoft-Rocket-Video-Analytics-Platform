@@ -94,6 +94,10 @@ namespace LibAvSharp.Native
         extern public static int av_file_map( [In] string filename, [Out] out byte* bufptr, out ulong size, int log_offset, void* log_ctx );
 
         [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
-        extern public static int av_file_unmap( byte* bufptr, ulong size );
+        extern public static int av_file_unmap(byte* bufptr, ulong size);
+
+
+        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        extern public static byte* av_strdup(string str);
     }
 }

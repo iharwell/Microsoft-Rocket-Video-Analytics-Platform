@@ -70,12 +70,12 @@ namespace LibAvSharp.Format
 
                 AVCodecContext* dec_ctx = AVCodecC.avcodec_alloc_context3(dec);
                 CodecContext context = new CodecContext(dec_ctx);
-                context.PixelFormat = format;
                 if ( dec_ctx == null )
                 {
                     throw new NullReferenceException();
                 }
                 int ret = AVCodecC.avcodec_parameters_to_context(context._native_context, st->codecpar);
+                context.PixelFormat = format;
                 if ( ret<0 )
                 {
                     throw new Exception();

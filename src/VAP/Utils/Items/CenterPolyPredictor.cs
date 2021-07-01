@@ -60,7 +60,6 @@ namespace Utils.Items
 
         private CenterPolyPathModel MakeModel( IItemPath path )
         {
-            int order = Math.Min(3, Math.Max(0, path.FramedItems.Count / 4));
 
             var centersAndSizes = from item in path.FramedItems
                                   where !(item.ItemIDs.Count == 1 && item.ItemIDs[0] is FillerID)
@@ -68,6 +67,7 @@ namespace Utils.Items
                                   select (item.Frame.FrameIndex, new PointF(mb.X + mb.Width / 2, mb.Y + mb.Height / 2), mb.Size);
 
             List<(int frame, PointF center, SizeF size)> cAndS = new List<(int frame, PointF center, SizeF size)>(centersAndSizes);
+            int order = Math.Min(3, Math.Max(0, cAndS.Count / 4));
             var model = new CenterPolyPathModel();
 
             var frameSet = (from entry in cAndS

@@ -26,9 +26,12 @@ namespace Decoder
         };
 
         private readonly bool _toLoop;
-        private Task fileTask;
+        private Task _fileTask;
+        private Task _disposalTask;
         private volatile Decoder2.Decoder _inner;
         private volatile Decoder2.Decoder _innerNext;
+
+        private ConcurrentBag<Decoder2.Decoder> _disposables;
         private ConcurrentQueue<Frame> _matQueue;
         private volatile bool _nextFileReady;
         private int _queuesize = 750;
@@ -40,6 +43,7 @@ namespace Decoder
         public DecoderFFMPEG(string input, double scale, bool loop)
         {
             _matQueue = new ConcurrentQueue<Frame>();
+            _disposables = new ConcurrentBag<Decoder2.Decoder>();
             PathIndex = 0;
             FilePaths = new List<string>();
             _toLoop = loop;
@@ -49,7 +53,7 @@ namespace Decoder
 
             if (input != null)
             {
-                _inner = new Decoder2.Decoder(input, scale, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_P016LE);
+                _inner = new Decoder2.Decoder(input, scale, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_NV12);
                 FilePaths.Add(input);
             }
             else
@@ -94,6 +98,13 @@ namespace Decoder
                 return val;
             }
         }
+
+        public delegate DateTime TimeParser(IFrame frame);
+
+        public delegate string NameParser(IFrame frame);
+
+        public TimeParser TimeStampParser { get; set; }
+        public NameParser CameraNameParser { get; set; }
 
         public static DecoderFFMPEG GetDirectoryDecoder(string folder, double scale)
         {
@@ -167,10 +178,12 @@ namespace Decoder
 
         public void BeginReading()
         {
-            fileTask = new Task(() => PreloadFiles());
-            fileTask.Start();
+            _fileTask = new Task(() => PreloadFiles());
+            _fileTask.Start();
             _queueTask = new Task(() => RunDecode());
             _queueTask.Start();
+            _disposalTask = new Task(() => TrashDisposal());
+            _disposalTask.Start();
         }
 
         public IFrame GetNextFrame()
@@ -204,6 +217,14 @@ namespace Decoder
             Frame f = new Frame();
             f.FrameData = _internalGetFrame();
             f.SourceName = FilePath;
+            if (TimeStampParser != null)
+            {
+                f.TimeStamp = TimeStampParser(f);
+            }
+            if (CameraNameParser != null)
+            {
+                f.CameraName = CameraNameParser(f);
+            }
             return f;
         }
 
@@ -236,7 +257,7 @@ namespace Decoder
             if (PathIndex < FilePaths.Count - 1)
             {
                 Decoder2.Decoder tmp;
-                if (fileTask == null)
+                if (_fileTask == null)
                 {
                     tmp = new Decoder2.Decoder(FilePath, _scale, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_P016LE);
                 }
@@ -252,11 +273,13 @@ namespace Decoder
                 }
                 int preCount = _matQueue.Count;
                 bool lockGot = false;
+                Decoder2.Decoder tmpDecoder = null;
                 try
                 {
                     _spinner.Enter(ref lockGot);
                     ++PathIndex;
                     _inner.Close();
+                    tmpDecoder=(_inner);
                     _inner = tmp;
                     _readFrames = 0;
                 }
@@ -266,6 +289,10 @@ namespace Decoder
                     {
                         _spinner.Exit();
                     }
+                }
+                if(tmpDecoder != null)
+                {
+                    _disposables.Add(tmpDecoder);
                 }
                 int postCount = _matQueue.Count;
                 Console.WriteLine("\tPreQ: " + preCount + "\tPostQ: " + postCount);
@@ -329,6 +356,21 @@ namespace Decoder
                         //Console.WriteLine("Queue full: " + queuesize + " elements.");
                     }
                     Thread.Sleep(150);
+                }
+            }
+        }
+
+        private void TrashDisposal()
+        {
+            while (!_fileTask.IsCompleted)
+            {
+                if( _disposables.TryTake(out Decoder2.Decoder result) )
+                {
+                    result.Dispose();
+                }
+                else
+                {
+                    Thread.Sleep(100);
                 }
             }
         }

@@ -152,7 +152,6 @@ namespace Utils.Items
         {
             Mat output = Frame.FrameData.Clone();
             var color = new Scalar(tagColor.B, tagColor.G, tagColor.R);
-
             Cv2.Rectangle(output, ToRect(ItemIDs[itemIDIndex].BoundingBox), color, 3);
             return output;
             //return TaggedImageData( itemIDIndex, new SolidBrush( tagColor ) );

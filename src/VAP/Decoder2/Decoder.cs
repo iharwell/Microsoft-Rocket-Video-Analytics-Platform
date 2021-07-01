@@ -7,7 +7,7 @@ using OpenCvSharp;
 
 namespace Decoder2
 {
-    public class Decoder
+    public class Decoder : IDisposable
     {
         private const int maxAttempts = 512;
         private const int error_eof = -('E' | ('O' << 8) | ('F' << 16) | (' ' << 24));
@@ -42,6 +42,7 @@ namespace Decoder2
         private long firstFrameNumber;
 
         private IntPtr img_convert_ctx;
+        private bool _disposedValue;
 
         static Decoder()
         {
@@ -268,7 +269,7 @@ namespace Decoder2
 
             Frame f = _picture;
 
-            if (_picture != null && _picture.HWFramesContext != IntPtr.Zero)
+            if (_picture != null && _picture.HWFramesContextVoid != null)
             {
                 f = new Frame();
                 if (Frame.TransferHWFrame(f, _picture, 0) < 0)
@@ -356,5 +357,43 @@ namespace Decoder2
 
         private const int CV_MAT_DEPTH_MASK = CV_DEPTH_MAX - 1;
         private const int CV_DEPTH_MAX = 1 << CV_CN_SHIFT;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+                if (_stream != null)
+                {
+                    this._stream.Dispose();
+                }
+                this._rgb_frame.Dispose();
+                this._picture.Dispose();
+                this._packet.Dispose();
+                this._vctx.Dispose();
+                this._fctx.Dispose();
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~Decoder()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

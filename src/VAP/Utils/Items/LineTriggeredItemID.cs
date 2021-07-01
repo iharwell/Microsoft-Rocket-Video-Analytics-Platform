@@ -18,6 +18,12 @@ namespace Utils.Items
     {
         public LineTriggeredItemID()
         { }
+        public LineTriggeredItemID(IItemID id)
+            : base(id.BoundingBox, id.ObjectID, id.ObjName, id.Confidence, id.TrackID, id.IdentificationMethod)
+        {
+            SourceObject = id.SourceObject;
+            FurtherAnalysisTriggered = id.FurtherAnalysisTriggered;
+        }
 
         public LineTriggeredItemID(Rectangle boundingBox, int objectID, string objName, double confidence, int trackID, string identificationMethod)
             : base(boundingBox, objectID, objName, confidence, trackID, identificationMethod)

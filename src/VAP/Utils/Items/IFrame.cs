@@ -35,6 +35,16 @@ namespace Utils.Items
         int FrameIndex { get; set; }
 
         /// <summary>
+        ///   The name of the camera that recorded this frame;
+        /// </summary>
+        string CameraName { get; set; }
+
+        /// <summary>
+        ///   The index of this frame within the specific source file it came from.
+        /// </summary>
+        int FileFrameIndex { get; set; }
+
+        /// <summary>
         ///   The time that the frame was taken.
         /// </summary>
         DateTime TimeStamp { get; set; }

@@ -13,6 +13,7 @@ namespace LibAvSharp.Codec
         public int Height => _native_context->height;
         public int CodedWidth => _native_context->coded_width;
         public int CodedHeight => _native_context->coded_height;
+        public AVRational SampleAspectRatio => _native_context->sample_aspect_ratio;
         public AVPixelFormat PixelFormat
         {
             get

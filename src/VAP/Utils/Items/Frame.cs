@@ -94,6 +94,8 @@ namespace Utils.Items
             TimeStamp = timeStamp;
         }
 
+
+
         /// <inheritdoc />
         public Mat FrameData { get; set; }
 
@@ -107,7 +109,13 @@ namespace Utils.Items
         public int FrameIndex { get; set; }
 
         /// <inheritdoc />
+        public int FileFrameIndex { get; set; }
+
+        /// <inheritdoc />
         public DateTime TimeStamp { get; set; }
+
+        /// <inheritdoc />
+        public string CameraName { get; set; }
 
         /// <inheritdoc />
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)

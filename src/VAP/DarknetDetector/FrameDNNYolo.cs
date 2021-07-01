@@ -12,12 +12,13 @@ using System.Linq;
 using Utils;
 using Utils.Config;
 using Utils.Items;
+using Utils.ShapeTools;
 using Wrapper.Yolo;
 using Wrapper.Yolo.Model;
 using Point = System.Drawing.Point;
 namespace DarknetDetector
 {
-    public class FrameDNNDarknet
+    public class FrameDNNDarknet : IDNNAnalyzer
     {
         private readonly YoloWrapper _frameYolo;
         private readonly YoloTracking _frameYoloTracking;
@@ -64,15 +65,36 @@ namespace DarknetDetector
             return yoloItems;
         }
 
-        unsafe public IEnumerable<YoloTrackingItem> AnalyseRaw(Mat imgByte, ISet<string> category, Color bboxColor)
+        unsafe public IEnumerable<YoloTrackingItem> AnalyseRaw(Mat imgByte, ISet<string> category)
         {
             byte[] imgBuffer = imgByte.ToBytes(".bmp");
             IEnumerable<YoloTrackingItem> yoloItems;
             fixed (byte* ptr = imgBuffer)
             {
-                yoloItems = _frameYoloTracking.AnalyseUnmanagedNoDist((IntPtr)ptr, imgBuffer.Length, category, bboxColor);
+                yoloItems = _frameYoloTracking.AnalyseUnmanagedNoDist((IntPtr)ptr, imgBuffer.Length, category);
             }
             return yoloItems;
+        }
+        unsafe public IEnumerable<IItemID> Analyze(Mat imgByte, ISet<string> category, object sourceObject)
+        {
+            byte[] imgBuffer = imgByte.ToBytes(".bmp");
+            IEnumerable<YoloTrackingItem> yoloItems;
+            fixed (byte* ptr = imgBuffer)
+            {
+                yoloItems = _frameYoloTracking.AnalyseUnmanagedNoDist((IntPtr)ptr, imgBuffer.Length, category);
+            }
+            if (yoloItems == null)
+            {
+                return null;
+            }
+            List<IItemID> items = new List<IItemID>();
+            foreach (var item in yoloItems)
+            {
+                ItemID id = new ItemID(item.BBox, item.ObjId, item.Type, item.Confidence, item.TrackId, nameof(FrameDNNDarknet));
+                id.SourceObject = sourceObject;
+                items.Add(id);
+            }
+            return items;
         }
 
         public List<YoloTrackingItem> AnalyzeAndDetect(Mat imgByte, ISet<string> category, int lineID, Color bboxColor, double min_score_for_linebbox_overlap, Point trackingPoint, int frameIndex = 0)
@@ -86,6 +108,11 @@ namespace DarknetDetector
         {
             byte[] imgBuffer = imgByte.ToBytes(".bmp");
             return OverlapVal(imgBuffer, yoloItems, lineID, bboxColor, min_score_for_linebbox_overlap);
+        }
+        public List<IItemID> CachedDetect(Mat imgByte, IEnumerable<IItemID> cachedItems, int lineID, Color bboxColor, double min_score_for_linebbox_overlap, int frameIndex = 0)
+        {
+            byte[] imgBuffer = imgByte.ToBytes(".bmp");
+            return OverlapVal(imgBuffer, cachedItems, lineID, min_score_for_linebbox_overlap);
         }
 
         public IDictionary<YoloTrackingItem, bool> GetOverlappingItems(IEnumerable<YoloTrackingItem> yoloItems, LineSegment line, double overlapThreshold)
@@ -174,6 +201,80 @@ namespace DarknetDetector
             }
         }
 
+        private List<IItemID> OverlapVal(byte[] imgByte, IEnumerable<IItemID> yoloItems, int lineID, double min_score_for_linebbox_overlap)
+        {
+            var image = Image.FromStream(new MemoryStream(imgByte)); // to filter out bbox larger than the frame
+
+            if (yoloItems == null) return null;
+
+            //run overlap ratio-based validation
+            if (_lines != null)
+            {
+                List<IItemID> validObjects = new List<IItemID>();
+
+                ////--------------Output images with all bboxes----------------
+                //byte[] canvas = new byte[imgByte.Length];
+                //canvas = imgByte;
+                //YoloTrackingItem[] dbItems = yoloItems.ToArray();
+                //double dbOverlap;
+                //foreach (var dbItem in dbItems)
+                //{
+                //    dbOverlap = Utils.Utils.checkLineBboxOverlapRatio(lines[lineID].Item2, dbItem.X, dbItem.Y, dbItem.Width, dbItem.Height);
+                //    canvas = Utils.Utils.DrawImage(canvas, dbItem.X, dbItem.Y, dbItem.Width, dbItem.Height, bboxColor, dbOverlap.ToString());
+                //}
+                //File.WriteAllBytes(@OutputFolder.OutputFolderAll + $"tmp-{frameIndex}-{lines[lineID].Item1}.jpg", canvas);
+                ////--------------Output images with all bboxes----------------
+
+                /*var overlapItems = yoloItems
+                                    .Select(
+                                        o => new
+                                        {
+                                            Overlap = Utils.Utils.CheckLineBboxOverlapRatio(_lines[lineID].coordinates, o.X, o.Y, o.Width, o.Height),
+                                            Bbox_x = o.X + o.Width,
+                                            Bbox_y = o.Y + o.Height,
+                                            Distance = this.Distance(_lines[lineID].coordinates, o.Center()),
+                                            Item = o
+                                        })
+                                    .Where(
+                                        o => o.Bbox_x <= image.Width
+                                             && o.Bbox_y <= image.Height
+                                             && o.Overlap >= min_score_for_linebbox_overlap
+                                        )
+                                    .OrderBy(o => o.Distance);*/
+
+                var overlapItems = from item in yoloItems
+                                   let o = new
+                                   {
+                                       Overlap = Utils.Utils.CheckLineBboxOverlapRatio(_lines[lineID].coordinates, item.BoundingBox),
+                                       Bbox_x = item.BoundingBox.Right,
+                                       Bbox_y = item.BoundingBox.Bottom,
+                                       Distance = Distance(_lines[lineID].coordinates, item.BoundingBox.Center()),
+                                       Item = item
+                                   }
+                                   //where o.Overlap>=min_score_for_linebbox_overlap && o.Bbox_x<=image.Width && o.Bbox_y<=image.Height
+                                   orderby o.Distance
+                                   select o;
+                var ovItems = overlapItems.ToList();
+                foreach (var item in overlapItems)
+                {
+                    if (item.Overlap >= min_score_for_linebbox_overlap)
+                    {
+                        if (item.Bbox_x <= image.Width && item.Bbox_y <= image.Height)
+                        {
+                            /*var taggedImageData = Utils.Utils.DrawImage(imgByte, item.Item.BoundingBox.X, item.Item.Y, item.Item.Width, item.Item.Height, bboxColor);
+                            var croppedImageData = Utils.Utils.CropImage(imgByte, item.Item.X, item.Item.Y, item.Item.Width, item.Item.Height);*/
+                            validObjects.Add(item.Item);
+                            _frameYoloTracking._index++;
+                        }
+                    }
+                }
+                return (validObjects.Count == 0 ? null : validObjects);
+            }
+            else
+            {
+                return yoloItems.ToList();
+            }
+        }
         public void BuildImageData( YoloTrackingItem yoloItem, Color color, Mat imageData )
         {
             int bbx = yoloItem.X + yoloItem.Width;
@@ -317,6 +418,11 @@ namespace DarknetDetector
         }
 
         private double Distance(LineSegment line, Point bboxCenter)
+        {
+            Point p1 = line.MidPoint;
+            return Math.Sqrt(this.Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
+        }
+        private double Distance(LineSegment line, PointF bboxCenter)
         {
             Point p1 = line.MidPoint;
             return Math.Sqrt(this.Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));

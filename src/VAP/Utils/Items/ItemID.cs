@@ -27,6 +27,12 @@ namespace Utils.Items
             TrackID = -1;
             Confidence = 0.0;
         }
+        public ItemID(IItemID id)
+            : this(id.BoundingBox, id.ObjectID, id.ObjName, id.Confidence, id.TrackID, id.IdentificationMethod)
+        {
+            SourceObject = id.SourceObject;
+            FurtherAnalysisTriggered = id.FurtherAnalysisTriggered;
+        }
 
         public ItemID(Rectangle boundingBox, int objectID, string objName, double confidence, int trackID, string identificationMethod)
         {

@@ -8,7 +8,7 @@ namespace BGSObjectDetector
     internal class MOG2
     {
         private const int N_FRAMES_TO_LEARN = 120;
-        private readonly BackgroundSubtractorMOG2 _fgDetector = BackgroundSubtractorMOG2.Create(500, 12); //try sweeping (also set it higher than 25)
+        private readonly BackgroundSubtractorMOG2 _fgDetector = BackgroundSubtractorMOG2.Create(1000, 12); //try sweeping (also set it higher than 25)
 
         private UMat _regionOfInterest = null;
         // Why do we need this?

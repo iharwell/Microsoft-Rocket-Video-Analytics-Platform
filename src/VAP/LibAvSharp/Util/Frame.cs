@@ -40,13 +40,31 @@ namespace LibAvSharp.Util
         {
             get => (IntPtr)(&_frame->linesize0);
         }
-
+        public long TimeStamp
+        {
+            get
+            {
+                return _frame->pts;
+            }
+            set
+            {
+                _frame->pts = value;
+            }
+        }
+        public long BestEffortTimeStamp
+        {
+            get
+            {
+                return _frame->best_effort_timestamp;
+            }
+        }
         public int LineSizeItem( int index )
         {
             return _frame->linesize(index);
         }
 
         public IntPtr HWFramesContext => (IntPtr)_frame->hw_frames_ctx;
+        public unsafe void* HWFramesContextVoid => (void*)_frame->hw_frames_ctx;
 
         public IntPtr DataPtr => (IntPtr)(&_frame->data0);
 

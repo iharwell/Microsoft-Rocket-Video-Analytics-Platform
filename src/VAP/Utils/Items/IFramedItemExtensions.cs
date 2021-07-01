@@ -289,6 +289,35 @@ namespace Utils.Items
             return target;
         }
 
+
+        public static IList<IFramedItem> MergeIntoFramedItemListSameFrame(this IFramedItem item, ref IList<IFramedItem> target, bool includeFiller, double mergeThreshold, double nameBoost)
+        {
+            //TODO(iharwell): Add algorithm to merge IFramedItems based on very high similarity scores.
+            if (item is null)
+            {
+                return target;
+            }
+
+            if (target.Count == 0)
+            {
+                target.Add(item);
+            }
+            else
+            {
+                var pids = PositiveIDIndices(item.ItemIDs);
+                if (pids.Count > 0)
+                {
+                    MergeUsingName(item, ref target, item.BestIDName(), includeFiller, mergeThreshold, nameBoost);
+                }
+                else
+                {
+                    MergeWithoutNameSameFrame(item, ref target, includeFiller, mergeThreshold);
+                }
+            }
+
+            return target;
+        }
+
         public static IList<IFramedItem> MergeUsingName(this IFramedItem framedItem, ref IList<IFramedItem> target, string v, bool includeFiller, double mergeThreshold, double nameBoost)
         {
             IFramedItem bestMatch = null;
@@ -346,9 +375,10 @@ namespace Utils.Items
             IFramedItem bestMatch = null;
             double overlapValue = -999999999999;
             RectangleF srcRect = framedItem.MeanBounds;
+            var singleIDs = framedItem.ItemIDs;
             int frameNum = framedItem.Frame.FrameIndex;
 
-            if (framedItem.ItemIDs.Count == 1 && framedItem.ItemIDs[0] is FillerID)
+            if (singleIDs.Count == 1 && singleIDs[0] is FillerID)
             {
                 if (target.Count == 0)
                 {
@@ -374,9 +404,54 @@ namespace Utils.Items
             }
             if (overlapValue >= mergeThreshold)
             {
-                for (int i = 0; i < framedItem.ItemIDs.Count; i++)
+                var bestIDs = bestMatch.ItemIDs;
+                for (int i = 0; i < singleIDs.Count; i++)
                 {
-                    bestMatch.ItemIDs.Add(framedItem.ItemIDs[i]);
+                    bestIDs.Add(singleIDs[i]);
+                }
+            }
+            else
+            {
+                // No match found
+                target.Add(framedItem);
+            }
+            RemoveFiller(ref target);
+            return target;
+        }
+
+        private static IList<IFramedItem> MergeWithoutNameSameFrame(this IFramedItem framedItem, ref IList<IFramedItem> target, bool includeFiller, double mergeThreshold)
+        {
+            IFramedItem bestMatch = null;
+            double overlapValue = -999999999999;
+            RectangleF srcRect = framedItem.MeanBounds;
+            var singleIDs = framedItem.ItemIDs;
+            int frameNum = framedItem.Frame.FrameIndex;
+
+            if (singleIDs.Count == 1 && singleIDs[0] is FillerID)
+            {
+                if (target.Count == 0)
+                {
+                    target.Add(framedItem);
+                }
+                return target;
+            }
+
+            foreach (IFramedItem item in target)
+            {
+                var tgtRect = item.MeanBounds;
+                double s2t = framedItem.Similarity(tgtRect);
+                if (s2t > overlapValue)
+                {
+                    overlapValue = s2t;
+                    bestMatch = item;
+                }
+            }
+            if (overlapValue >= mergeThreshold)
+            {
+                var bestIDs = bestMatch.ItemIDs;
+                for (int i = 0; i < singleIDs.Count; i++)
+                {
+                    bestIDs.Add(singleIDs[i]);
                 }
             }
             else

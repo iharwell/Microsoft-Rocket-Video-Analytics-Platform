@@ -573,6 +573,29 @@ namespace MotionTracker
         /// </returns>
         public static IList<IList<IFramedItem>> GroupByFrame(IList<IList<IFramedItem>> buffer, double mergeThreshold, double nameBoost)
         {
+            if (buffer.Count == 1)
+            {
+                int frame = -1;
+                if( buffer[0].Count>0)
+                {
+                    frame = buffer[0][0].Frame.FrameIndex;
+                }
+                bool sameFrame = true;
+                for (int i = 1; i < buffer[0].Count; i++)
+                {
+                    var item = buffer[0][i];
+                    if( item.Frame.FrameIndex != frame)
+                    {
+                        sameFrame = false;
+                        break;
+                    }
+                }
+                if( sameFrame)
+                {
+                    return buffer;
+                }
+            }
+
             var allFramedItems = from IList<IFramedItem> subList in buffer
                                  from IFramedItem item in subList
                                  group item by item.Frame.FrameIndex;
@@ -601,7 +624,7 @@ namespace MotionTracker
                 IList<IFramedItem> itemSet = organizedFrames[frameIndex - minFrame];
                 foreach (var item in grouping)
                 {
-                    item.MergeIntoFramedItemList(ref itemSet, false, mergeThreshold, nameBoost);
+                    item.MergeIntoFramedItemListSameFrame(ref itemSet, false, mergeThreshold, nameBoost);
                 }
             }
             return organizedFrames;

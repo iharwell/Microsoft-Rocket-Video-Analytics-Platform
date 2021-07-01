@@ -40,6 +40,56 @@ namespace VideoPipelineCore
         private const double IoUSimThreshold = 0.15;
         private const double PolySimThreshold = 0.15;
 
+        internal static DateTime TimeStampParser(IFrame f)
+        {
+            DateTime ts = default(DateTime);
+
+            if (f.SourceName == null)
+            {
+                return ts;
+            }
+
+            var parts = f.SourceName.Split('_');
+            string startString = parts[2];
+
+            if (parts.Length != 5 || startString.Length != 14)
+            {
+                return ts;
+            }
+
+            int year = int.Parse(startString.Substring(0, 4));
+            int month = int.Parse(startString.Substring(4, 2));
+            int day = int.Parse(startString.Substring(6, 2));
+            int hour = int.Parse(startString.Substring(8, 2));
+            int minute = int.Parse(startString.Substring(10, 2));
+            int second = int.Parse(startString.Substring(12, 2));
+
+            return new DateTime(year, month, day, hour, minute, second);
+        }
+        internal static string CameraNameParser(IFrame f)
+        {
+            string cn = null;
+            if (f.SourceName == null)
+            {
+                return cn;
+            }
+            var parts = f.SourceName.Split('_');
+
+            if (parts.Length != 5)
+            {
+                return cn;
+            }
+            string CameraName1 = parts[1];
+            string CameraName2 = parts[0];
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(CameraName1);
+            sb.Append(" - ");
+            sb.Append(CameraName2);
+
+            return sb.ToString();
+        }
+
         internal static void Main(string[] args)
         {
             //parse arguments
@@ -65,6 +115,8 @@ namespace VideoPipelineCore
             int samplingFactor = int.Parse(args[3]);
             double resolutionFactor = double.Parse(args[4]);
             var decoder = Decoder.DecoderFFMPEG.GetDirectoryDecoder(videoUrl, resolutionFactor);
+            decoder.TimeStampParser = TimeStampParser;
+            decoder.CameraNameParser = CameraNameParser;
             decoder.BeginReading();
 
             HashSet<string> category = new HashSet<string>();
@@ -84,7 +136,7 @@ namespace VideoPipelineCore
             var ioUPredictor = new Utils.Items.PiecewisePredictor(8.0);
 
             //-----FramedItem buffer for tracking item paths-----
-            IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(BUFFERSIZE+1);
+            IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(BUFFERSIZE + 1);
 
             //-----Decoder-----
             //Decoder.Decoder2V decoder = new Decoder.Decoder2V(videoUrl, resolutionFactor, loop);
@@ -108,6 +160,7 @@ namespace VideoPipelineCore
             pipeline.AppendStage(lcProcessor);
 
             LightDarknetProcessor lightDNProcessor = new LightDarknetProcessor(lcProcessor.LineSegments, category, Color.Pink, false);
+            lightDNProcessor.IndexChooser = new MotionTracker.SparseIndexChooser();
             pipeline.AppendStage(lightDNProcessor);
 
             HeavyDarknetProcessor heavyDNProcessor = new HeavyDarknetProcessor(lcProcessor.LineSegments, category, resolutionFactor, Color.Red, false);
@@ -165,7 +218,10 @@ namespace VideoPipelineCore
                     continue;
                 }
                 frame.FrameIndex = frameIndex;
-                frame.TimeStamp = startTime.AddSeconds((frameIndex * 1.0 / frameRate));
+                if (frame.TimeStamp == default(DateTime))
+                {
+                    frame.TimeStamp = startTime.AddSeconds((frameIndex * 1.0 / frameRate));
+                }
 
                 itemList = pipeline.ProcessFrame(frame);
 
@@ -272,7 +328,7 @@ namespace VideoPipelineCore
                     {
                         framedItemBuffer.RemoveAt(0);
                     }
-                    framedItemBuffer = MotionTracker.MotionTracker.GroupByFrame(framedItemBuffer, MergeSimThreshold, MergeSimThreshold / 2);
+                    //framedItemBuffer = MotionTracker.MotionTracker.GroupByFrame(framedItemBuffer, MergeSimThreshold, MergeSimThreshold / 2);
                 }
                 else
                 {

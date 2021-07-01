@@ -67,6 +67,12 @@ namespace ProcessingPipeline
 
         }
 
+        public IIndexChooser IndexChooser
+        {
+            get => _darknet.IndexChooser;
+            set => _darknet.IndexChooser = value;
+        }
+
         public Color BoundingBoxColor { get; set; }
         public IDictionary<string, LineSegment> LineSegments { get; set; }
         public ISet<string> Categories { get; set; }

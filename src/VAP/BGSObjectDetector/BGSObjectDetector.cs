@@ -14,7 +14,7 @@ namespace BGSObjectDetector
         private int MEDIAN_BLUR_SIZE = 5;
         private const double GAUSSIAN_BLUR_SIGMA = 7;
         private const int GAUSSIAN_BLUR_THRESHOLD = 20;
-        private const int MIN_BLOB_SIZE = 50;
+        private const int MIN_BLOB_SIZE = 60;
         private const int PRE_BGS_BLUR_SIGMA = 4;
         private FastGaussian _preGaussian;
         private FastGaussian _postGaussian;

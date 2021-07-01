@@ -21,14 +21,14 @@ namespace LibAvSharp.Native
 
 
         [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int scalecuda_resize(AVFilterContext* filt_ctx);
+        public static extern int scalecuda_resize(AVFilterContext* filt_ctx, AVFrame* output, AVFrame* input);
 
 
-        [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern int avfilter_graph_create_filter(AVFilterContext** filt_ctx,
-                                                              in AVFilter* filt,
-                                                              in byte* name,
-                                                              in byte* args,
+                                                              AVFilter* filt,
+                                                              string name,
+                                                              string args,
                                                               void* opaque,
                                                               AVFilterGraph* graph_ctx);
 
@@ -119,8 +119,8 @@ namespace LibAvSharp.Native
 
         [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl, CharSet=CharSet.Ansi)]
         public static extern int avfilter_process_command(AVFilterContext* filter_ctx,
-                                                          in string cmd,
-                                                          in string arg,
+                                                          string cmd,
+                                                          string arg,
                                                           ref string res,
                                                           int res_len,
                                                           int flags);
@@ -135,7 +135,7 @@ namespace LibAvSharp.Native
 
 
         [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern AVFilter* avfilter_get_by_name(in string name);
+        public static extern AVFilter* avfilter_get_by_name(string name);
 
 
         [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -143,7 +143,7 @@ namespace LibAvSharp.Native
 
 
         [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern int avfilter_init_str(AVFilterContext* ctx, in string args);
+        public static extern int avfilter_init_str(AVFilterContext* ctx, string args);
 
 
         [DllImport("avfilter-8.dll",
@@ -173,7 +173,7 @@ namespace LibAvSharp.Native
         [DllImport("avfilter-8.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        public static extern int avfilter_graph_create_filter(ref AVFilterContext* graph, in AVFilter* filt, in string name, in string args, void* opaque, AVFilterGraph* graph_ctx);
+        public static extern int avfilter_graph_create_filter(ref AVFilterContext* graph, AVFilter* filt, string name, string args, void* opaque, AVFilterGraph* graph_ctx);
 
 
         [DllImport("avfilter-8.dll",
@@ -191,41 +191,63 @@ namespace LibAvSharp.Native
         [DllImport("avfilter-8.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        public static extern int avfilter_graph_parse(AVFilterGraph* graph, in string filters, AVFilterInOut* inputs, AVFilterInOut* outputs, void* log_ctx);
+        public static extern int avfilter_graph_parse(AVFilterGraph* graph, string filters, AVFilterInOut* inputs, AVFilterInOut* outputs, void* log_ctx);
 
 
         [DllImport("avfilter-8.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        public static extern int avfilter_graph_parse2(AVFilterGraph* graph, in string filters, ref AVFilterInOut* inputs, ref AVFilterInOut* outputs);
+        public static extern int avfilter_graph_parse2(AVFilterGraph* graph, string filters, ref AVFilterInOut* inputs, ref AVFilterInOut* outputs);
 
 
         [DllImport("avfilter-8.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        public static extern int avfilter_graph_parse_ptr(AVFilterGraph* graph, in string filters, ref AVFilterInOut* inputs, ref AVFilterInOut* outputs, void* log_ctx);
+        public static extern int avfilter_graph_parse_ptr(AVFilterGraph* graph, string filters, ref AVFilterInOut* inputs, ref AVFilterInOut* outputs, void* log_ctx);
+        [DllImport("avfilter-8.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        public static extern int avfilter_graph_parse_ptr(AVFilterGraph* graph, string filters, AVFilterInOut** inputs, AVFilterInOut** outputs, void* log_ctx);
 
 
         [DllImport("avfilter-8.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        public static extern int avfilter_graph_send_command(AVFilterGraph* graph, in string target, in string cmd, in string arg, ref string res, int res_len, int flags);
+        public static extern int avfilter_graph_send_command(AVFilterGraph* graph, string target, string cmd, string arg, ref string res, int res_len, int flags);
 
         [DllImport("avfilter-8.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        public static extern int avfilter_graph_queue_command(AVFilterGraph* graph, in string target, in string cmd, in string arg, int flags, double ts);
+        public static extern int avfilter_graph_queue_command(AVFilterGraph* graph, string target, string cmd, string arg, int flags, double ts);
 
 
         [DllImport("avfilter-8.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        public static extern string avfilter_graph_dump(AVFilterGraph* graph, in string options);
+        public static extern string avfilter_graph_dump(AVFilterGraph* graph, string options);
 
 
         [DllImport("avfilter-8.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
         public static extern int avfilter_graph_request_oldest(AVFilterGraph* graph);
+
+
+        [DllImport("avfilter-8.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        public static extern int av_buffersrc_add_frame_flags(AVFilterContext* buffer_src, AVFrame* frame, int flags);
+
+
+        [DllImport("avfilter-8.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        public static extern int av_buffersink_get_frame(AVFilterContext* buffer_src, AVFrame* frame);
+
+
+        [DllImport("avfilter-8.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        public static extern int av_buffersrc_close(AVFilterContext* buffer_src, long pts, int flags);
     }
 }

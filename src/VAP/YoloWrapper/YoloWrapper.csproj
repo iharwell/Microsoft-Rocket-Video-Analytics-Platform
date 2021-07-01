@@ -9,6 +9,10 @@
     <NvidiaToolkit>$(ProgramW6432)\NVIDIA GPU Computing Toolkit\CUDA\v8.0\</NvidiaToolkit>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" />
   </ItemGroup>

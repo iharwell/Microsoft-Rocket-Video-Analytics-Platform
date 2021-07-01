@@ -81,7 +81,7 @@ namespace Wrapper.Yolo
             }
             return validObjects;
         }
-        public List<YoloTrackingItem> AnalyseUnmanagedNoDist(IntPtr imageData, int dataSize, ISet<string> category, Color bboxColor)
+        public List<YoloTrackingItem> AnalyseUnmanagedNoDist(IntPtr imageData, int dataSize, ISet<string> category)
         {
             var items = this._yoloWrapper.TrackUnmanaged(imageData, dataSize);
             if (items == null || items.Count() == 0)

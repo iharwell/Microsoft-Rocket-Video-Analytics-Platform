@@ -104,7 +104,7 @@ namespace Wrapper.Yolo
         public YoloWrapper(YoloConfiguration yoloConfiguration, DNNMode dnnMode)
         {
             this._dnnMode = dnnMode;
-            this.Initialize(yoloConfiguration.ConfigFile, yoloConfiguration.WeightsFile, yoloConfiguration.NamesFile, 0);
+            this.Initialize(yoloConfiguration.ConfigFile, yoloConfiguration.WeightsFile, yoloConfiguration.NamesFile, 1);
         }
 
         public YoloWrapper(string configurationFilename, string weightsFilename, string namesFilename, int gpu = 0)
@@ -307,7 +307,7 @@ namespace Wrapper.Yolo
             return this.Convert(container);
         }
 
-        public IEnumerable<YoloItem> Detect(byte[] imageData)
+        public unsafe IEnumerable<YoloItem> Detect(byte[] imageData)
         {
             //if (!this._imageAnalyzer.IsValidImageFormat(imageData))
             //{
@@ -316,32 +316,34 @@ namespace Wrapper.Yolo
 
             var container = new BboxContainer();
             var size = Marshal.SizeOf(imageData[0]) * imageData.Length;
-            var pnt = Marshal.AllocHGlobal(size);
+            /*var pnt = Marshal.AllocHGlobal(size);*/
 
             try
             {
                 // Copy the array to unmanaged memory.
-                Marshal.Copy(imageData, 0, pnt, imageData.Length);
+                // Marshal.Copy(imageData, 0, pnt, imageData.Length);
                 var count = 0;
-                switch (this._detectionSystem)
+                fixed (byte* ptr = &imageData[0])
                 {
-                    case DetectionSystem.CPU:
-                        count = DetectImageCpu(pnt, imageData.Length, ref container);
-                        break;
-                    case DetectionSystem.GPU:
-                        switch (this._dnnMode)
-                        {
-                            case DNNMode.Frame:
-                            case DNNMode.LT:
-                                count = DetectImageGpuLt(pnt, imageData.Length, ref container);
-                                break;
-                            case DNNMode.CC:
-                                count = DetectImageGpuCc(pnt, imageData.Length, ref container);
-                                break;
-                        }
-                        break;
+                    switch (this._detectionSystem)
+                    {
+                        case DetectionSystem.CPU:
+                            count = DetectImageCpu((IntPtr)ptr, imageData.Length, ref container);
+                            break;
+                        case DetectionSystem.GPU:
+                            switch (this._dnnMode)
+                            {
+                                case DNNMode.Frame:
+                                case DNNMode.LT:
+                                    count = DetectImageGpuLt((IntPtr)ptr, imageData.Length, ref container);
+                                    break;
+                                case DNNMode.CC:
+                                    count = DetectImageGpuCc((IntPtr)ptr, imageData.Length, ref container);
+                                    break;
+                            }
+                            break;
+                    }
                 }
-
                 if (count == -1)
                 {
                     throw new NotImplementedException("c++ dll compiled incorrectly");
@@ -354,7 +356,7 @@ namespace Wrapper.Yolo
             finally
             {
                 // Free the unmanaged memory.
-                Marshal.FreeHGlobal(pnt);
+                //Marshal.FreeHGlobal(pnt);
             }
 
             return this.Convert(container);
