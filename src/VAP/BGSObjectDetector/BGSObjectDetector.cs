@@ -11,14 +11,14 @@ namespace BGSObjectDetector
 {
     public class BGSObjectDetector
     {
-        private int MEDIAN_BLUR_SIZE = 5;
+        private readonly int MEDIAN_BLUR_SIZE = 5;
         private const double GAUSSIAN_BLUR_SIGMA = 7;
         private const int GAUSSIAN_BLUR_THRESHOLD = 20;
         private const int MIN_BLOB_SIZE = 60;
         private const int PRE_BGS_BLUR_SIGMA = 4;
-        private FastGaussian _preGaussian;
-        private FastGaussian _postGaussian;
-        private static readonly SimpleBlobDetector.Params s_detectorParams = new SimpleBlobDetector.Params
+        private readonly FastGaussian _preGaussian;
+        private readonly FastGaussian _postGaussian;
+        private static readonly SimpleBlobDetector.Params s_detectorParams = new()
         {
             //MinDistBetweenBlobs = 40, // 10 pixels between blobs
             //MinRepeatability = 1,
@@ -59,7 +59,7 @@ namespace BGSObjectDetector
         private readonly Mat _fgWOShadows;
         private readonly Mat _kernel5;
         private Mat _regionOfInterest;
-        private Mat _fgMask;
+        private readonly Mat _fgMask;
 
         public bool DisplayBGS { get; set; }
 
@@ -85,9 +85,10 @@ namespace BGSObjectDetector
 
             _kernel5 = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(15, 15));
             _preGaussian = new FastGaussian(PRE_BGS_BLUR_SIGMA, MatType.CV_32FC1);
-            _postGaussian = new FastGaussian(GAUSSIAN_BLUR_SIGMA, MatType.CV_32FC1);
-
-            _postGaussian.InterStageThreshold = GAUSSIAN_BLUR_THRESHOLD;
+            _postGaussian = new FastGaussian(GAUSSIAN_BLUR_SIGMA, MatType.CV_32FC1)
+            {
+                InterStageThreshold = GAUSSIAN_BLUR_THRESHOLD
+            };
         }
 
         public bool DrawBoxes { get; set; }
@@ -215,7 +216,7 @@ namespace BGSObjectDetector
                 Cv2.PutText(frame.ForegroundMask, "frame: " + frame.FrameIndex, new OpenCvSharp.Point(10, 10), HersheyFonts.HersheyPlain, 1, new Scalar(240));
             }
 
-            if(DisplayBGS)
+            if (DisplayBGS)
             {
                 Cv2.ImShow("BGS Frame", frame.ForegroundMask);
             }

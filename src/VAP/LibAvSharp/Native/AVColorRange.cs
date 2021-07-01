@@ -1,4 +1,7 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
     public enum AVColorRange : int
     {
@@ -19,7 +22,7 @@
          *
          *   F.ex. the range of 16-240 for 8 bits
          */
-        AVCOL_RANGE_MPEG        = 1,
+        AVCOL_RANGE_MPEG = 1,
 
         /*
          * Full range content.
@@ -36,7 +39,7 @@
          *
          *   F.ex. the range of 1-255 for 8 bits
          */
-        AVCOL_RANGE_JPEG        = 2,
+        AVCOL_RANGE_JPEG = 2,
         AVCOL_RANGE_NB               //< Not part of ABI
     }
 }

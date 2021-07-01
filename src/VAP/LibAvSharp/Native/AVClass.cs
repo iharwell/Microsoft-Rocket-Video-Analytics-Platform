@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -26,7 +29,7 @@ namespace LibAvSharp.Native
         AV_CLASS_CATEGORY_DEVICE_INPUT,
         AV_CLASS_CATEGORY_NB
     }
-    unsafe public struct AVClass
+    public unsafe struct AVClass
     {
         /// <summary>
         ///   The name of the class; usually it is the same name as the context structure type to
@@ -38,7 +41,7 @@ namespace LibAvSharp.Native
         ///   A pointer to a function which returns the name of a context instance ctx associated
         ///   with the class.
         /// </summary>
-        public delegate * unmanaged[Cdecl]<void*, string> itemName;
+        public delegate* unmanaged[Cdecl]<void*, string> itemName;
 
         /// <summary>
         ///   a pointer to the first option specified in the class if any or NULL. see av_set_default_options()
@@ -81,7 +84,7 @@ namespace LibAvSharp.Native
         ///   Callback to return the category. available since version (51 &lt&lt 16 | 59 
         ///   &lt&lt 8 | 100)
         /// </summary>
-        public delegate* unmanaged[Cdecl]<void*,AVClassCategory> get_category;
+        public delegate* unmanaged[Cdecl]<void*, AVClassCategory> get_category;
 
 
         /// <summary>

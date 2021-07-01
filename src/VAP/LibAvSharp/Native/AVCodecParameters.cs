@@ -1,6 +1,9 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
-    unsafe public struct AVCodecParameters
+    public unsafe struct AVCodecParameters
     {
         public AVMediaType codec_type;
         public AVCodecID codec_id;

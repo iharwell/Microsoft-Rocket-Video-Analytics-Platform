@@ -42,7 +42,7 @@ namespace VideoPipelineCore
 
         internal static DateTime TimeStampParser(IFrame f)
         {
-            DateTime ts = default(DateTime);
+            DateTime ts = default;
 
             if (f.SourceName == null)
             {
@@ -159,8 +159,10 @@ namespace VideoPipelineCore
             };
             pipeline.AppendStage(lcProcessor);
 
-            LightDarknetProcessor lightDNProcessor = new LightDarknetProcessor(lcProcessor.LineSegments, category, Color.Pink, false);
-            lightDNProcessor.IndexChooser = new MotionTracker.SparseIndexChooser();
+            LightDarknetProcessor lightDNProcessor = new LightDarknetProcessor(lcProcessor.LineSegments, category, Color.Pink, false)
+            {
+                IndexChooser = new MotionTracker.SparseIndexChooser()
+            };
             pipeline.AppendStage(lightDNProcessor);
 
             HeavyDarknetProcessor heavyDNProcessor = new HeavyDarknetProcessor(lcProcessor.LineSegments, category, resolutionFactor, Color.Red, false);
@@ -192,8 +194,6 @@ namespace VideoPipelineCore
             object lastStage = pipeline.LastStage;
             object secondToLastStage = pipeline[^2];
 
-            IFrame frameOut;
-
             //pipeline.SpoolPipeline();
             //RUN PIPELINE 
             DateTime startTime = DateTime.Now;
@@ -218,7 +218,7 @@ namespace VideoPipelineCore
                     continue;
                 }
                 frame.FrameIndex = frameIndex;
-                if (frame.TimeStamp == default(DateTime))
+                if (frame.TimeStamp == default)
                 {
                     frame.TimeStamp = startTime.AddSeconds((frameIndex * 1.0 / frameRate));
                 }
@@ -275,7 +275,7 @@ namespace VideoPipelineCore
                         {
                             MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
                         }
-                        else if(MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], PolySimThreshold))
+                        else if (MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], PolySimThreshold))
                         {
                             MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
                         }/**/
@@ -286,7 +286,7 @@ namespace VideoPipelineCore
                         object source = item.ItemIDs.Last().SourceObject;
                         // string lastMethod = ItemList.Last().ItemIDs.Last().IdentificationMethod;
                         // Currently requires the use of a detection line filter, as it generates too many ItemPaths without it.
-                        if(!item.ItemIDs.Last().FurtherAnalysisTriggered)
+                        if (!item.ItemIDs.Last().FurtherAnalysisTriggered)
                         {
                             continue;
                         }
@@ -333,11 +333,13 @@ namespace VideoPipelineCore
                 else
                 {
                     List<IFramedItem> dummylist = new List<IFramedItem>();
-                    IFramedItem dummyItem = new FramedItem();
-                    dummyItem.Frame = frame;
+                    IFramedItem dummyItem = new FramedItem
+                    {
+                        Frame = frame
+                    };
                     dummylist.Add(dummyItem);
                     MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, MergeSimThreshold, MergeSimThreshold / 2);
-                    while ( framedItemBuffer.Count > BUFFERSIZE || (framedItemBuffer.Count>0 && framedItemBuffer[0].Count == 0))
+                    while (framedItemBuffer.Count > BUFFERSIZE || (framedItemBuffer.Count > 0 && framedItemBuffer[0].Count == 0))
                     {
                         framedItemBuffer.RemoveAt(0);
                     }
@@ -387,7 +389,7 @@ namespace VideoPipelineCore
                 for (int j = 0; j < item.ItemIDs.Count; j++)
                 {
                     var id = item.ItemIDs[j];
-                    if( id.Confidence>0 )
+                    if (id.Confidence > 0)
                     {
                         yield return item;
                         break;
@@ -399,7 +401,7 @@ namespace VideoPipelineCore
         private static IList<int> frameNumbers(IItemPath path)
         {
             List<int> frameNumbers = new List<int>();
-            foreach(var framedItem in path.FramedItems)
+            foreach (var framedItem in path.FramedItems)
             {
                 frameNumbers.Add(framedItem.Frame.FrameIndex);
             }
@@ -416,7 +418,7 @@ namespace VideoPipelineCore
                 int conIDIndex = path.HighestConfidenceIDIndex;
                 IFrame conframe = path.FramedItems[conFrameIndex].Frame;
                 string name = path.FramedItems[conFrameIndex].ItemIDs[conIDIndex].ObjName + " " + i + ".mp4";
-                OpenCvSharp.VideoWriter writer = new VideoWriter(Utils.Config.OutputFolder.OutputFolderVideo+name, FourCC.H265, frameRate, conframe.FrameData.Size());
+                OpenCvSharp.VideoWriter writer = new VideoWriter(Utils.Config.OutputFolder.OutputFolderVideo + name, FourCC.H265, frameRate, conframe.FrameData.Size());
 
                 var fItems = from fi in path.FramedItems
                              let f = fi.Frame
@@ -426,7 +428,7 @@ namespace VideoPipelineCore
                 foreach (IFramedItem frameItem in fItems)
                 {
                     Mat frameData = frameItem.Frame.FrameData.Clone();
-                    if(!(frameItem.ItemIDs.Count == 1 && frameItem.ItemIDs[0] is FillerID))
+                    if (!(frameItem.ItemIDs.Count == 1 && frameItem.ItemIDs[0] is FillerID))
                     {
                         StatisticRectangle sr = new StatisticRectangle(frameItem.ItemIDs);
                         var median = sr.Median;
@@ -439,7 +441,7 @@ namespace VideoPipelineCore
                 writer.Release();
             }
         }
-        private static void WritePaths(IList<IItemPath> paths, double frameRate,ref int videoNumber, int currentFrame, int bufferDepth)
+        private static void WritePaths(IList<IItemPath> paths, double frameRate, ref int videoNumber, int currentFrame, int bufferDepth)
         {
             while (paths.Count > 0 && paths[0].GetPathBounds().maxFrame < currentFrame - bufferDepth)
             {
@@ -475,7 +477,7 @@ namespace VideoPipelineCore
                 if (paths[0] is ItemPath p)
                 {
                     string xmlname = output + videoNumber;
-                    using StreamWriter swriter = new StreamWriter(Utils.Config.OutputFolder.OutputFolderXML+xmlname + ".xml");
+                    using StreamWriter swriter = new StreamWriter(Utils.Config.OutputFolder.OutputFolderXML + xmlname + ".xml");
                     serializer.WriteObject(swriter.BaseStream, p);
                     swriter.Flush();
                     swriter.Close();

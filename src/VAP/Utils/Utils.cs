@@ -149,12 +149,12 @@ namespace Utils
             return output.ToBytes(".bmp");
         }
 
-        public static IEnumerable<IFramedItem> GetItemsForFurtherProcessing( IEnumerable<IFramedItem> items )
+        public static IEnumerable<IFramedItem> GetItemsForFurtherProcessing(IEnumerable<IFramedItem> items)
         {
-            foreach(var item in items)
+            foreach (var item in items)
             {
                 IItemID lastID = item.ItemIDs[^1];
-                if(lastID.FurtherAnalysisTriggered)
+                if (lastID.FurtherAnalysisTriggered)
                 {
                     yield return item;
                 }

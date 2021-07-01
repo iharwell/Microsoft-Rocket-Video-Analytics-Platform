@@ -12,9 +12,6 @@ namespace BGSObjectDetector
 {
     public class FastGaussian
     {
-        private Mat _kernel;
-
-        private List<float> terms;
         private double _sigma;
 
         private List<int> _medianSizes;
@@ -113,8 +110,8 @@ namespace BGSObjectDetector
                 {
                     break;
                 }
-                nextMedianSize = nextMedianSize + 2;
-                if(nextMedianSize > MaxSize)
+                nextMedianSize += 2;
+                if (nextMedianSize > MaxSize)
                 {
                     break;
                 }
@@ -124,7 +121,7 @@ namespace BGSObjectDetector
 
             if (medianIterations < 4)
             {
-                _medianSizes.RemoveAt(_medianSizes.Count-1);
+                _medianSizes.RemoveAt(_medianSizes.Count - 1);
                 BuildIterations(sigma, _medianSizes);
             }
         }
@@ -154,7 +151,7 @@ namespace BGSObjectDetector
 
             double runningSigmaSq = sigma * sigma;
 
-            for (int i = sizes.Count-1; i >= 0; --i)
+            for (int i = sizes.Count - 1; i >= 0; --i)
             {
                 double dev = MedianBlurStdDev(sizes[i]);
                 int iterations = (int)(runningSigmaSq / dev);
@@ -188,7 +185,7 @@ namespace BGSObjectDetector
                     swapAgain = true;
                     Cv2.MedianBlur(input, output, size);
                     (input, output) = (output, input);
-                    if(InterStageThreshold > 0)
+                    if (InterStageThreshold > 0)
                     {
                         Cv2.Threshold(input, output, InterStageThreshold, 255, ThresholdTypes.Binary);
                         (input, output) = (output, input);
@@ -213,7 +210,7 @@ namespace BGSObjectDetector
             }
         }
 
-        private double MedianBlurStdDev(int blurSize)
+        private static double MedianBlurStdDev(int blurSize)
         {
             double singleEvenDistDev = (blurSize * blurSize - 1) / 12.0;
             double dev2D = singleEvenDistDev * 2;

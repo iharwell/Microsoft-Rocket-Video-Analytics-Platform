@@ -14,13 +14,15 @@ namespace Wrapper.Yolo
 {
     public class YoloWrapper : IDisposable
     {
+        private bool _isDisposed = false;
+
         public const int MaxObjects = 1000;
         private const string YoloLibraryCpu = @"x64\yolo_cpp_dll_cpu.dll"; // same dll for GPU/CPU
         private const string YoloLibraryGpuLt = @"x64\yolo_cpp_dll_gpu_lt.dll";
         private const string YoloLibraryGpuCc = @"x64\yolo_cpp_dll_gpu_cc.dll";
 
-        private readonly Dictionary<int, string> _objectType = new Dictionary<int, string>();
-        private readonly ImageAnalyzer _imageAnalyzer = new ImageAnalyzer();
+        private readonly Dictionary<int, string> _objectType = new();
+        private readonly ImageAnalyzer _imageAnalyzer = new();
 
         public DetectionSystem _detectionSystem = DetectionSystem.GPU;
         public DNNMode _dnnMode = DNNMode.Unknown;
@@ -114,23 +116,28 @@ namespace Wrapper.Yolo
 
         public void Dispose()
         {
-            switch (this._detectionSystem)
+            if (!_isDisposed)
             {
-                case DetectionSystem.CPU:
-                    DisposeYoloCpu();
-                    break;
-                case DetectionSystem.GPU:
-                    switch (this._dnnMode)
-                    {
-                        case DNNMode.Frame:
-                        case DNNMode.LT:
-                            DisposeYoloGpuLt();
-                            break;
-                        case DNNMode.CC:
-                            DisposeYoloGpuCc();
-                            break;
-                    }
-                    break;
+                _isDisposed = true;
+                switch (this._detectionSystem)
+                {
+                    case DetectionSystem.CPU:
+                        DisposeYoloCpu();
+                        break;
+                    case DetectionSystem.GPU:
+                        switch (this._dnnMode)
+                        {
+                            case DNNMode.Frame:
+                            case DNNMode.LT:
+                                DisposeYoloGpuLt();
+                                break;
+                            case DNNMode.CC:
+                                DisposeYoloGpuCc();
+                                break;
+                        }
+                        break;
+                }
+                GC.SuppressFinalize(this);
             }
         }
 
@@ -141,7 +148,7 @@ namespace Wrapper.Yolo
                 throw new NotSupportedException("Only 64-bit process are supported");
             }
 
-            this.EnvironmentReport = this.GetEnvironmentReport();
+            this.EnvironmentReport = GetEnvironmentReport();
             //if (!this.EnvironmentReport.MicrosoftVisualCPlusPlus2017RedistributableExists)
             //{
             //    throw new DllNotFoundException("Microsoft Visual C++ 2017 Redistributable (x64)");
@@ -201,7 +208,7 @@ namespace Wrapper.Yolo
             }
         }
 
-        private EnvironmentReport GetEnvironmentReport()
+        private static EnvironmentReport GetEnvironmentReport()
         {
             var report = new EnvironmentReport();
 

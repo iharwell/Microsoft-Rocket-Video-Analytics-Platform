@@ -1,9 +1,12 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using LibAvSharp.Native;
 
 namespace LibAvSharp.Util
 {
-    unsafe public class Packet : IDisposable
+    public unsafe class Packet : IDisposable
     {
         internal AVPacket* _packet;
         private bool disposedValue;
@@ -29,7 +32,7 @@ namespace LibAvSharp.Util
 
         public long Pts => _packet->pts;
 
-        public void FlushToIndex( int streamIndex )
+        public void FlushToIndex(int streamIndex)
         {
             _packet->data = null;
             _packet->size = 0;
@@ -38,7 +41,7 @@ namespace LibAvSharp.Util
 
         public int StreamIndex => _packet->stream_index;
 
-        protected virtual void Dispose( bool disposing )
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

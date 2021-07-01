@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,17 +12,17 @@ namespace LibAvSharp.Native
     [Flags]
     public enum SWS_Flags : int
     {
-        SWS_FAST_BILINEAR   = 1 << 0,
-        SWS_BILINEAR        = 1 << 1,
-        SWS_BICUBIC         = 1 << 2,
-        SWS_X               = 1 << 3,
-        SWS_POINT           = 1 << 4,
-        SWS_AREA            = 1 << 5,
-        SWS_BICUBLIN        = 1 << 6,
-        SWS_GAUSS           = 1 << 7,
-        SWS_SINC            = 1 << 8,
-        SWS_LANCZOS         = 1 << 9,
-        SWS_SPLINE          = 1 << 10,
+        SWS_FAST_BILINEAR = 1 << 0,
+        SWS_BILINEAR = 1 << 1,
+        SWS_BICUBIC = 1 << 2,
+        SWS_X = 1 << 3,
+        SWS_POINT = 1 << 4,
+        SWS_AREA = 1 << 5,
+        SWS_BICUBLIN = 1 << 6,
+        SWS_GAUSS = 1 << 7,
+        SWS_SINC = 1 << 8,
+        SWS_LANCZOS = 1 << 9,
+        SWS_SPLINE = 1 << 10,
     }
 
     /*unsafe public struct SwsContext

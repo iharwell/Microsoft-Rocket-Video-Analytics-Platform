@@ -25,10 +25,10 @@ namespace LineDetector
 
         public MultiLaneDetector _multiLaneDetector;
 
-        private Dictionary<string, int> _counts = new Dictionary<string, int>();
-        private readonly Dictionary<string, int> _counts_prev = new Dictionary<string, int>();
-        private Dictionary<string, bool> _occupancy = new Dictionary<string, bool>();
-        private readonly Dictionary<string, bool> _occupancy_prev = new Dictionary<string, bool>();
+        private Dictionary<string, int> _counts = new();
+        private readonly Dictionary<string, int> _counts_prev = new();
+        private Dictionary<string, bool> _occupancy = new();
+        private readonly Dictionary<string, bool> _occupancy_prev = new();
 
         /// <summary>
         /// Constructs a <see cref="Detector"/> object with the provided 

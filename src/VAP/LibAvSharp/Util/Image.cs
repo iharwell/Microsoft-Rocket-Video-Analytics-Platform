@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,7 +12,7 @@ using LibAvSharp.Native;
 namespace LibAvSharp.Util
 {
     [StructLayout(LayoutKind.Sequential)]
-    unsafe internal struct AVImageCore
+    internal unsafe struct AVImageCore
     {
         internal byte* data0;
         internal byte* data1;
@@ -23,7 +26,7 @@ namespace LibAvSharp.Util
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    unsafe internal struct UCSizeStructure
+    internal unsafe struct UCSizeStructure
     {
         internal ulong size0;
         internal ulong size1;
@@ -31,7 +34,7 @@ namespace LibAvSharp.Util
         internal ulong size3;
     }
 
-    unsafe public class Image
+    public unsafe class Image
     {
         internal AVImageCore _imageCore;
         internal AVPixelFormat _format;
@@ -48,7 +51,7 @@ namespace LibAvSharp.Util
             _bufSize = bufSize;
         }*/
 
-        public Image( int height, int width, AVPixelFormat format )
+        public Image(int height, int width, AVPixelFormat format)
         {
             var imc = new AVImageCore();
             byte** srcd = &imc.data0;
@@ -75,7 +78,7 @@ namespace LibAvSharp.Util
             set => _width = value;
         }
 
-        public static void CopyImage( Image src, Image dst )
+        public static void CopyImage(Image src, Image dst)
         {
             fixed (AVImageCore* srcptr = &src._imageCore)
             fixed (AVImageCore* dstptr = &dst._imageCore)
@@ -89,9 +92,9 @@ namespace LibAvSharp.Util
             }
         }
 
-        public static void CopyImageUc( Image src, Image dst )
+        public static void CopyImageUc(Image src, Image dst)
         {
-            UCSizeStructure srcSizes=new UCSizeStructure();
+            UCSizeStructure srcSizes = new UCSizeStructure();
             UCSizeStructure dstSizes = new UCSizeStructure();
             srcSizes.size0 = (ulong)src._imageCore.size0;
             srcSizes.size1 = (ulong)src._imageCore.size1;
@@ -113,9 +116,9 @@ namespace LibAvSharp.Util
             dst._imageCore.size2 = (int)dstSizes.size2;
             dst._imageCore.size3 = (int)dstSizes.size3;
         }
-        public static void CopyImageUc( Frame src, Image dst )
+        public static void CopyImageUc(Frame src, Image dst)
         {
-            UCSizeStructure srcSizes=new UCSizeStructure();
+            UCSizeStructure srcSizes = new UCSizeStructure();
             UCSizeStructure dstSizes = new UCSizeStructure();
             srcSizes.size0 = (ulong)src._frame->linesize0;
             srcSizes.size1 = (ulong)src._frame->linesize1;

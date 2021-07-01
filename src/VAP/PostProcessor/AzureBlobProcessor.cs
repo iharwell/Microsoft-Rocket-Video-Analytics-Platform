@@ -35,7 +35,7 @@ namespace PostProcessor
             }
         }
 
-        public async Task<string> CreateContainerAsync(string container = "")
+        public static async Task<string> CreateContainerAsync(string container = "")
         {
             try
             {
@@ -65,7 +65,7 @@ namespace PostProcessor
             return container;
         }
 
-        public async Task DeleteContainerAsync(string containerName)
+        public static async Task DeleteContainerAsync(string containerName)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace PostProcessor
             }
         }
 
-        public async Task<string> UploadFileAsync(string containerName, string blobName, string sourceFile)
+        public static async Task<string> UploadFileAsync(string containerName, string blobName, string sourceFile)
         {
             string blobUri = null;
             try
@@ -100,7 +100,7 @@ namespace PostProcessor
             return blobUri;
         }
 
-        public async Task DownloadFileAsync(string containerName, string blobName, string destinationFile)
+        public static async Task DownloadFileAsync(string containerName, string blobName, string destinationFile)
         {
             try
             {
@@ -117,7 +117,7 @@ namespace PostProcessor
             }
         }
 
-        public async Task ListBlobAsync(string containerName)
+        public static async Task ListBlobAsync(string containerName)
         {
             try
             {

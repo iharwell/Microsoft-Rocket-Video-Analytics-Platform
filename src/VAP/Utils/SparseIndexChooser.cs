@@ -85,9 +85,9 @@ namespace Utils
             BuildPaths(paths, trackedItems, rebuiltCache, latestFrame);
             var movingPaths = FilterStationaryItems(rebuiltCache, paths, trackedItems, latestFrame, cacheCount);
 
-            if(movingPaths == null || movingPaths.Count == 0)
+            if (movingPaths == null || movingPaths.Count == 0)
             {
-                if(cacheCount >= 5)
+                if (cacheCount >= 5)
                 {
                     // We have 5 cached frames, and still haven't found a moving target.
                     // This is a false positive.
@@ -101,7 +101,7 @@ namespace Utils
                 IList<IList<ItemIDWithFrame>> crossingPaths = FindCrossingPaths(triggerIDs[i], movingPaths);
 
             }*/
-            if (!priorIDs.ContainsKey(latestFrame - (BufferDepth*5) / 8))
+            if (!priorIDs.ContainsKey(latestFrame - (BufferDepth * 5) / 8))
             {
                 return latestFrame - (BufferDepth * 5) / 8;
             }
@@ -117,14 +117,14 @@ namespace Utils
             return prevIndex - Stride;
         }
 
-        private float DistanceSquared(PointF p1, Point p2)
+        private static float DistanceSquared(PointF p1, Point p2)
         {
             float dx = p1.X - p2.X;
             float dy = p1.Y - p2.Y;
             return dx * dx + dy * dy;
         }
 
-        private float DistSq(Point point, Point lineEnd1, Point lineEnd2)
+        private static float DistSq(Point point, Point lineEnd1, Point lineEnd2)
         {
             if (lineEnd1.X == lineEnd2.X)
             {
@@ -321,7 +321,7 @@ namespace Utils
             return filteredPaths;
         }*/
 
-        private void RemoveItemsInPathFromSet(IList<ItemIDWithFrame> itemIDWithFrames, IList<IList<IItemID>> rebuiltCache, int latestFrame)
+        private static void RemoveItemsInPathFromSet(IList<ItemIDWithFrame> itemIDWithFrames, IList<IList<IItemID>> rebuiltCache, int latestFrame)
         {
             for (int i = 0; i < itemIDWithFrames.Count; i++)
             {
@@ -330,33 +330,33 @@ namespace Utils
             }
         }
 
-        private float CalculateJitter(IList<ItemIDWithFrame> itemIDWithFrames)
+        private static float CalculateJitter(IList<ItemIDWithFrame> itemIDWithFrames)
         {
 
-            if(itemIDWithFrames.Count < 4)
+            if (itemIDWithFrames.Count < 4)
             {
                 return 10000;
             }
             // if (itemIDWithFrames.Count < 4)
             {
-                float[] frameNum = new float[itemIDWithFrames.Count-1];
-                float[] invIous = new float[itemIDWithFrames.Count-1];
-                float[] ious = new float[itemIDWithFrames.Count-1];
+                float[] frameNum = new float[itemIDWithFrames.Count - 1];
+                float[] invIous = new float[itemIDWithFrames.Count - 1];
+                float[] ious = new float[itemIDWithFrames.Count - 1];
                 Rectangle rect = itemIDWithFrames[0].Item.BoundingBox;
                 float minIOU = 2.0f;
-                if(itemIDWithFrames.Count == 1)
+                if (itemIDWithFrames.Count == 1)
                 {
                     return float.PositiveInfinity;
                 }
                 for (int i = 1; i < itemIDWithFrames.Count; i++)
                 {
-                    frameNum[i-1] = itemIDWithFrames[i].FrameIndex;
-                    ious[i-1] = rect.IntersectionOverUnion(itemIDWithFrames[i].Item.BoundingBox);
-                    if(minIOU > ious[i-1])
+                    frameNum[i - 1] = itemIDWithFrames[i].FrameIndex;
+                    ious[i - 1] = rect.IntersectionOverUnion(itemIDWithFrames[i].Item.BoundingBox);
+                    if (minIOU > ious[i - 1])
                     {
-                        minIOU = ious[i-1];
+                        minIOU = ious[i - 1];
                     }
-                    invIous[i-1] = 1.0f/rect.IntersectionOverUnion(itemIDWithFrames[i].Item.BoundingBox);
+                    invIous[i - 1] = 1.0f / rect.IntersectionOverUnion(itemIDWithFrames[i].Item.BoundingBox);
                 }
 
                 float jitter = 0.0f;
@@ -364,13 +364,13 @@ namespace Utils
                 float minFrame = frameNum[0];
                 float maxFrame = frameNum[0];
 
-                for (int i = 0; i < itemIDWithFrames.Count-1; i++)
+                for (int i = 0; i < itemIDWithFrames.Count - 1; i++)
                 {
                     jitter += invIous[i];
                     minFrame = Math.Min(frameNum[i], minFrame);
                     maxFrame = Math.Max(frameNum[i], maxFrame);
                 }
-                jitter /= minIOU * minIOU * (itemIDWithFrames.Count-1);
+                jitter /= minIOU * minIOU * (itemIDWithFrames.Count - 1);
 
                 return jitter;
             }
@@ -404,8 +404,10 @@ namespace Utils
 
         private void BuildPathFromID(IItemID itemID, IList<IList<ItemIDWithFrame>> paths, IDictionary<IItemID, IList<ItemIDWithFrame>> trackedItems, IList<IList<IItemID>> rebuiltCache, int bufferIndex, int latestFrame)
         {
-            var pathList = new List<ItemIDWithFrame>();
-            pathList.Add(new ItemIDWithFrame(itemID, latestFrame - bufferIndex));
+            var pathList = new List<ItemIDWithFrame>
+            {
+                new ItemIDWithFrame(itemID, latestFrame - bufferIndex)
+            };
             float iou;
             IItemID match;
             for (int i = bufferIndex + 1; i < BufferDepth; i++)
@@ -432,7 +434,7 @@ namespace Utils
 
             for (int i = 0; i < pathList.Count; i++)
             {
-                if( trackedItems.ContainsKey(pathList[i].Item))
+                if (trackedItems.ContainsKey(pathList[i].Item))
                 {
                     pathList.RemoveAt(i);
                     i--;

@@ -1,11 +1,12 @@
-﻿
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
 
 using System.Runtime.InteropServices;
 
 namespace LibAvSharp.Native
 {
     [StructLayout(LayoutKind.Sequential)]
-    unsafe public struct AVCodecDescriptor
+    public unsafe struct AVCodecDescriptor
     {
         public AVCodecID id;
         public AVMediaType type;

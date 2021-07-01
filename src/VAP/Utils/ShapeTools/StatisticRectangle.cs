@@ -124,13 +124,13 @@ namespace Utils.ShapeTools
             }
             int c = ids.Count;
 
-            return new RectangleF((float)sumx/c, (float)sumy/c, (float)sumw/c, (float)sumh/c);
+            return new RectangleF((float)sumx / c, (float)sumy / c, (float)sumw / c, (float)sumh / c);
         }
         public static RectangleF UpdateMeanBox(IList<IItemID> ids, RectangleF oldMean, int oldCount)
         {
-            float sumx = oldMean.X*oldCount;
-            float sumy = oldMean.Y*oldCount;
-            float sumw = oldMean.Width*oldCount;
+            float sumx = oldMean.X * oldCount;
+            float sumy = oldMean.Y * oldCount;
+            float sumw = oldMean.Width * oldCount;
             float sumh = oldMean.Height * oldCount;
             for (int i = oldCount; i < ids.Count; i++)
             {

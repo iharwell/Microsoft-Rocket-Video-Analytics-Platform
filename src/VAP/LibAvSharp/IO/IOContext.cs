@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LibAvSharp.IO
 {
-    unsafe public class IOContext : IDisposable
+    public unsafe class IOContext : IDisposable
     {
         private Native.AVIOContext* _context;
         private byte* buffer;
@@ -34,7 +37,7 @@ namespace LibAvSharp.IO
             avio_buffer = Native.AVUtilsC.av_malloc((ulong)bufferSize);
         }
 
-        static int read_packet(void* opaque, byte* buf, int buf_size)
+        private static int read_packet(void* opaque, byte* buf, int buf_size)
         {
             var bd = (BufferData*)opaque;
             buf_size = (int)Math.Min((decimal)buf_size, (decimal)(bd->size));
@@ -44,14 +47,14 @@ namespace LibAvSharp.IO
             return buf_size;
         }
 
-        public void MapFile( string url )
+        public void MapFile(string url)
         {
             Native.AVUtilsC.av_file_map(url, out buffer, out size, 0, null);
             bd.buffer = buffer;
             bd.size = size;
         }
 
-        protected virtual void Dispose( bool disposing )
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
@@ -60,12 +63,12 @@ namespace LibAvSharp.IO
                     // TODO: dispose managed state (managed objects)
                 }
 
-                if(avio_buffer != null )
+                if (avio_buffer != null)
                 {
                     Native.AVUtilsC.av_freep(ref avio_buffer);
                 }
                 Native.AVUtilsC.av_freep(&(_context->buffer));
-                if( buffer != null )
+                if (buffer != null)
                 {
                     Native.AVUtilsC.av_file_unmap(buffer, size);
                     buffer = null;

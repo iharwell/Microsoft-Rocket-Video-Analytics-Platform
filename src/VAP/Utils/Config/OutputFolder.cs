@@ -5,16 +5,16 @@ namespace Utils.Config
 {
     public static class OutputFolder
     {
-        private static string s_outputFolderAll = "output_all/";
-        private static string s_outputFolderXML = "output_xml/";
-        private static string s_outputFolderVideo = "output_video/";
-        private static string s_outputFolderBGSLine = "output_bgsline/";
-        private static string s_outputFolderLtDNN = "output_ltdnn/";
-        private static string s_outputFolderCcDNN = "output_ccdnn/";
-        private static string s_outputFolderAML = "output_aml/";
-        private static string s_outputFolderFrameDNNDarknet = "output_framednndarknet/";
-        private static string s_outputFolderFrameDNNTF = "output_framednntf/";
-        private static string s_outputFolderFrameDNNONNX = "output_framednnonnx/";
+        private static readonly string s_outputFolderAll = "output_all/";
+        private static readonly string s_outputFolderXML = "output_xml/";
+        private static readonly string s_outputFolderVideo = "output_video/";
+        private static readonly string s_outputFolderBGSLine = "output_bgsline/";
+        private static readonly string s_outputFolderLtDNN = "output_ltdnn/";
+        private static readonly string s_outputFolderCcDNN = "output_ccdnn/";
+        private static readonly string s_outputFolderAML = "output_aml/";
+        private static readonly string s_outputFolderFrameDNNDarknet = "output_framednndarknet/";
+        private static readonly string s_outputFolderFrameDNNTF = "output_framednntf/";
+        private static readonly string s_outputFolderFrameDNNONNX = "output_framednnonnx/";
         private static string s_outputFolderBase = "../../";
 
         public static string OutputFolderBase { get => s_outputFolderBase; set => s_outputFolderBase = value; }

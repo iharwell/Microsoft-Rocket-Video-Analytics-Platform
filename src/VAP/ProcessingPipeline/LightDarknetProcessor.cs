@@ -91,7 +91,7 @@ namespace ProcessingPipeline
 
             var trigItems = Utils.Utils.GetItemsForFurtherProcessing(items);
 
-            foreach ( var trigFramedItem in trigItems )
+            foreach (var trigFramedItem in trigItems)
             {
                 var itemIDs = trigFramedItem.ItemIDs;
                 for (int j = 0; j < itemIDs.Count; j++)

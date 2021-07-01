@@ -163,7 +163,7 @@ namespace Wrapper.ORT
             var boxes = results.AsEnumerable().ElementAt(0).AsTensor<float>();
             var scores = results.AsEnumerable().ElementAt(1).AsTensor<float>();
             var indices = results.AsEnumerable().ElementAt(2).AsTensor<int>();
-            int nbox = indices.Count() / 3;
+            int nbox = (int)indices.Length / 3;
 
             for (int ibox = 0; ibox < nbox; ibox++)
             {
@@ -193,7 +193,7 @@ namespace Wrapper.ORT
             return itemList;
         }
 
-        public void DrawBoundingBox(Image imageOri,
+        public static void DrawBoundingBox(Image imageOri,
             string outputImageLocation,
             string imageName,
             List<ORTItem> itemList)

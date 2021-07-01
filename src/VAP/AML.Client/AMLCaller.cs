@@ -52,7 +52,7 @@ namespace AML.Client
             var client = new ScoringClient(s_host, s_useSSL ? 443 : 80, s_useSSL, s_auth, s_aksServiceName);
             List<bool> amlResult = new List<bool>();
 
-            for (int itemIndex = 0; itemIndex < items.Count(); itemIndex++)
+            for (int itemIndex = 0; itemIndex < items.Count; itemIndex++)
             {
                 MemoryStream mStream = new MemoryStream();
                 items[itemIndex].CroppedImageData(items[itemIndex].ItemIDs.Count - 1).WriteToStream(mStream);

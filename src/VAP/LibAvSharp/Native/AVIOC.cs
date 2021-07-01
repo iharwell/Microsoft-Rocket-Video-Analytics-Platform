@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -19,21 +22,21 @@ namespace LibAvSharp.Native
         AVIO_ENTRY_SHARE,
         AVIO_ENTRY_WORKGROUP,
     };
-    unsafe public static class AVIOC
+    public static unsafe class AVIOC
     {
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
-        extern public static string avio_find_protocol_name( [In] string url );
+        public static extern string avio_find_protocol_name([In] string url);
 
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
-        extern public static int avio_check( [In] string url, int flags );
+        public static extern int avio_check([In] string url, int flags);
 
 
         [DllImport("avutil_57.dll", CallingConvention = CallingConvention.Cdecl)]
-        extern public static int avio_alloc_context( [In] byte* buffer, int buffer_size, int write_flags, void* opaque,
-                                                     delegate* unmanaged[Cdecl]< void*, byte*, int, int > read_packet,
-                                                     delegate* unmanaged[Cdecl]< void*, byte*, int, int > write_packet,
-                                                     delegate* unmanaged[Cdecl]< void*, long, int, long > offset );
+        public static extern int avio_alloc_context([In] byte* buffer, int buffer_size, int write_flags, void* opaque,
+                                                     delegate* unmanaged[Cdecl]<void*, byte*, int, int> read_packet,
+                                                     delegate* unmanaged[Cdecl]<void*, byte*, int, int> write_packet,
+                                                     delegate* unmanaged[Cdecl]<void*, long, int, long> offset);
 
         // int av_file_map(const char *filename, uint8_t **bufptr, size_t *size, int log_offset, void *log_ctx);
     }

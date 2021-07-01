@@ -1,4 +1,7 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
     public enum AVSubtitleType : int
     {
@@ -19,7 +22,7 @@
         SUBTITLE_ASS,
     }
 
-    unsafe public struct AVSubtitleRect
+    public unsafe struct AVSubtitleRect
     {
         public int x;         //< top left corner  of pict, undefined when pict is not set
         public int y;         //< top left corner  of pict, undefined when pict is not set

@@ -117,7 +117,7 @@ namespace LibAvSharp.Native
         public static extern int avfilter_config_links(AVFilterContext* filter_ctx);
 
 
-        [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl, CharSet=CharSet.Ansi)]
+        [DllImport("avfilter-8.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern int avfilter_process_command(AVFilterContext* filter_ctx,
                                                           string cmd,
                                                           string arg,

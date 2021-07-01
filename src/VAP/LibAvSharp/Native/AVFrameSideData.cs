@@ -1,12 +1,15 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
-    unsafe public struct AVFrameSideData
+    public unsafe struct AVFrameSideData
     {
         public AVFrameSideDataType type;
-        public byte *data;
-        public ulong   size;
-        public void *metadata;
-        public AVBufferRef *buf;
+        public byte* data;
+        public ulong size;
+        public void* metadata;
+        public AVBufferRef* buf;
     }
 
     public enum AVFrameSideDataType : int

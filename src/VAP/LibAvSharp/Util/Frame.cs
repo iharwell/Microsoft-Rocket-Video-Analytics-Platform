@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +10,7 @@ using LibAvSharp.Native;
 
 namespace LibAvSharp.Util
 {
-    unsafe public class Frame : IDisposable
+    public unsafe class Frame : IDisposable
     {
         internal AVFrame* _frame;
         private bool disposedValue;
@@ -58,7 +61,7 @@ namespace LibAvSharp.Util
                 return _frame->best_effort_timestamp;
             }
         }
-        public int LineSizeItem( int index )
+        public int LineSizeItem(int index)
         {
             return _frame->linesize(index);
         }
@@ -72,24 +75,24 @@ namespace LibAvSharp.Util
 
         public IntPtr DataPtrEntry(int index)
         {
-            if(index>=4 )
+            if (index >= 4)
             {
                 throw new IndexOutOfRangeException();
             }
             return (IntPtr)((&_frame->data0)[index]);
         }
 
-        public static int TransferHWFrame( Frame destination, Frame source, int flags )
+        public static int TransferHWFrame(Frame destination, Frame source, int flags)
         {
             return AVUtilsC.av_hwcontext_transfer_data(destination._frame, source._frame, flags);
         }
 
-        public int GetBuffer( int align )
+        public int GetBuffer(int align)
         {
             return AVUtilsC.av_frame_get_buffer(_frame, align);
         }
 
-        protected virtual void Dispose( bool disposing )
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

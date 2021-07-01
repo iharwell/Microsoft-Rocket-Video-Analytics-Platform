@@ -82,7 +82,7 @@ namespace LibAvSharp.Filter
         {
             get
             {
-                if( _filterIO->next == null )
+                if (_filterIO->next == null)
                 {
                     return null;
                 }
@@ -90,7 +90,7 @@ namespace LibAvSharp.Filter
             }
             set
             {
-                if( value == null)
+                if (value == null)
                 {
                     _filterIO->next = null;
                 }

@@ -27,9 +27,11 @@ namespace ProcessingPipeline
 
         public Pipeline()
         {
-            DataflowBlockOptions opts = new DataflowBlockOptions();
-            opts.BoundedCapacity = 60;
-            opts.EnsureOrdered = true;
+            DataflowBlockOptions opts = new DataflowBlockOptions
+            {
+                BoundedCapacity = 60,
+                EnsureOrdered = true
+            };
             inputQueue = new ConcurrentQueue<FramePacket>();
             outputBuffer = new ConcurrentQueue<FramePacket>();
             _stages = new List<IProcessor>();
@@ -75,10 +77,12 @@ namespace ProcessingPipeline
 
         public void SyncPostFrame(IFrame frame)
         {
-            FramePacket packet = new FramePacket();
-            packet.frame = frame;
-            packet.items = new List<IFramedItem>();
-            packet.prev = null;
+            FramePacket packet = new FramePacket
+            {
+                frame = frame,
+                items = new List<IFramedItem>(),
+                prev = null
+            };
 
             while (inputQueue.Count >= 50)
             {

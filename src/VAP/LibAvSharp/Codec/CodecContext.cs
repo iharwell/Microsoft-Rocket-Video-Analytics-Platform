@@ -1,10 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using LibAvSharp.Native;
 using LibAvSharp.Util;
 
 namespace LibAvSharp.Codec
 {
-    unsafe public class CodecContext : IDisposable
+    public unsafe class CodecContext : IDisposable
     {
         internal AVCodecContext* _native_context;
         private bool disposedValue;
@@ -30,7 +33,7 @@ namespace LibAvSharp.Codec
 
         public AVRational TimeBase => _native_context->time_base;
 
-        public int SendPacket( ref Packet pkt )
+        public int SendPacket(ref Packet pkt)
         {
             int ret = AVCodecC.avcodec_send_packet(_native_context, pkt._packet);
 
@@ -42,11 +45,11 @@ namespace LibAvSharp.Codec
             int outVal;
             outVal = AVCodecC.avcodec_receive_frame(_native_context, output._frame);
 
-            if (outVal < 0 && outVal != -11 )
+            if (outVal < 0 && outVal != -11)
             {
 
             }
-            if (outVal >= 0 && _currentPacket!=null)
+            if (outVal >= 0 && _currentPacket != null)
             {
                 _currentPacket._packet->size -= outVal;
                 _currentPacket._packet->data += outVal;
@@ -61,12 +64,12 @@ namespace LibAvSharp.Codec
             _native_context = null;
         }
 
-        internal CodecContext( AVCodecContext* native_context )
+        internal CodecContext(AVCodecContext* native_context)
         {
             _native_context = native_context;
         }
 
-        protected virtual void Dispose( bool disposing )
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

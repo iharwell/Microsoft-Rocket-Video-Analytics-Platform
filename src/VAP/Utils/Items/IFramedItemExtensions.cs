@@ -215,7 +215,7 @@ namespace Utils.Items
             IFramedItem bestItem = null;
             double bestSimilarity = double.NegativeInfinity;
 
-            if( itemID is FillerID )
+            if (itemID is FillerID)
             {
                 framedItem = null;
                 return false;
@@ -224,7 +224,7 @@ namespace Utils.Items
 
             var fiInSameFrame = FilterByFrame(framedItems, frameIndex);
 
-            foreach ( var item in fiInSameFrame )
+            foreach (var item in fiInSameFrame)
             {
                 var sim = item.Similarity(itemID.BoundingBox);
                 if (sim > bestSimilarity)
@@ -510,14 +510,26 @@ namespace Utils.Items
         }
         public static void RemoveFiller(ref IList<IFramedItem> list)
         {
-            bool fillerFound = false;
-            if (list.Count > 1)
+            for (int i = 0; i < list.Count; i++)
             {
-                for (int i = 0; i < list.Count; i++)
+                var ids = list[i].ItemIDs;
+                if (ids.Count > 1)
                 {
-                    if (list[i] is FillerID)
+                    IItemID fillerID = null;
+                    for (int j = 0; j < ids.Count; j++)
                     {
-                        list.RemoveAt(i);
+                        if (ids[j] is FillerID)
+                        {
+                            if (fillerID == null)
+                            {
+                                fillerID = ids[j];
+                            }
+                            ids.RemoveAt(j);
+                        }
+                    }
+                    if(ids.Count == 0 && fillerID != null)
+                    {
+                        ids.Add(fillerID);
                     }
                 }
             }

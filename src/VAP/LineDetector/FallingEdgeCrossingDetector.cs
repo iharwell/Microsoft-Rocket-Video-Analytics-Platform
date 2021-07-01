@@ -11,8 +11,8 @@ namespace LineDetector
     /// </summary>
     internal class FallingEdgeCrossingDetector : ICrossingDetector
     {
-        private readonly List<int> _frameNoList = new List<int>();
-        private readonly List<double> _occupancyValueList = new List<double>();
+        private readonly List<int> _frameNoList = new();
+        private readonly List<double> _occupancyValueList = new();
         private readonly int _upStateTransitionLength = 4;
         private readonly int _downStateTransitionLength = 10;
         private readonly int _history;

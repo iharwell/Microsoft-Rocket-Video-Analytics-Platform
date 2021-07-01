@@ -116,12 +116,12 @@ namespace Decoder
             List<string> filtered = new List<string>();
             foreach (var file in files)
             {
-                if (Extensions.Contains(file.Substring(file.Length - 3)))
+                if (Extensions.Contains(file[^3..]))
                 {
                     filtered.Add(file);
                 }
             }
-            if ( filtered.Count > 0 )
+            if (filtered.Count > 0)
             {
                 var decoder = new DecoderFFMPEG(scale, false);
                 for (int i = 0; i < filtered.Count; i++)
@@ -214,9 +214,11 @@ namespace Decoder
                 } while (HasMoreFrames)
                     ;
             }
-            Frame f = new Frame();
-            f.FrameData = _internalGetFrame();
-            f.SourceName = FilePath;
+            Frame f = new Frame
+            {
+                FrameData = _internalGetFrame(),
+                SourceName = FilePath
+            };
             if (TimeStampParser != null)
             {
                 f.TimeStamp = TimeStampParser(f);
@@ -244,7 +246,7 @@ namespace Decoder
             }
             finally
             {
-                if(lockTaken)
+                if (lockTaken)
                 {
                     _spinner.Exit();
                 }
@@ -279,18 +281,18 @@ namespace Decoder
                     _spinner.Enter(ref lockGot);
                     ++PathIndex;
                     _inner.Close();
-                    tmpDecoder=(_inner);
+                    tmpDecoder = (_inner);
                     _inner = tmp;
                     _readFrames = 0;
                 }
                 finally
                 {
-                    if(lockGot)
+                    if (lockGot)
                     {
                         _spinner.Exit();
                     }
                 }
-                if(tmpDecoder != null)
+                if (tmpDecoder != null)
                 {
                     _disposables.Add(tmpDecoder);
                 }
@@ -307,7 +309,7 @@ namespace Decoder
 
         private void PreloadFiles()
         {
-            while(true)
+            while (true)
             {
                 if (!_nextFileReady && (TotalFrameNumber - _readFrames) < (_queuesize / 4))
                 {
@@ -343,14 +345,16 @@ namespace Decoder
                     {
                         break;
                     }
-                    Frame f = new Frame();
-                    f.SourceName = FilePath;
-                    f.FrameData = image.Clone();
+                    Frame f = new Frame
+                    {
+                        SourceName = FilePath,
+                        FrameData = image.Clone()
+                    };
                     _matQueue.Enqueue(f);
                 }
                 else
                 {
-                    if ( !notified )
+                    if (!notified)
                     {
                         notified = true;
                         //Console.WriteLine("Queue full: " + queuesize + " elements.");
@@ -364,7 +368,7 @@ namespace Decoder
         {
             while (!_fileTask.IsCompleted)
             {
-                if( _disposables.TryTake(out Decoder2.Decoder result) )
+                if (_disposables.TryTake(out Decoder2.Decoder result))
                 {
                     result.Dispose();
                 }

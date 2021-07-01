@@ -1,11 +1,14 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LibAvSharp.Native
 {
-    unsafe public static class AVFormatC
+    public static unsafe class AVFormatC
     {
         // AVStream
         // AVInputFormat
@@ -20,62 +23,62 @@ namespace LibAvSharp.Native
         // avcodec_parameters_to_context
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int av_find_best_stream( [In, Out] ref AVFormatContext ic,
+        internal static extern int av_find_best_stream([In, Out] ref AVFormatContext ic,
                                                         AVMediaType type,
                                                         int wanted_stream_nb,
                                                         int related_stream,
                                                         [In] IntPtr decoder_ret,
-                                                        int flags );
+                                                        int flags);
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int av_find_best_stream( [In, Out] AVFormatContext* ic,
+        internal static extern int av_find_best_stream([In, Out] AVFormatContext* ic,
                                                         AVMediaType type,
                                                         int wanted_stream_nb,
                                                         int related_stream,
                                                         [In] AVCodec** decoder_ret,
-                                                        int flags );
+                                                        int flags);
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int av_find_best_stream( [In, Out] AVFormatContext* ic,
+        internal static extern int av_find_best_stream([In, Out] AVFormatContext* ic,
                                                         AVMediaType type,
                                                         int wanted_stream_nb,
                                                         int related_stream,
                                                         [In] IntPtr decoder_ret,
-                                                        int flags );
+                                                        int flags);
 
 
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int avformat_close_input( [In, Out] AVFormatContext** ic );
+        internal static extern int avformat_close_input([In, Out] AVFormatContext** ic);
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int avformat_close_input( [In, Out] ref AVFormatContext* ic );
+        internal static extern int avformat_close_input([In, Out] ref AVFormatContext* ic);
 
 
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int avformat_open_input( [In, Out] AVFormatContext** ic, [In] byte* url, [In] ref AVInputFormat fmt, [In,Out] AVDictionary** options );
-
-        [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl, CharSet= CharSet.Ansi)]
-        internal static extern int avformat_open_input( [In, Out] ref AVFormatContext* ic, [In] string url, [In] ref AVInputFormat fmt, [In, Out] ref AVDictionary* options );
+        internal static extern int avformat_open_input([In, Out] AVFormatContext** ic, [In] byte* url, [In] ref AVInputFormat fmt, [In, Out] AVDictionary** options);
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern int avformat_open_input( [In, Out] ref AVFormatContext* ic, [In] string url, [In] AVInputFormat* fmt, [In, Out] AVDictionary** options );
-
-
+        internal static extern int avformat_open_input([In, Out] ref AVFormatContext* ic, [In] string url, [In] ref AVInputFormat fmt, [In, Out] ref AVDictionary* options);
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern int avformat_find_stream_info( [In, Out] AVFormatContext* ic, [In, Out] AVDictionary** options );
-        [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern int avformat_find_stream_info( [In, Out] ref AVFormatContext ic, [In, Out] ref AVDictionary* options );
+        internal static extern int avformat_open_input([In, Out] ref AVFormatContext* ic, [In] string url, [In] AVInputFormat* fmt, [In, Out] AVDictionary** options);
+
 
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern int av_read_frame( [In, Out] AVFormatContext* ic, [In, Out] AVPacket* options );
+        internal static extern int avformat_find_stream_info([In, Out] AVFormatContext* ic, [In, Out] AVDictionary** options);
+        [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        internal static extern int avformat_find_stream_info([In, Out] ref AVFormatContext ic, [In, Out] ref AVDictionary* options);
 
 
         [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern int av_dump_format( [In, Out] AVFormatContext* ic, int index, string url, int is_output );
+        internal static extern int av_read_frame([In, Out] AVFormatContext* ic, [In, Out] AVPacket* options);
+
+
+        [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        internal static extern int av_dump_format([In, Out] AVFormatContext* ic, int index, string url, int is_output);
 
     }
 }

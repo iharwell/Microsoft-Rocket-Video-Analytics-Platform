@@ -19,7 +19,7 @@ namespace PostProcessor
         private static readonly string s_dBCred = ConfigurationManager.AppSettings["DBCred"];
         private static readonly string s_dBName = ConfigurationManager.AppSettings["DBName"];
 
-        private static readonly HttpClient s_client = new HttpClient();
+        private static readonly HttpClient s_client = new();
 
         public static async Task<Camera> GetDocumentCamera(string id)
         {

@@ -25,7 +25,7 @@ namespace Utils
         {
             for (int i = 1; i < Stride; i++)
             {
-                if(i == 0)
+                if (i == 0)
                 {
                     continue;
                 }

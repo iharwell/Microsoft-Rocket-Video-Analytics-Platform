@@ -18,7 +18,7 @@ namespace DNNDetector
     //Todo: merge it with LineTriggeredDNNYolo
     public class LineTriggeredDNNORTYolo
     {
-        private readonly Dictionary<string, int> _counts_prev = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _counts_prev = new();
 
         private readonly FrameDNNOnnxYolo _frameDNNOnnxYolo;
         private readonly FrameBuffer _frameBufferLtDNNOnnxYolo;

@@ -195,7 +195,7 @@ namespace DarknetDetector
             return ltDNNItemList;
         }
 
-        private Item Item(YoloTrackingItem yoloTrackingItem)
+        private static Item Item(YoloTrackingItem yoloTrackingItem)
         {
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "")

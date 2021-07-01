@@ -54,7 +54,7 @@ namespace DarknetDetector
             _frameYoloTracking.SetTrackingObject(trackingObject);
         }*/
 
-        unsafe public IEnumerable<YoloTrackingItem> Analyse(Mat imgByte, ISet<string> category, Point trackingPoint, Color bboxColor)
+        public unsafe IEnumerable<YoloTrackingItem> Analyse(Mat imgByte, ISet<string> category, Point trackingPoint, Color bboxColor)
         {
             byte[] imgBuffer = imgByte.ToBytes(".bmp");
             IEnumerable<YoloTrackingItem> yoloItems;
@@ -65,7 +65,7 @@ namespace DarknetDetector
             return yoloItems;
         }
 
-        unsafe public IEnumerable<YoloTrackingItem> AnalyseRaw(Mat imgByte, ISet<string> category)
+        public unsafe IEnumerable<YoloTrackingItem> AnalyseRaw(Mat imgByte, ISet<string> category)
         {
             byte[] imgBuffer = imgByte.ToBytes(".bmp");
             IEnumerable<YoloTrackingItem> yoloItems;
@@ -75,7 +75,7 @@ namespace DarknetDetector
             }
             return yoloItems;
         }
-        unsafe public IEnumerable<IItemID> Analyze(Mat imgByte, ISet<string> category, object sourceObject)
+        public unsafe IEnumerable<IItemID> Analyze(Mat imgByte, ISet<string> category, object sourceObject)
         {
             byte[] imgBuffer = imgByte.ToBytes(".bmp");
             IEnumerable<YoloTrackingItem> yoloItems;
@@ -90,8 +90,10 @@ namespace DarknetDetector
             List<IItemID> items = new List<IItemID>();
             foreach (var item in yoloItems)
             {
-                ItemID id = new ItemID(item.BBox, item.ObjId, item.Type, item.Confidence, item.TrackId, nameof(FrameDNNDarknet));
-                id.SourceObject = sourceObject;
+                ItemID id = new ItemID(item.BBox, item.ObjId, item.Type, item.Confidence, item.TrackId, nameof(FrameDNNDarknet))
+                {
+                    SourceObject = sourceObject
+                };
                 items.Add(id);
             }
             return items;
@@ -115,7 +117,7 @@ namespace DarknetDetector
             return OverlapVal(imgBuffer, cachedItems, lineID, min_score_for_linebbox_overlap);
         }
 
-        public IDictionary<YoloTrackingItem, bool> GetOverlappingItems(IEnumerable<YoloTrackingItem> yoloItems, LineSegment line, double overlapThreshold)
+        public static IDictionary<YoloTrackingItem, bool> GetOverlappingItems(IEnumerable<YoloTrackingItem> yoloItems, LineSegment line, double overlapThreshold)
         {
             Dictionary<YoloTrackingItem, bool> results = new Dictionary<YoloTrackingItem, bool>();
             foreach (var item in yoloItems)
@@ -275,14 +277,14 @@ namespace DarknetDetector
                 return yoloItems.ToList();
             }
         }
-        public void BuildImageData( YoloTrackingItem yoloItem, Color color, Mat imageData )
+        public static void BuildImageData(YoloTrackingItem yoloItem, Color color, Mat imageData)
         {
             int bbx = yoloItem.X + yoloItem.Width;
             int bby = yoloItem.Y + yoloItem.Height;
             yoloItem.TaggedImageData = Utils.Utils.DrawImage(imageData, yoloItem.X, yoloItem.Y, yoloItem.Width, yoloItem.Height, color);
             yoloItem.CroppedImageData = Utils.Utils.CropImage(imageData, yoloItem.X, yoloItem.Y, yoloItem.Width, yoloItem.Height);
         }
-        private void BuildImageData(YoloTrackingItem yoloItem, Color color, byte[] imageData)
+        private static void BuildImageData(YoloTrackingItem yoloItem, Color color, byte[] imageData)
         {
             int bbx = yoloItem.X + yoloItem.Width;
             int bby = yoloItem.Y + yoloItem.Height;
@@ -320,7 +322,7 @@ namespace DarknetDetector
                                        Overlap = Utils.Utils.CheckLineBboxOverlapRatio(line, o.X, o.Y, o.Width, o.Height),
                                        Bbox_x = o.X + o.Width,
                                        Bbox_y = o.Y + o.Height,
-                                       Distance = this.Distance(line, o.Center()),
+                                       Distance = Distance(line, o.Center()),
                                        Item = o
                                    }
                                    where o.X + o.Width <= image.Width
@@ -417,24 +419,24 @@ namespace DarknetDetector
             return frameDNNItem;
         }
 
-        private double Distance(LineSegment line, Point bboxCenter)
+        private static double Distance(LineSegment line, Point bboxCenter)
         {
             Point p1 = line.MidPoint;
-            return Math.Sqrt(this.Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
+            return Math.Sqrt(Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
         }
-        private double Distance(LineSegment line, PointF bboxCenter)
+        private static double Distance(LineSegment line, PointF bboxCenter)
         {
             Point p1 = line.MidPoint;
-            return Math.Sqrt(this.Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
+            return Math.Sqrt(Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
         }
 
-        private double Pow2(double x)
+        private static double Pow2(double x)
         {
             return x * x;
         }
 
 
-        private void DrawAllBb(int frameIndex, byte[] imgByte, List<YoloTrackingItem> items, Color bboxColor)
+        private static void DrawAllBb(int frameIndex, byte[] imgByte, List<YoloTrackingItem> items, Color bboxColor)
         {
             byte[] canvas = imgByte;
             foreach (var item in items)
@@ -444,7 +446,7 @@ namespace DarknetDetector
             File.WriteAllBytes(@OutputFolder.OutputFolderAll + $"frame-{frameIndex}.jpg", canvas);
         }
 
-        private Item Item(YoloTrackingItem yoloTrackingItem)
+        private static Item Item(YoloTrackingItem yoloTrackingItem)
         {
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "")

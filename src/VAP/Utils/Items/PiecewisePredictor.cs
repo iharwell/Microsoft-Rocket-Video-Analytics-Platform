@@ -77,16 +77,18 @@ namespace Utils.Items
 
             int actualOrder = (int)((itemList.Count / OverSampling) + 0.5);
 
-            CenterPolyPathModel model = new CenterPolyPathModel();
-            model.CenterXCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, xSet, actualOrder);
-            model.CenterYCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, ySet, actualOrder);
-            model.WidthCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, wSet, actualOrder);
-            model.HeightCoefs= MathNet.Numerics.Fit.Polynomial(frameIndices, hSet, actualOrder);
+            CenterPolyPathModel model = new CenterPolyPathModel
+            {
+                CenterXCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, xSet, actualOrder),
+                CenterYCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, ySet, actualOrder),
+                WidthCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, wSet, actualOrder),
+                HeightCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, hSet, actualOrder)
+            };
 
             return model.Predict(frameIndex);
         }
 
-        public int OrderForFrameOffset(int offset)
+        public static int OrderForFrameOffset(int offset)
         {
             if (offset <= 3)
             {
@@ -96,9 +98,9 @@ namespace Utils.Items
             return (int)(Math.Log2(offset));
         }
 
-        public bool IsInterpolated(IItemPath path, int frameIndex)
+        public static bool IsInterpolated(IItemPath path, int frameIndex)
         {
-            (int min, int max ) = path.GetPathBounds();
+            (int min, int max) = path.GetPathBounds();
             return (frameIndex > min) && (frameIndex < max);
         }
     }

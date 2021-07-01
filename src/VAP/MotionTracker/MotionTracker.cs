@@ -134,7 +134,7 @@ namespace MotionTracker
             {
                 return itemPath;
             }
-            if(similarityThreshold < 0)
+            if (similarityThreshold < 0)
             {
                 similarityThreshold = 0;
             }
@@ -194,7 +194,7 @@ namespace MotionTracker
 
         private static void RemoveUsedFrames(IItemPath itemPath, IList<IList<IFramedItem>> orgFrames, ref int startingIndex)
         {
-            if(orgFrames == null || orgFrames.Count == 0)
+            if (orgFrames == null || orgFrames.Count == 0)
             {
                 return;
             }
@@ -492,12 +492,12 @@ namespace MotionTracker
         /// </returns>
         public static IList<IList<IFramedItem>> InsertIntoSortedBuffer(IList<IList<IFramedItem>> buffer, IList<IFramedItem> unsortedSet, double mergeThreshold, double nameBoost)
         {
-            if(unsortedSet.Count == 0)
+            if (unsortedSet.Count == 0)
             {
                 return buffer;
             }
 
-            if(buffer.Count == 0)
+            if (buffer.Count == 0)
             {
                 buffer.Add(unsortedSet);
                 return GroupByFrame(buffer, mergeThreshold, nameBoost);
@@ -523,15 +523,15 @@ namespace MotionTracker
             }
             else
             {
-                destList = new List<IList<IFramedItem>>(max-min+1);
+                destList = new List<IList<IFramedItem>>(max - min + 1);
             }
-            for (int i = min+destList.Count; i <= max; i++)
+            for (int i = min + destList.Count; i <= max; i++)
             {
                 destList.Add(new List<IFramedItem>());
             }
 
             HashSet<int> shortcutFrames = new HashSet<int>();
-            foreach ( var item in unsortedSet )
+            foreach (var item in unsortedSet)
             {
                 int tgtIndex = item.Frame.FrameIndex - min;
                 IList<IFramedItem> dst = destList[tgtIndex];
@@ -541,7 +541,7 @@ namespace MotionTracker
                     continue;
                 }
 
-                if(dst.Count == 0)
+                if (dst.Count == 0)
                 {
                     shortcutFrames.Add(tgtIndex);
                 }
@@ -550,7 +550,7 @@ namespace MotionTracker
                     dst.RemoveAt(0);
                     shortcutFrames.Add(tgtIndex);
                 }
-                if(shortcutFrames.Contains(tgtIndex))
+                if (shortcutFrames.Contains(tgtIndex))
                 {
                     dst.Add(item);
                 }
@@ -576,7 +576,7 @@ namespace MotionTracker
             if (buffer.Count == 1)
             {
                 int frame = -1;
-                if( buffer[0].Count>0)
+                if (buffer[0].Count > 0)
                 {
                     frame = buffer[0][0].Frame.FrameIndex;
                 }
@@ -584,13 +584,13 @@ namespace MotionTracker
                 for (int i = 1; i < buffer[0].Count; i++)
                 {
                     var item = buffer[0][i];
-                    if( item.Frame.FrameIndex != frame)
+                    if (item.Frame.FrameIndex != frame)
                     {
                         sameFrame = false;
                         break;
                     }
                 }
-                if( sameFrame)
+                if (sameFrame)
                 {
                     return buffer;
                 }
@@ -599,7 +599,7 @@ namespace MotionTracker
             var allFramedItems = from IList<IFramedItem> subList in buffer
                                  from IFramedItem item in subList
                                  group item by item.Frame.FrameIndex;
-                                 //select item;
+            //select item;
 
             int minFrame = buffer[0][0].Frame.FrameIndex;
             int maxFrame = buffer[0][0].Frame.FrameIndex;
@@ -642,20 +642,18 @@ namespace MotionTracker
 
             Dictionary<IItemPath, (int minFrame, int maxFrame)> boundaries = new Dictionary<IItemPath, (int minFrame, int maxFrame)>();
 
-            foreach ( var path in paths)
+            foreach (var path in paths)
             {
                 boundaries.Add(path, path.GetPathBounds());
             }
-            bool outOfRange;
             for (int i = 0; i < paths.Count; i++)
             {
                 var path = paths[i];
-                outOfRange = false;
                 int minFrame;
                 int maxFrame;
                 (minFrame, maxFrame) = boundaries[path];
 
-                for (int j = i+1; j < paths.Count; j++)
+                for (int j = i + 1; j < paths.Count; j++)
                 {
                     var tgtPath = paths[j];
                     int tgtMin;
@@ -663,25 +661,24 @@ namespace MotionTracker
 
                     (tgtMin, tgtMax) = boundaries[path];
 
-                    if( tgtMax - maxFrame > 250 )
+                    if (tgtMax - maxFrame > 250)
                     {
-                        outOfRange = true;
                         break;
                     }
 
-                    for (int k = Math.Max(tgtMin,minFrame); k < Math.Min(tgtMax,maxFrame); k++)
+                    for (int k = Math.Max(tgtMin, minFrame); k < Math.Min(tgtMax, maxFrame); k++)
                     {
                         var tgtFi = GetFramedItemByFrameNumber(tgtPath, k);
-                        if(tgtFi == null)
+                        if (tgtFi == null)
                         {
                             continue;
                         }
                         var srcFi = GetFramedItemByFrameNumber(path, k);
-                        if(srcFi == null)
+                        if (srcFi == null)
                         {
                             continue;
                         }
-                        if( AreFramedItemsMatched(srcFi, tgtFi, similarityThreshold))
+                        if (AreFramedItemsMatched(srcFi, tgtFi, similarityThreshold))
                         {
                             foreach (var fi in tgtPath.FramedItems)
                             {
@@ -722,19 +719,19 @@ namespace MotionTracker
             paths = outPaths;
         }
 
-        private static bool HasSimilarID( IItemID id, IList<IItemID> idlist)
+        private static bool HasSimilarID(IItemID id, IList<IItemID> idlist)
         {
-            if( id is FillerID )
+            if (id is FillerID)
             {
                 return true;
             }
-            if(idlist.Count == 1 && idlist[0] is FillerID)
+            if (idlist.Count == 1 && idlist[0] is FillerID)
             {
                 return false;
             }
             for (int i = 0; i < idlist.Count; i++)
             {
-                if( id.BoundingBox == idlist[i].BoundingBox)
+                if (id.BoundingBox == idlist[i].BoundingBox)
                 {
                     return true;
                 }
@@ -742,9 +739,9 @@ namespace MotionTracker
             return false;
         }
 
-        private static bool AreFramedItemsMatched( IFramedItem item1, IFramedItem item2, double similarityThreshold)
+        private static bool AreFramedItemsMatched(IFramedItem item1, IFramedItem item2, double similarityThreshold)
         {
-            if( item1.Frame.FrameIndex != item2.Frame.FrameIndex)
+            if (item1.Frame.FrameIndex != item2.Frame.FrameIndex)
             {
                 return false;
             }
@@ -755,29 +752,29 @@ namespace MotionTracker
                 {
                     var id2 = item2.ItemIDs[j];
 
-                    if(id1.Confidence == id2.Confidence && id1.Confidence>0)
+                    if (id1.Confidence == id2.Confidence && id1.Confidence > 0)
                     {
                         return true;
                     }
-                    if(id1.BoundingBox.Location == id2.BoundingBox.Location && id1.BoundingBox.Size == id2.BoundingBox.Size)
+                    if (id1.BoundingBox.Location == id2.BoundingBox.Location && id1.BoundingBox.Size == id2.BoundingBox.Size)
                     {
                         return true;
                     }
                 }
             }
-            if(item1.Similarity(item2.MeanBounds) >= similarityThreshold)
+            if (item1.Similarity(item2.MeanBounds) >= similarityThreshold)
             {
                 return true;
             }
             return false;
         }
 
-        private static IFramedItem GetFramedItemByFrameNumber( IItemPath path, int frameNumber )
+        private static IFramedItem GetFramedItemByFrameNumber(IItemPath path, int frameNumber)
         {
             for (int i = 0; i < path.FramedItems.Count; i++)
             {
                 var fi = path.FramedItems[i];
-                if ( fi.Frame.FrameIndex == frameNumber )
+                if (fi.Frame.FrameIndex == frameNumber)
                 {
                     return fi;
                 }

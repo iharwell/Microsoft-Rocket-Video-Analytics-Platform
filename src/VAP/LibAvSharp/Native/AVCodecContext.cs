@@ -1,53 +1,56 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 
 namespace LibAvSharp.Native
 {
     [Flags]
     public enum AVCodecContextFlags : uint
     {
-        AV_CODEC_FLAG_UNALIGNED       = (1 <<  0),
-        AV_CODEC_FLAG_QSCALE          = (1 <<  1),
-        AV_CODEC_FLAG_4MV             = (1 <<  2),
-        AV_CODEC_FLAG_OUTPUT_CORRUPT  = (1 <<  3),
-        AV_CODEC_FLAG_QPEL            = (1 <<  4),
-        AV_CODEC_FLAG_DROPCHANGED     = (1 <<  5),
-        AV_CODEC_FLAG_PASS1           = (1 <<  9),
-        AV_CODEC_FLAG_PASS2           = (1 << 10),
-        AV_CODEC_FLAG_LOOP_FILTER     = (1 << 11),
-        AV_CODEC_FLAG_GRAY            = (1 << 13),
-        AV_CODEC_FLAG_PSNR            = (1 << 15),
-        AV_CODEC_FLAG_TRUNCATED       = (1 << 16),
-        AV_CODEC_FLAG_INTERLACED_DCT  = (1 << 18),
-        AV_CODEC_FLAG_LOW_DELAY       = (1 << 19),
-        AV_CODEC_FLAG_GLOBAL_HEADER   = (1 << 22),
-        AV_CODEC_FLAG_BITEXACT        = (1 << 23),
-        AV_CODEC_FLAG_AC_PRED         = (1 << 24),
-        AV_CODEC_FLAG_INTERLACED_ME   = (1 << 29),
-        AV_CODEC_FLAG_CLOSED_GOP      = (1U << 31)
+        AV_CODEC_FLAG_UNALIGNED = (1 << 0),
+        AV_CODEC_FLAG_QSCALE = (1 << 1),
+        AV_CODEC_FLAG_4MV = (1 << 2),
+        AV_CODEC_FLAG_OUTPUT_CORRUPT = (1 << 3),
+        AV_CODEC_FLAG_QPEL = (1 << 4),
+        AV_CODEC_FLAG_DROPCHANGED = (1 << 5),
+        AV_CODEC_FLAG_PASS1 = (1 << 9),
+        AV_CODEC_FLAG_PASS2 = (1 << 10),
+        AV_CODEC_FLAG_LOOP_FILTER = (1 << 11),
+        AV_CODEC_FLAG_GRAY = (1 << 13),
+        AV_CODEC_FLAG_PSNR = (1 << 15),
+        AV_CODEC_FLAG_TRUNCATED = (1 << 16),
+        AV_CODEC_FLAG_INTERLACED_DCT = (1 << 18),
+        AV_CODEC_FLAG_LOW_DELAY = (1 << 19),
+        AV_CODEC_FLAG_GLOBAL_HEADER = (1 << 22),
+        AV_CODEC_FLAG_BITEXACT = (1 << 23),
+        AV_CODEC_FLAG_AC_PRED = (1 << 24),
+        AV_CODEC_FLAG_INTERLACED_ME = (1 << 29),
+        AV_CODEC_FLAG_CLOSED_GOP = (1U << 31)
     }
     [Flags]
     public enum AVCodecContextFlags2 : uint
     {
-        AV_CODEC_FLAG2_FAST           = (1 <<  0),
-        AV_CODEC_FLAG2_NO_OUTPUT      = (1 <<  2),
-        AV_CODEC_FLAG2_LOCAL_HEADER   = (1 <<  3),
+        AV_CODEC_FLAG2_FAST = (1 << 0),
+        AV_CODEC_FLAG2_NO_OUTPUT = (1 << 2),
+        AV_CODEC_FLAG2_LOCAL_HEADER = (1 << 3),
         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE = (1 << 13),
-        AV_CODEC_FLAG2_CHUNKS         = (1 << 15),
-        AV_CODEC_FLAG2_IGNORE_CROP    = (1 << 16),
-        AV_CODEC_FLAG2_SHOW_ALL       = (1 << 22),
-        AV_CODEC_FLAG2_EXPORT_MVS     = (1 << 28),
-        AV_CODEC_FLAG2_SKIP_MANUAL    = (1 << 29),
-        AV_CODEC_FLAG2_RO_FLUSH_NOOP  = (1 << 30),
+        AV_CODEC_FLAG2_CHUNKS = (1 << 15),
+        AV_CODEC_FLAG2_IGNORE_CROP = (1 << 16),
+        AV_CODEC_FLAG2_SHOW_ALL = (1 << 22),
+        AV_CODEC_FLAG2_EXPORT_MVS = (1 << 28),
+        AV_CODEC_FLAG2_SKIP_MANUAL = (1 << 29),
+        AV_CODEC_FLAG2_RO_FLUSH_NOOP = (1 << 30),
     }
     [Flags]
     public enum AVCodecContextExportSideDataFlags : uint
     {
-        AV_CODEC_EXPORT_DATA_MVS              = (1 << 0),
-        AV_CODEC_EXPORT_DATA_PRFT             = (1 << 1),
+        AV_CODEC_EXPORT_DATA_MVS = (1 << 0),
+        AV_CODEC_EXPORT_DATA_PRFT = (1 << 1),
         AV_CODEC_EXPORT_DATA_VIDEO_ENC_PARAMS = (1 << 2),
-        AV_CODEC_EXPORT_DATA_FILM_GRAIN       = (1 << 3),
+        AV_CODEC_EXPORT_DATA_FILM_GRAIN = (1 << 3),
     }
-    unsafe public struct AVCodecContext
+    public unsafe struct AVCodecContext
     {
         // AVClass*
         public AVClass* av_class;
@@ -156,8 +159,8 @@ namespace LibAvSharp.Native
         public float rc_min_vbv_overflow_use;
         public int rc_initial_buffer_occupancy;
         public int trellis;
-        public char *stats_out;
-        public char *stats_in;
+        public char* stats_out;
+        public char* stats_in;
         public int workaround_bugs;
         public int strict_std_compliance;
         public int error_concealment;

@@ -1,6 +1,9 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
-    public enum AVPacketSideDataType: int
+    public enum AVPacketSideDataType : int
     {
         /*
          * An AV_PKT_DATA_PALETTE side data packet contains exactly AVPALETTE_SIZE

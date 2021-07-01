@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -10,12 +13,11 @@ using LibAvSharp.Util;
 
 namespace LibAvSharp.Format
 {
-    unsafe public class FormatContext : IDisposable
+    public unsafe class FormatContext : IDisposable
     {
         internal AVFormatContext* native_context;
         private bool disposedValue;
-
-        string fileName;
+        private string fileName;
 
         public FormatContext()
         {
@@ -30,7 +32,7 @@ namespace LibAvSharp.Format
         {
             AVFormatC.av_dump_format(native_context, index, fileName, is_output);
         }
-        public void OpenInput( string file )
+        public void OpenInput(string file)
         {
             AVFormatC.avformat_open_input(ref native_context, file, null, null);
             fileName = file;
@@ -46,16 +48,15 @@ namespace LibAvSharp.Format
             AVFormatC.avformat_find_stream_info(native_context, null);
         }
 
-        public CodecContext OpenCodecContext( ref int streamIndex, AVMediaType mediaType, AVPixelFormat format = AVPixelFormat.AV_PIX_FMT_NONE )
+        public CodecContext OpenCodecContext(ref int streamIndex, AVMediaType mediaType, AVPixelFormat format = AVPixelFormat.AV_PIX_FMT_NONE)
         {
-            int stream_index;
             Native.AVStream* st;
             AVCodec* dec;
             AVDictionary* dict = null;
-            streamIndex = AVFormatC.av_find_best_stream( native_context, mediaType, -1, -1, IntPtr.Zero, 0 );
+            streamIndex = AVFormatC.av_find_best_stream(native_context, mediaType, -1, -1, IntPtr.Zero, 0);
             if (streamIndex < 0)
             {
-                string? name = Marshal.PtrToStringAnsi(new IntPtr( AVUtilsC.av_get_media_type_string(mediaType) ));
+                var name = Marshal.PtrToStringAnsi(new IntPtr(AVUtilsC.av_get_media_type_string(mediaType)));
                 throw new Exception("Could not find " + name + " stream in input file " + fileName);
             }
             else
@@ -63,26 +64,26 @@ namespace LibAvSharp.Format
                 st = native_context->streams[streamIndex];
                 dec = findCodecHWAccel(st->codecpar->codec_id);
 
-                if ( dec == null )
+                if (dec == null)
                 {
                     throw new NullReferenceException();
                 }
 
                 AVCodecContext* dec_ctx = AVCodecC.avcodec_alloc_context3(dec);
                 CodecContext context = new CodecContext(dec_ctx);
-                if ( dec_ctx == null )
+                if (dec_ctx == null)
                 {
                     throw new NullReferenceException();
                 }
                 int ret = AVCodecC.avcodec_parameters_to_context(context._native_context, st->codecpar);
                 context.PixelFormat = format;
-                if ( ret<0 )
+                if (ret < 0)
                 {
                     throw new Exception();
                 }
 
                 ret = AVCodecC.avcodec_open2(context._native_context, dec, &dict);
-                if ( ret < 0 )
+                if (ret < 0)
                 {
                     throw new InvalidOperationException();
                 }
@@ -95,15 +96,14 @@ namespace LibAvSharp.Format
             AVFormatC.avformat_close_input(ref native_context);
         }
 
-        private AVCodec* findCodecHWAccel( AVCodecID codec_id )
+        private static AVCodec* findCodecHWAccel(AVCodecID codec_id)
         {
-            AVCodec* codec = null;
             string name = AVCodecC.avcodec_get_name(codec_id);
 
-            StringBuilder sb = new StringBuilder( name );
+            StringBuilder sb = new StringBuilder(name);
             sb.Append("_cuvid");
             string hwName = sb.ToString();
-            codec = AVCodecC.avcodec_find_decoder_by_name(hwName);
+            var codec = AVCodecC.avcodec_find_decoder_by_name(hwName);
             if (codec != null)
             {
                 return codec;
@@ -161,15 +161,14 @@ namespace LibAvSharp.Format
 
             return AVCodecC.avcodec_find_decoder(codec_id);
         }
-        private AVCodec* findCodecHWAccel( AVCodecID codec_id, double scale )
+        private static AVCodec* findCodecHWAccel(AVCodecID codec_id, double scale)
         {
-            AVCodec* codec = null;
             string name = AVCodecC.avcodec_get_name(codec_id);
 
-            StringBuilder sb = new StringBuilder( name );
+            StringBuilder sb = new StringBuilder(name);
             sb.Append("_cuvid");
             string hwName = sb.ToString();
-            codec = AVCodecC.avcodec_find_decoder_by_name(hwName);
+            var codec = AVCodecC.avcodec_find_decoder_by_name(hwName);
             if (codec != null)
             {
                 return codec;
@@ -228,7 +227,7 @@ namespace LibAvSharp.Format
             return AVCodecC.avcodec_find_decoder(codec_id);
         }
 
-        protected virtual void Dispose( bool disposing )
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

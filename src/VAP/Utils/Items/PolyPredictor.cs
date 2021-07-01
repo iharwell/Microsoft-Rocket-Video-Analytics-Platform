@@ -44,7 +44,7 @@ namespace Utils.Items
         }
 
         /// <inheritdoc/>
-        private Rectangle PolyPredict(IItemPath path, int frameIndex, int order)
+        private static Rectangle PolyPredict(IItemPath path, int frameIndex, int order)
         {
             // Linear Regression for each member of the rectangles.
             var fEnum = from item in path.FramedItems
@@ -89,7 +89,7 @@ namespace Utils.Items
             var rectangles = from itemId in framedItem.ItemIDs
                              select itemId.BoundingBox;
 
-            return StatisticRectangle.MedianBox( rectangles );
+            return StatisticRectangle.MedianBox(rectangles);
         }
     }
 }

@@ -42,8 +42,5 @@ namespace Utils.Items
         /// <inheritdoc />
         [DataMember]
         public LineSegment TriggerSegment { get; set; }
-
-        [DataMember]
-        public bool FurtherAnalysisTriggered { get; set; }
     }
 }

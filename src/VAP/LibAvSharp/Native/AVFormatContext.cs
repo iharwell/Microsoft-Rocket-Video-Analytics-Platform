@@ -1,8 +1,11 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 
 namespace LibAvSharp.Native
 {
-    unsafe public struct AVFormatContext
+    public unsafe struct AVFormatContext
     {
         // AVClass*
         public AVClass* av_class;
@@ -29,15 +32,15 @@ namespace LibAvSharp.Native
         public byte* key;
         public int keylen;
         public uint nb_programs;
-        public AVProgram ** programs;
+        public AVProgram** programs;
         public AVCodecID video_codec_id;
         public AVCodecID audio_codec_id;
         public AVCodecID subtitle_codec_id;
         public uint max_index_size;
         public uint max_picture_buffer;
         public uint nb_chapters;
-        public AVChapter ** chapters;
-        public AVDictionary * metadata;
+        public AVChapter** chapters;
+        public AVDictionary* metadata;
         public long start_time_realtime;
         public int fps_probe_size;
         public int error_recognition;
@@ -80,10 +83,10 @@ namespace LibAvSharp.Native
         public byte* protocol_whitelist;
 
         // int (* io_open) (struct AVFormatContext *s, AVIOContext **pb, const char *url, int flags, AVDictionary **options);
-        public delegate* unmanaged[Cdecl]<IntPtr,IntPtr, string, int, IntPtr, int> io_open;
+        public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, string, int, IntPtr, int> io_open;
 
         // void (* io_close) (struct AVFormatContext *s, AVIOContext *pb);
-        public delegate* unmanaged[Cdecl]<IntPtr,IntPtr, void> io_close;
+        public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, void> io_close;
 
         public byte* protocol_blacklist;
         public int max_streams;

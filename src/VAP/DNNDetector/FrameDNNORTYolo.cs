@@ -62,7 +62,7 @@ namespace DNNDetector
                             Overlap = Utils.Utils.CheckLineBboxOverlapRatio(s_lines[lineID].Item2, o.X, o.Y, o.Width, o.Height),
                             Bbox_x = o.X + o.Width,
                             Bbox_y = o.Y + o.Height,
-                            Distance = this.Distance(s_lines[lineID].Item2,
+                            Distance = Distance(s_lines[lineID].Item2,
                             o.Center()),
                             Item = o
                         })
@@ -146,13 +146,13 @@ namespace DNNDetector
             }
         }
 
-        private double Distance(int[] line, System.Drawing.Point bboxCenter)
+        private static double Distance(int[] line, System.Drawing.Point bboxCenter)
         {
             System.Drawing.Point p1 = new System.Drawing.Point((int)((line[0] + line[2]) / 2), (int)((line[1] + line[3]) / 2));
-            return Math.Sqrt(this.Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
+            return Math.Sqrt(Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
         }
 
-        private double Pow2(double x)
+        private static double Pow2(double x)
         {
             return x * x;
         }

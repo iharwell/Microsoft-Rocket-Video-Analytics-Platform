@@ -1,4 +1,7 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
     public enum AVDurationEstimationMethod : int
     {

@@ -58,7 +58,7 @@ namespace Utils.Items
         private int CachedPathFilteredSize;
         private CenterPolyPathModel CachedModel;
 
-        private CenterPolyPathModel MakeModel( IItemPath path )
+        private static CenterPolyPathModel MakeModel(IItemPath path)
         {
 
             var centersAndSizes = from item in path.FramedItems
@@ -71,15 +71,15 @@ namespace Utils.Items
             var model = new CenterPolyPathModel();
 
             var frameSet = (from entry in cAndS
-                           select (double)entry.frame).ToArray();
+                            select (double)entry.frame).ToArray();
             var centerXSet = (from entry in cAndS
                               select (double)entry.center.X).ToArray();
             var centerYSet = (from entry in cAndS
-                             select (double)entry.center.Y).ToArray();
+                              select (double)entry.center.Y).ToArray();
             var wSet = (from entry in cAndS
-                       select (double)entry.size.Width).ToArray();
+                        select (double)entry.size.Width).ToArray();
             var hSet = (from entry in cAndS
-                       select (double)entry.size.Height).ToArray();
+                        select (double)entry.size.Height).ToArray();
 
             model.CenterXCoefs = MathNet.Numerics.Fit.Polynomial(frameSet, centerXSet, order);
             model.CenterYCoefs = MathNet.Numerics.Fit.Polynomial(frameSet, centerYSet, order);

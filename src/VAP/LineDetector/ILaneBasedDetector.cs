@@ -88,7 +88,7 @@ namespace LineDetector
         /// <summary>
         /// Gets a <see cref="Dictionary{TKey, TValue}"/> of the parameters used by this detector, stored by name.
         /// </summary>
-        Dictionary<string, Object> GetParameters();
+        Dictionary<string, object> GetParameters();
 
         /// <summary>
         /// Gets the line segments used by this detector.

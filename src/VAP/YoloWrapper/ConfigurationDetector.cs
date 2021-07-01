@@ -18,8 +18,8 @@ namespace Wrapper.Yolo
         public YoloConfiguration Detect()
         {
             var files = this.GetYoloFiles();
-            var yoloConfiguration = this.MapFiles(files);
-            var configValid = this.AreValidYoloFiles(yoloConfiguration);
+            var yoloConfiguration = MapFiles(files);
+            var configValid = AreValidYoloFiles(yoloConfiguration);
 
             if (configValid)
             {
@@ -35,7 +35,7 @@ namespace Wrapper.Yolo
             //return Directory.GetFiles(@"D:\Projects\McD\src\VAP\YoloWrapper\Yolo.Config\" + configFolder, "*.*", SearchOption.TopDirectoryOnly).Where(o => o.EndsWith(".names") || o.EndsWith(".cfg") || o.EndsWith(".weights")).ToArray();
         }
 
-        private YoloConfiguration MapFiles(string[] files)
+        private static YoloConfiguration MapFiles(string[] files)
         {
             var configurationFile = files.Where(o => o.EndsWith(".cfg")).FirstOrDefault();
             var weightsFile = files.Where(o => o.EndsWith(".weights")).FirstOrDefault();
@@ -44,7 +44,7 @@ namespace Wrapper.Yolo
             return new YoloConfiguration(configurationFile, weightsFile, namesFile);
         }
 
-        private bool AreValidYoloFiles(YoloConfiguration config)
+        private static bool AreValidYoloFiles(YoloConfiguration config)
         {
             if (string.IsNullOrEmpty(config.ConfigFile) ||
                 string.IsNullOrEmpty(config.WeightsFile) ||

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -79,7 +82,7 @@ namespace LibAvSharp.Native
         AV_PIX_FMT_YA8,          //< 8 bits gray, 8 bits alpha
 
         AV_PIX_FMT_Y400A = AV_PIX_FMT_YA8, //< alias for AV_PIX_FMT_YA8
-        AV_PIX_FMT_GRAY8A= AV_PIX_FMT_YA8, //< alias for AV_PIX_FMT_YA8
+        AV_PIX_FMT_GRAY8A = AV_PIX_FMT_YA8, //< alias for AV_PIX_FMT_YA8
 
         AV_PIX_FMT_BGR48BE,   //< packed RGB 16:16:16, 48bpp, 16B, 16G, 16R, the 2-byte value for each R/G/B component is stored as big-endian
         AV_PIX_FMT_BGR48LE,   //< packed RGB 16:16:16, 48bpp, 16B, 16G, 16R, the 2-byte value for each R/G/B component is stored as little-endian
@@ -222,12 +225,12 @@ namespace LibAvSharp.Native
 
         AV_PIX_FMT_GBRAP12BE,      //< planar GBR 4:4:4:4 48bpp, big-endian
         AV_PIX_FMT_GBRAP12LE,      //< planar GBR 4:4:4:4 48bpp, little-endian
-                                   
+
         AV_PIX_FMT_GBRAP10BE,      //< planar GBR 4:4:4:4 40bpp, big-endian
         AV_PIX_FMT_GBRAP10LE,      //< planar GBR 4:4:4:4 40bpp, little-endian
-                                   
+
         AV_PIX_FMT_MEDIACODEC,     //< hardware decoding through MediaCodec
-                                   
+
         AV_PIX_FMT_GRAY12BE,       //<        Y        , 12bpp, big-endian
         AV_PIX_FMT_GRAY12LE,       //<        Y        , 12bpp, little-endian
         AV_PIX_FMT_GRAY10BE,       //<        Y        , 10bpp, big-endian
@@ -293,12 +296,12 @@ namespace LibAvSharp.Native
 
         AV_PIX_FMT_Y210BE,     //< packed YUV 4:2:2 like YUYV422, 20bpp, data in the high bits, big-endian
         AV_PIX_FMT_Y210LE,     //< packed YUV 4:2:2 like YUYV422, 20bpp, data in the high bits, little-endian
-                               
+
         AV_PIX_FMT_X2RGB10LE,  //< packed RGB 10:10:10, 30bpp, (msb)2X 10R 10G 10B(lsb), little-endian, X=unused/undefined
         AV_PIX_FMT_X2RGB10BE,  //< packed RGB 10:10:10, 30bpp, (msb)2X 10R 10G 10B(lsb), big-endian, X=unused/undefined
         AV_PIX_FMT_NB          //< number of pixel formats, DO NOT USE THIS if you want to link with shared libav* because the number of formats might differ between versions
     };
-    unsafe public static class AVImgUtilsC
+    public static unsafe class AVImgUtilsC
     {
         // av_get_pix_fmt_name
         // av_image_copy
@@ -316,7 +319,7 @@ namespace LibAvSharp.Native
          */
         //int av_image_alloc( uint8_t* pointers[4], int linesizes[4], int w, int h, enum AVPixelFormat pix_fmt, int align);
         [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int av_image_alloc( [Out] byte** pointers, [Out] int* linesizes, int w, int h, AVPixelFormat pix_fmt, int align );
+        public static extern int av_image_alloc([Out] byte** pointers, [Out] int* linesizes, int w, int h, AVPixelFormat pix_fmt, int align);
 
         /*
          * Copy image in src_data to dst_data.
@@ -329,18 +332,18 @@ namespace LibAvSharp.Native
         //                    enum AVPixelFormat pix_fmt, int width, int height);
         // av_image_copy
         [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int av_image_copy( [Out] byte** dst_data, [Out] int* dst_linesizes,
+        public static extern int av_image_copy([Out] byte** dst_data, [Out] int* dst_linesizes,
                                                 [In] byte** src_data, [In] int* src_linesizes,
-                                                AVPixelFormat pix_fmt, int width, int height );
+                                                AVPixelFormat pix_fmt, int width, int height);
 
 
         /* void av_image_copy_uc_from( uint8_t* dst_data[4],       const ptrdiff_t dst_linesizes[4],
                            const uint8_t *src_data[4], const ptrdiff_t src_linesizes[4],
                            enum AVPixelFormat pix_fmt, int width, int height);*/
         [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int av_image_copy_uc_from( [Out] byte** dst_data, [Out] ulong* dst_linesizes,
+        public static extern int av_image_copy_uc_from([Out] byte** dst_data, [Out] ulong* dst_linesizes,
                                                 [In] byte** src_data, [In] ulong* src_linesizes,
-                                                AVPixelFormat pix_fmt, int width, int height );
+                                                AVPixelFormat pix_fmt, int width, int height);
 
 
 
@@ -352,7 +355,7 @@ namespace LibAvSharp.Native
          */
         // const char *av_get_pix_fmt_name(enum AVPixelFormat pix_fmt);
         [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern string av_get_pix_fmt_name( AVPixelFormat pix_fmt );
+        public static extern string av_get_pix_fmt_name(AVPixelFormat pix_fmt);
 
 
 
@@ -380,7 +383,7 @@ namespace LibAvSharp.Native
         // void av_freep( void* ptr );
 
         [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern string av_freep( void* ptr );
+        public static extern string av_freep(void* ptr);
 
     }
 }

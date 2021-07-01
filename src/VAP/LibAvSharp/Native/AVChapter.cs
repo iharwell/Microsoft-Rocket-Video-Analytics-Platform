@@ -1,6 +1,9 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
-    unsafe public struct AVChapter
+    public unsafe struct AVChapter
     {
         public long id;
         public AVRational time_base;

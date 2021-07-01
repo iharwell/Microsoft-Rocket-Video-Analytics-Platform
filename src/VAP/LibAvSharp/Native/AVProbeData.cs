@@ -1,6 +1,9 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
-    unsafe public struct AVProbeData
+    public unsafe struct AVProbeData
     {
         public byte* filename;
         public byte* buf;

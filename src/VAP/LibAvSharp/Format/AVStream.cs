@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +10,7 @@ using LibAvSharp.Native;
 
 namespace LibAvSharp.Format
 {
-    unsafe public class AVStream : IDisposable
+    public unsafe class AVStream : IDisposable
     {
         internal Native.AVStream* _stream;
         private bool disposedValue;
@@ -15,7 +18,7 @@ namespace LibAvSharp.Format
         public long NumberFrames => _stream->nb_frames;
         public long Duration => _stream->duration;
 
-        internal AVStream( Native.AVStream* stream )
+        internal AVStream(Native.AVStream* stream)
         {
             _stream = stream;
             disposedValue = true;
@@ -27,7 +30,7 @@ namespace LibAvSharp.Format
         public IntPtr CodecParams => (IntPtr)_stream->codecpar;
 
         public AVCodecID CodecID => _stream->codecpar->codec_id;
-        protected virtual void Dispose( bool disposing )
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

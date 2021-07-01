@@ -20,7 +20,7 @@ namespace DarknetDetector
         {
             _bSize = size;
             // _frameBuffer = new Queue<Mat>(_bSize);
-            _frameBufferList = new List<IFrame>(_bSize+1);
+            _frameBufferList = new List<IFrame>(_bSize + 1);
         }
 
         public int Buffer(IFrame frame)
@@ -33,7 +33,7 @@ namespace DarknetDetector
             _frameBuffer.Enqueue(frame);
             */
             int retNum = -1;
-            if( _frameBufferList.Count > _bSize -1)
+            if (_frameBufferList.Count > _bSize - 1)
             {
                 retNum = _frameBufferList[0].FrameIndex;
                 _frameBufferList.RemoveAt(0);
@@ -43,7 +43,7 @@ namespace DarknetDetector
             return retNum;
         }
 
-        public IFrame GetByFrameNumber( int frameNumber )
+        public IFrame GetByFrameNumber(int frameNumber)
         {
             int minFrame = _frameBufferList[0].FrameIndex;
             if (_frameBufferList[frameNumber - minFrame].FrameIndex == frameNumber)
@@ -61,6 +61,6 @@ namespace DarknetDetector
             return null;
         }
 
-        public IFrame this[int index] =>  _frameBufferList[index];
+        public IFrame this[int index] => _frameBufferList[index];
     }
 }

@@ -76,7 +76,7 @@ namespace AML.Client
             }, retryCount);
         }
 
-        private async Task<T> RetryAsync<T>(
+        private static async Task<T> RetryAsync<T>(
             Func<Task<T>> operation, int retryCount = RetryCount
             )
         {

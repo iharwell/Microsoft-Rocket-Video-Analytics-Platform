@@ -9,7 +9,7 @@ namespace LibAvSharp.Filter
 {
     public unsafe class FilterContext
     {
-        static readonly string FormatSettingName = "pix_fmts";
+        private static readonly string FormatSettingName = "pix_fmts";
 
         public IntPtr InternalContext => (IntPtr)_context;
 

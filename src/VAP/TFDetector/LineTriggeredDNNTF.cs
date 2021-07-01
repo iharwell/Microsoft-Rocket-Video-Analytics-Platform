@@ -20,7 +20,7 @@ namespace TFDetector
         //static string TFCONFIG = "";
         private readonly FrameDNNTF _frameDNNTF;
         private readonly FrameBuffer _frameBufferLtDNNTF;
-        private readonly Dictionary<string, int> _counts_prev = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _counts_prev = new();
 
         public LineTriggeredDNNTF(List<(string key, LineSegment coordinates)> lines)
         {

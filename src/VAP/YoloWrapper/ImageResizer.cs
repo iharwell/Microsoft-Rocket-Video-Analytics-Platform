@@ -10,11 +10,11 @@ namespace Wrapper.Yolo
 {
     public class ImageResizer
     {
-        public byte[] Resize(byte[] imageData, int width, int height)
+        public static byte[] Resize(byte[] imageData, int width, int height)
         {
-            using var image = this.Byte2Image(imageData);
-            using var resizedImage = this.ResizeImage(image, width, height);
-            return this.Image2Byte(resizedImage);
+            using var image = Byte2Image(imageData);
+            using var resizedImage = ResizeImage(image, width, height);
+            return Image2Byte(resizedImage);
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Wrapper.Yolo
         /// <param name="width">The width to resize to.</param>
         /// <param name="height">The height to resize to.</param>
         /// <returns>The resized image.</returns>
-        private Bitmap ResizeImage(Image image, int width, int height)
+        private static Bitmap ResizeImage(Image image, int width, int height)
         {
             var destRect = new Rectangle(0, 0, width, height);
             var destImage = new Bitmap(width, height);
@@ -47,13 +47,13 @@ namespace Wrapper.Yolo
             return destImage;
         }
 
-        private Image Byte2Image(byte[] imageData)
+        private static Image Byte2Image(byte[] imageData)
         {
             using var memoryStream = new MemoryStream(imageData);
             return Image.FromStream(memoryStream);
         }
 
-        private byte[] Image2Byte(Image image)
+        private static byte[] Image2Byte(Image image)
         {
             using var memoryStream = new MemoryStream();
             image.Save(memoryStream, ImageFormat.Bmp);

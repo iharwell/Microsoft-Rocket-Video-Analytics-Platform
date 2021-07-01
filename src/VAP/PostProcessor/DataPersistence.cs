@@ -23,7 +23,7 @@ namespace PostProcessor
     public class DataPersistence
     {
         //string blobUri_BGS = null;
-        private static readonly AzureBlobProcessor s_blobProcessor = new AzureBlobProcessor();
+        private static readonly AzureBlobProcessor s_blobProcessor = new();
 
         // force precise initialization
         static DataPersistence() { }
@@ -47,7 +47,7 @@ namespace PostProcessor
 
         public static string SendDataToCloud(string containerName, string blobName, string sourceFile)
         {
-            return s_blobProcessor.UploadFileAsync(containerName, blobName, sourceFile).GetAwaiter().GetResult();
+            return AzureBlobProcessor.UploadFileAsync(containerName, blobName, sourceFile).GetAwaiter().GetResult();
         }
 
         private static string SerializeDetectionResult(string videoUrl, int cameraID, int frameIndex, IFramedItem item, Position[] objDir, string imageUri, string YOLOCONFIG, string YOLOCONFIG_HEAVY)

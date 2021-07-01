@@ -22,8 +22,8 @@ namespace DarknetDetector
         private const string YOLOCONFIG = "YoloV3TinyCoco"; // "cheap" yolo config folder name
         private readonly IDNNAnalyzer _frameDNNYolo;
         private readonly FrameBuffer _frameBufferLtDNNYolo;
-        private readonly Dictionary<string, int> _counts_prev = new Dictionary<string, int>();
-        private readonly Dictionary<int, IEnumerable<IItemID>> _cached_dnn_outputs = new Dictionary<int, IEnumerable<IItemID>>();
+        private readonly Dictionary<string, int> _counts_prev = new();
+        private readonly Dictionary<int, IEnumerable<IItemID>> _cached_dnn_outputs = new();
 
         private readonly List<(string key, LineSegment coordinates)> _lines;
         private IIndexChooser _indexChooser;
@@ -189,24 +189,8 @@ namespace DarknetDetector
                     // _frameDNNYolo.SetTrackingPoint(lines[lineID].coordinates.MidPoint); //only needs to check the last line in each row
                     frameIndexYolo = IndexChooser.FirstIndex(_cached_dnn_outputs, trigItems, frameIndex);
                     //List<YoloTrackingItem> analyzedTrackingItems = null;
-                    int searchStep = 2;
                     while (frameIndex - frameIndexYolo + 1 < DNNConfig.FRAME_SEARCH_RANGE && trigItems.Count > 0)
                     {
-                        /*if (!_cached_dnn_outputs.ContainsKey(frameIndexYolo)) {
-                            for (int i = -(searchStep / 2)+1; i < searchStep; i++)
-                            {
-                                if (_cached_dnn_outputs.ContainsKey(frameIndexYolo - i))
-                                {
-                                    frameIndexYolo -= i;
-                                    break;
-                                }
-                            }
-                        }*/
-                        /*if (!_cached_dnn_outputs.ContainsKey(frameIndexYolo) && _cached_dnn_outputs.ContainsKey(frameIndexYolo - 1))
-                        {
-                            --frameIndexYolo;
-                        }*/
-
                         // The buffer mechanism is offset by 1 frame. The last frame in the buffer is the current frame.
                         int bufferIndex = DNNConfig.FRAME_SEARCH_RANGE - (frameIndex - frameIndexYolo) - 1;
                         //int lineID = Array.IndexOf(counts.Keys.ToArray(), id.TriggerLine);
@@ -217,11 +201,6 @@ namespace DarknetDetector
                         if (analyzedItemCache == null)
                         {
                             frameIndexYolo = IndexChooser.ChooseNextIndex(_cached_dnn_outputs, trigItems, frameIndexYolo, frameIndex);
-                            /*frameIndexYolo -= searchStep;
-                            while (DNNConfig.FRAME_SEARCH_RANGE - bufferIndex - searchStep > (searchStep + 1))
-                            {
-                                searchStep <<= 1;
-                            }*/
 
                             continue;
                         }
@@ -233,21 +212,6 @@ namespace DarknetDetector
                             /*IList<IItemID> analyzedTrackingItems;*/
                             var itemOverlaps = LineOverlapFilter.GetItemOverlap(analyzedItemCache, (IItemID id) => new RectangleF(id.BoundingBox.X, id.BoundingBox.Y, id.BoundingBox.Width, id.BoundingBox.Height), _lines[lineID].coordinates);
 
-                            /*if (itemOverlaps.Count > 0)
-                            {
-                                var filteredItems = from itemOverlap in itemOverlaps
-                                                    where itemOverlap.Value >= DNNConfig.MIN_SCORE_FOR_LINEBBOX_OVERLAP_LARGE
-                                                    orderby itemOverlap.Value descending
-                                                    select itemOverlap.Key;
-                                if (filteredItems == null || !filteredItems.Any())
-                                {
-                                    analyzedTrackingItems = null;
-                                }
-                                else
-                                {
-                                    analyzedTrackingItems = new List<IItemID>(filteredItems);
-                                }
-                            }*/
                             foreach (KeyValuePair<IItemID, float> entry in itemOverlaps)
                             {
                                 if (trigItems.Count == 0)
@@ -264,13 +228,7 @@ namespace DarknetDetector
                                         TriggerLineID = lineID,
                                         FurtherAnalysisTriggered = true
                                     };
-                                    /*LineTriggeredItemID itemID = new LineTriggeredItemID(bounds, yoloTrackingItem., yoloTrackingItem.Type, yoloTrackingItem.Confidence, yoloTrackingItem.TrackId, nameof(LineTriggeredDNNDarknet))
-                                    {
-                                        TriggerLine = lines[lineID].key,
-                                        TriggerLineID = lineID,
-                                        SourceObject = sourceObject,
-                                        FurtherAnalysisTriggered = true
-                                    };*/
+
                                     if (itemID.InsertIntoFramedItemList(items, out IFramedItem framedItem, frameIndexYolo))
                                     {
                                         framedItem.Frame = frameYolo;
@@ -293,8 +251,6 @@ namespace DarknetDetector
                                     fstream.Dispose();
 
                                     outImage.Dispose();
-                                    /*File.WriteAllBytes(fileName_Cheap, yoloTrackingItem.TaggedImageData);
-                                    File.WriteAllBytes(@OutputFolder.OutputFolderAll + blobName_Cheap, yoloTrackingItem.TaggedImageData);*/
                                     UpdateCount(counts);
 
                                     trigItems.RemoveAt(i);
@@ -417,7 +373,7 @@ namespace DarknetDetector
         }
 
 
-        private IList<(IFramedItem framedItem, ILineTriggeredItemID trigId)> FindTriggerItems(IList<IFramedItem> items)
+        private static IList<(IFramedItem framedItem, ILineTriggeredItemID trigId)> FindTriggerItems(IList<IFramedItem> items)
         {
             IList<(IFramedItem framedItem, ILineTriggeredItemID trigId)> output = new List<(IFramedItem framedItem, ILineTriggeredItemID trigId)>();
             foreach (IFramedItem it in items)
@@ -510,7 +466,7 @@ namespace DarknetDetector
             return items;
         }*/
 
-        private Item Item(YoloTrackingItem yoloTrackingItem)
+        private static Item Item(YoloTrackingItem yoloTrackingItem)
         {
             Item item = new Item(yoloTrackingItem.X, yoloTrackingItem.Y, yoloTrackingItem.Width, yoloTrackingItem.Height,
                 yoloTrackingItem.ObjId, yoloTrackingItem.Type, yoloTrackingItem.Confidence, 0, "")

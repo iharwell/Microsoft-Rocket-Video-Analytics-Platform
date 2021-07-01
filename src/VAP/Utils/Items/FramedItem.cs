@@ -77,7 +77,7 @@ namespace Utils.Items
                     double maxValue = -1;
                     for (int i = 0; i < ItemIDs.Count; i++)
                     {
-                        if(ItemIDs[i].Confidence > maxValue)
+                        if (ItemIDs[i].Confidence > maxValue)
                         {
                             maxIndex = i;
                             maxValue = ItemIDs[i].Confidence;
@@ -106,7 +106,8 @@ namespace Utils.Items
                         _median = ItemIDs[HighestConfidenceIndex].BoundingBox;
                         _medianItemCount = ItemIDs.Count;
                     }
-                    else */if (ItemIDs.Count < _medianItemCount || !_median.HasValue)
+                    else */
+                    if (ItemIDs.Count < _medianItemCount || !_median.HasValue)
                     {
                         _median = StatisticRectangle.MeanBox(ItemIDs);
                         _medianItemCount = ItemIDs.Count;

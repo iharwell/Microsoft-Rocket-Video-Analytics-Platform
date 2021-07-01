@@ -15,12 +15,8 @@ namespace Utils
 {
     public class LineOverlapFilter
     {
-        private HashSet<LineSegment> _lines;
-
         public LineOverlapFilter(ISet<LineSegment> lines)
-        {
-            _lines = new HashSet<LineSegment>(lines);
-        }
+        {}
 
         public static IDictionary<T, float> GetItemOverlap<T>(IEnumerable<T> items, Func<T, RectangleF> toRectangle, LineSegment segment)
         {

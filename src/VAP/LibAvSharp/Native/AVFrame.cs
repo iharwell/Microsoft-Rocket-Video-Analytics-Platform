@@ -1,24 +1,26 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
-    unsafe public struct AVFrame
+    public unsafe struct AVFrame
     {
         // Sure would be nice if this worked:
         // public fixed byte* data[8];
         public byte* data(int index)
         {
-            switch (index)
+            return index switch
             {
-                case 0: return data0;
-                case 1: return data1;
-                case 2: return data2;
-                case 3: return data3;
-                case 4: return data4;
-                case 5: return data5;
-                case 6: return data6;
-                case 7: return data7;
-                default:
-                    throw new System.IndexOutOfRangeException();
-            }
+                0 => data0,
+                1 => data1,
+                2 => data2,
+                3 => data3,
+                4 => data4,
+                5 => data5,
+                6 => data6,
+                7 => data7,
+                _ => throw new System.IndexOutOfRangeException(),
+            };
         }
 
         public byte* data0;
@@ -32,19 +34,18 @@
 
         public int linesize(int index)
         {
-            switch (index)
+            return index switch
             {
-                case 0: return linesize0;
-                case 1: return linesize1;
-                case 2: return linesize2;
-                case 3: return linesize3;
-                case 4: return linesize4;
-                case 5: return linesize5;
-                case 6: return linesize6;
-                case 7: return linesize7;
-                default:
-                    throw new System.IndexOutOfRangeException();
-            }
+                0 => linesize0,
+                1 => linesize1,
+                2 => linesize2,
+                3 => linesize3,
+                4 => linesize4,
+                5 => linesize5,
+                6 => linesize6,
+                7 => linesize7,
+                _ => throw new System.IndexOutOfRangeException(),
+            };
         }
         public int linesize0;
         public int linesize1;
@@ -85,28 +86,18 @@
             {
                 throw new System.IndexOutOfRangeException();
             }
-            switch (index)
+            return index switch
             {
-                case 0:
-                    return buf0;
-                case 1:
-                    return buf1;
-                case 2:
-                    return buf2;
-                case 3:
-                    return buf3;
-                case 4:
-                    return buf4;
-                case 5:
-                    return buf5;
-                case 6:
-                    return buf6;
-                case 7:
-                    return buf7;
-                default:
-                    throw new System.IndexOutOfRangeException();
-            }
-
+                0 => buf0,
+                1 => buf1,
+                2 => buf2,
+                3 => buf3,
+                4 => buf4,
+                5 => buf5,
+                6 => buf6,
+                7 => buf7,
+                _ => throw new System.IndexOutOfRangeException(),
+            };
         }
 
         public AVBufferRef* buf0;

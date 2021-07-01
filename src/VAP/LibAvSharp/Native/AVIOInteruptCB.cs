@@ -1,6 +1,9 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
-    unsafe public struct AVIOInteruptCB
+    public unsafe struct AVIOInteruptCB
     {
         public delegate* unmanaged[Cdecl]<void*, int> callback;
         public void* opaque;

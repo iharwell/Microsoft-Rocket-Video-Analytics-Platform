@@ -1,6 +1,9 @@
-﻿namespace LibAvSharp.Native
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace LibAvSharp.Native
 {
-    unsafe public struct AVDeviceInfoList
+    public unsafe struct AVDeviceInfoList
     {
         public AVDeviceInfo** devices;
         public int nb_devices;

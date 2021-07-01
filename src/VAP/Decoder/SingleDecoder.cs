@@ -72,9 +72,11 @@ namespace Decoder
 
         public IFrame GetNextFrame()
         {
-            Frame frame = new Frame();
-            frame.FrameData = GetNextFrameImage();
-            frame.SourceName = FilePath;
+            Frame frame = new Frame
+            {
+                FrameData = GetNextFrameImage(),
+                SourceName = FilePath
+            };
             return frame;
         }
 

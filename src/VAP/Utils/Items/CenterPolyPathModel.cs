@@ -22,11 +22,11 @@ namespace Utils.Items
         {
             RectangleF rect = new RectangleF();
 
-            PointF center = new PointF();
-
-
-            center.X = (float)MathNet.Numerics.Polynomial.Evaluate((double)frameNumber, CenterXCoefs);
-            center.Y = (float)MathNet.Numerics.Polynomial.Evaluate((double)frameNumber, CenterYCoefs);
+            PointF center = new PointF
+            {
+                X = (float)MathNet.Numerics.Polynomial.Evaluate((double)frameNumber, CenterXCoefs),
+                Y = (float)MathNet.Numerics.Polynomial.Evaluate((double)frameNumber, CenterYCoefs)
+            };
             rect.Width = (float)MathNet.Numerics.Polynomial.Evaluate((double)frameNumber, WidthCoefs);
             rect.Height = (float)MathNet.Numerics.Polynomial.Evaluate((double)frameNumber, HeightCoefs);
 

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -34,34 +37,34 @@ namespace LibAvSharp.Native
     [Flags]
     public enum AVOptionFlags : int
     {
-        AV_OPT_FLAG_ENCODING_PARAM =  1<<0,
-        AV_OPT_FLAG_DECODING_PARAM =  1<<1,
-        AV_OPT_FLAG_AUDIO_PARAM =     1<<3,
-        AV_OPT_FLAG_VIDEO_PARAM =     1<<4,
-        AV_OPT_FLAG_SUBTITLE_PARAM =  1<<5,
-        AV_OPT_FLAG_EXPORT =          1<<6,
-        AV_OPT_FLAG_READONLY =        1<<7,
-        AV_OPT_FLAG_BSF_PARAM =       1<<8,
-        AV_OPT_FLAG_RUNTIME_PARAM =   1<<15,
-        AV_OPT_FLAG_FILTERING_PARAM = 1<<16,
-        AV_OPT_FLAG_DEPRECATED =      1<<17,
-        AV_OPT_FLAG_CHILD_CONSTS =    1<<18,
+        AV_OPT_FLAG_ENCODING_PARAM = 1 << 0,
+        AV_OPT_FLAG_DECODING_PARAM = 1 << 1,
+        AV_OPT_FLAG_AUDIO_PARAM = 1 << 3,
+        AV_OPT_FLAG_VIDEO_PARAM = 1 << 4,
+        AV_OPT_FLAG_SUBTITLE_PARAM = 1 << 5,
+        AV_OPT_FLAG_EXPORT = 1 << 6,
+        AV_OPT_FLAG_READONLY = 1 << 7,
+        AV_OPT_FLAG_BSF_PARAM = 1 << 8,
+        AV_OPT_FLAG_RUNTIME_PARAM = 1 << 15,
+        AV_OPT_FLAG_FILTERING_PARAM = 1 << 16,
+        AV_OPT_FLAG_DEPRECATED = 1 << 17,
+        AV_OPT_FLAG_CHILD_CONSTS = 1 << 18,
     }
 
-    [StructLayout( LayoutKind.Explicit )]
-    unsafe public struct AVOptionValue
+    [StructLayout(LayoutKind.Explicit)]
+    public unsafe struct AVOptionValue
     {
         [FieldOffset(0)]
-        long i64;
+        private long i64;
         [FieldOffset(0)]
-        double dbl;
+        private double dbl;
         [FieldOffset(0)]
-        char* str;
+        private char* str;
         [FieldOffset(0)]
-        AVRational rational;
+        private AVRational rational;
     }
     [StructLayout(LayoutKind.Sequential)]
-    unsafe public struct AVOption
+    public unsafe struct AVOption
     {
         public char* name;
         public char* help;

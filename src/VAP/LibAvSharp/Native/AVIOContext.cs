@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,9 +11,9 @@ namespace LibAvSharp.Native
 {
     public enum AVIODataMarkerType
     {
-         /// <summary>
-         ///   Header data; this needs to be present for the stream to be decodeable.
-         /// </summary>
+        /// <summary>
+        ///   Header data; this needs to be present for the stream to be decodeable.
+        /// </summary>
         AVIO_DATA_MARKER_HEADER,
         /// <summary>
         ///   A point in the output bytestream where a decoder can start decoding (i.e. a
@@ -43,7 +46,7 @@ namespace LibAvSharp.Native
         /// </summary>
         AVIO_DATA_MARKER_FLUSH_POINT,
     }
-    unsafe public struct AVIOContext
+    public unsafe struct AVIOContext
     {
         public AVClass* av_class;
         public byte* buffer;

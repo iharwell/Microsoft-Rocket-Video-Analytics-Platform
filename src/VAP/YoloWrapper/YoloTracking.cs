@@ -33,18 +33,18 @@ namespace Wrapper.Yolo
         public List<YoloTrackingItem> Analyse(byte[] imageData, ISet<string> category, Color bboxColor)
         {
             var items = this._yoloWrapper.Track(imageData);
-            if (items == null || items.Count() == 0)
+            if (items == null || !items.Any())
             {
                 return null;
             }
 
-            var probableObject = this.FindAllMatchIgnoreDistance(items, category);
-            if (probableObject.Count() == 0)
+            var probableObject = FindAllMatchIgnoreDistance(items, category);
+            if (probableObject.Count == 0)
             {
                 return null;
             }
 
-            List<YoloTrackingItem> validObjects = new List<YoloTrackingItem>();
+            var validObjects = new List<YoloTrackingItem>();
             foreach (var obj in probableObject)
             {
                 //var taggedImageData = this.DrawImage(imageData, obj, bboxColor);
@@ -59,18 +59,18 @@ namespace Wrapper.Yolo
         public List<YoloTrackingItem> AnalyseUnmanaged(IntPtr imageData, int dataSize, ISet<string> category, Point trackingObject, Color bboxColor)
         {
             var items = this._yoloWrapper.TrackUnmanaged(imageData, dataSize);
-            if (items == null || items.Count() == 0)
+            if (items == null || !items.Any())
             {
                 return null;
             }
 
-            var probableObject = this.FindAllMatch(items, _maxDistance, trackingObject, category);
-            if (probableObject.Count() == 0)
+            var probableObject = FindAllMatch(items, _maxDistance, trackingObject, category);
+            if (probableObject.Count == 0)
             {
                 return null;
             }
 
-            List<YoloTrackingItem> validObjects = new List<YoloTrackingItem>();
+            var validObjects = new List<YoloTrackingItem>();
             foreach (var obj in probableObject)
             {
                 //var taggedImageData = this.DrawImage(imageData, obj, bboxColor);
@@ -84,18 +84,18 @@ namespace Wrapper.Yolo
         public List<YoloTrackingItem> AnalyseUnmanagedNoDist(IntPtr imageData, int dataSize, ISet<string> category)
         {
             var items = this._yoloWrapper.TrackUnmanaged(imageData, dataSize);
-            if (items == null || items.Count() == 0)
+            if (items == null || !items.Any())
             {
                 return null;
             }
 
-            var probableObject = this.FindAllMatchIgnoreDistance(items, category);
-            if (probableObject.Count() == 0)
+            var probableObject = FindAllMatchIgnoreDistance(items, category);
+            if (probableObject.Count == 0)
             {
                 return null;
             }
 
-            List<YoloTrackingItem> validObjects = new List<YoloTrackingItem>();
+            var validObjects = new List<YoloTrackingItem>();
             foreach (var obj in probableObject)
             {
                 //var taggedImageData = this.DrawImage(imageData, obj, bboxColor);
@@ -107,7 +107,7 @@ namespace Wrapper.Yolo
             return validObjects;
         }
 
-        private YoloItem FindBestMatch(IEnumerable<YoloItem> items, Point trackingObject, int maxDistance)
+        private static YoloItem FindBestMatch(IEnumerable<YoloItem> items, Point trackingObject, int maxDistance)
         {
             //var distanceItems = items.Select(o => new { Distance = this.Distance(o.Center(), this._trackingObject), Item = o }).Where(o => o.Distance <= maxDistance).OrderBy(o => o.Distance);
 
@@ -121,18 +121,18 @@ namespace Wrapper.Yolo
         }
 
         //find all match based on distance
-        private List<YoloItem> FindAllMatch(IEnumerable<YoloItem> items, int maxDistance, Point trackingObject, ISet<string> category)
+        private static List<YoloItem> FindAllMatch(IEnumerable<YoloItem> items, int maxDistance, Point trackingObject, ISet<string> category)
         {
             //var distanceItems = items.Select(o => new{ Category = o.Type, Distance = this.Distance(o.Center(), this._trackingObject), Item = o }).Where(o => (category.Count == 0 || category.Contains(o.Category))&& o.Distance <= maxDistance).OrderBy(o => o.Distance);
 
             var distanceItems = from item in items
                                 where category.Count == 0 || category.Contains(item.Type)
-                                let itemDistance = this.Distance(item.Center(), trackingObject)
+                                let itemDistance = Distance(item.Center(), trackingObject)
                                 where itemDistance <= maxDistance
                                 orderby itemDistance
                                 select item;
 
-            List<YoloItem> yItems = new List<YoloItem>(distanceItems);
+            var yItems = new List<YoloItem>(distanceItems);
             /*foreach (var item in distanceItems)
             {
                 YoloItem yItem = item;
@@ -143,7 +143,7 @@ namespace Wrapper.Yolo
 
 
         //find all match based on distance
-        private List<YoloItem> FindAllMatchIgnoreDistance(IEnumerable<YoloItem> items, ISet<string> category)
+        private static List<YoloItem> FindAllMatchIgnoreDistance(IEnumerable<YoloItem> items, ISet<string> category)
         {
             //var distanceItems = items.Select(o => new{ Category = o.Type, Distance = this.Distance(o.Center(), this._trackingObject), Item = o }).Where(o => (category.Count == 0 || category.Contains(o.Category))&& o.Distance <= maxDistance).OrderBy(o => o.Distance);
 
@@ -151,7 +151,7 @@ namespace Wrapper.Yolo
                                 where category.Count == 0 || category.Contains(item.Type)
                                 select item;
 
-            List<YoloItem> yItems = new List<YoloItem>(distanceItems);
+            var yItems = new List<YoloItem>(distanceItems);
             /*foreach (var item in distanceItems)
             {
                 YoloItem yItem = item;
@@ -160,17 +160,17 @@ namespace Wrapper.Yolo
             return yItems;
         }
 
-        private double Distance(Point p1, Point p2)
+        private static double Distance(Point p1, Point p2)
         {
-            return Math.Sqrt(this.Pow2(p2.X - p1.X) + Pow2(p2.Y - p1.Y));
+            return Math.Sqrt(Pow2(p2.X - p1.X) + Pow2(p2.Y - p1.Y));
         }
 
-        private double Pow2(double x)
+        private static double Pow2(double x)
         {
             return x * x;
         }
 
-        private byte[] DrawImage(byte[] imageData, YoloItem item, Brush color)
+        private static byte[] DrawImage(byte[] imageData, YoloItem item, Brush color)
         {
             using var memoryStream = new MemoryStream(imageData);
             using var image = Image.FromStream(memoryStream);
@@ -184,12 +184,12 @@ namespace Wrapper.Yolo
             return memoryStream2.ToArray();
         }
 
-        private byte[] CropImage(byte[] imageData, YoloItem item)
+        private static byte[] CropImage(byte[] imageData, YoloItem item)
         {
             using var memoryStream = new MemoryStream(imageData);
             using var image = Image.FromStream(memoryStream);
-            Rectangle cropRect = new Rectangle(item.X, item.Y, Math.Min(image.Width - item.X, item.Width), Math.Min(image.Height - item.Y, item.Height));
-            Bitmap bmpImage = new Bitmap(image);
+            var cropRect = new Rectangle(item.X, item.Y, Math.Min(image.Width - item.X, item.Width), Math.Min(image.Height - item.Y, item.Height));
+            var bmpImage = new Bitmap(image);
             Image croppedImage = bmpImage.Clone(cropRect, bmpImage.PixelFormat);
 
             using var memoryStream2 = new MemoryStream();
@@ -197,7 +197,7 @@ namespace Wrapper.Yolo
             return memoryStream2.ToArray();
         }
 
-        public double GetDistance(Point p1, Point trackingObject)
+        public static double GetDistance(Point p1, Point trackingObject)
         {
             return Distance(p1, trackingObject);
         }

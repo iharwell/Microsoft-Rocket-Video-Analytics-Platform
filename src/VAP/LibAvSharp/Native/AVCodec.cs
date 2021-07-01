@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -8,7 +11,7 @@ using System.Threading.Tasks;
 namespace LibAvSharp.Native
 {
     [StructLayout(LayoutKind.Sequential)]
-    unsafe public struct AVCodec
+    public unsafe struct AVCodec
     {
         public byte* name;
         public byte* long_name;
@@ -30,19 +33,19 @@ namespace LibAvSharp.Native
         // int (*update_thread_context)(struct AVCodecContext *dst, const struct AVCodecContext *src);
         public delegate* unmanaged[Cdecl]<AVCodecContext*, AVCodecContext*> update_thread_context;
         // int (*update_thread_context_for_user)(struct AVCodecContext *dst, const struct AVCodecContext *src);
-        public delegate* unmanaged[Cdecl]<AVCodecContext *, AVCodecContext *> update_thread_context_for_user;
+        public delegate* unmanaged[Cdecl]<AVCodecContext*, AVCodecContext*> update_thread_context_for_user;
 
         // AVCodecDefault*
         public AVCodecDefault* defaults;
 
         // void (*init_static_data)(struct AVCodec *codec);
-        public delegate* unmanaged[Cdecl]<AVCodec *, void> init_static_data;
+        public delegate* unmanaged[Cdecl]<AVCodec*, void> init_static_data;
 
         // int (*init)(struct AVCodecContext *);
-        public delegate* unmanaged[Cdecl]<AVCodecContext *, int> init;
+        public delegate* unmanaged[Cdecl]<AVCodecContext*, int> init;
 
         // int (*encode_sub)(struct AVCodecContext *, uint8_t *buf, int buf_size, const struct AVSubtitle *sub);
-        public delegate* unmanaged[Cdecl]<AVCodecContext *, byte*, int, AVSubtitle *, int> encode_sub;
+        public delegate* unmanaged[Cdecl]<AVCodecContext*, byte*, int, AVSubtitle*, int> encode_sub;
 
         // int (* encode2) (struct AVCodecContext *avctx, struct AVPacket *avpkt, const struct AVFrame *frame, int *got_packet_ptr);
         public delegate* unmanaged[Cdecl]<AVCodecContext*, AVPacket*, AVFrame*, int*, int> encode2;

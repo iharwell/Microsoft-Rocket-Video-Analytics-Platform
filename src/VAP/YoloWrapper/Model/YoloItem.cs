@@ -23,7 +23,7 @@ namespace Wrapper.Yolo.Model
             TrackId = trackId;
         }
         public YoloItem(Rectangle bbox, double confidence, int objId, int trackId)
-            : this( bbox, null, confidence, objId, trackId )
+            : this(bbox, null, confidence, objId, trackId)
         { }
 
         public string Type { get; set; }

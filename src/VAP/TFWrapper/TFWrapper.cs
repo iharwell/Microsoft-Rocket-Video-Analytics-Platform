@@ -31,7 +31,7 @@ namespace Wrapper.TF
 
         //private static double MIN_SCORE_FOR_OBJECT_HIGHLIGHTING = 0.5;
 
-        private static readonly OptionSet s_options = new OptionSet()
+        private static readonly OptionSet s_options = new()
         {
             { "input_image=",  "Specifies the path to an image ", v => s_input = v },
             { "output_image=",  "Specifies the path to the output image with detected objects", v => s_output = v },
@@ -77,7 +77,7 @@ namespace Wrapper.TF
             var output = runner.Run();
         }
 
-        public (float[,,], float[,], float[,]) Run(byte[] imageByteArray)
+        public static (float[,,], float[,], float[,]) Run(byte[] imageByteArray)
         {
             var tensor = ImageUtil.CreateTensorFromByteArray(imageByteArray, TFDataType.UInt8);
             var runner = s_session.GetRunner();

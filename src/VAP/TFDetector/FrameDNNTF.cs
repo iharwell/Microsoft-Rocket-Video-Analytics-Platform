@@ -25,7 +25,7 @@ namespace TFDetector
         private static List<(string key, LineSegment coordinates)> s_lines;
         private static HashSet<string> s_category;
 
-        private readonly TFWrapper _tfWrapper = new TFWrapper();
+        private readonly TFWrapper _tfWrapper = new();
         private byte[] _imageByteArray;
         private readonly Brush _bboxColor = Brushes.Green;
 
@@ -45,7 +45,7 @@ namespace TFDetector
 
             float[,,] boxes;
             float[,] scores, classes;
-            (boxes, scores, classes) = _tfWrapper.Run(_imageByteArray);
+            (boxes, scores, classes) = TFWrapper.Run(_imageByteArray);
 
             IList<IFramedItem> preValidItems = ValidateItems(boxes, scores, classes, DNNConfig.MIN_SCORE_FOR_TFOBJECT_OUTPUT, frame);
             List<IFramedItem> validObjects = new List<IFramedItem>();
@@ -117,7 +117,7 @@ namespace TFDetector
             return (validObjects.Count == 0 ? null : validObjects);
         }
 
-        private IList<IFramedItem> ValidateItems(float[,,] boxes, float[,] scores, float[,] classes, double minScore, IFrame frame)
+        private static IList<IFramedItem> ValidateItems(float[,,] boxes, float[,] scores, float[,] classes, double minScore, IFrame frame)
         {
             List<IFramedItem> frameDNNItem = new List<IFramedItem>();
             var x = boxes.GetLength(0);
@@ -185,18 +185,18 @@ namespace TFDetector
             return frameDNNItem;
         }
 
-        private double Distance(LineSegment line, System.Drawing.Point bboxCenter)
+        private static double Distance(LineSegment line, System.Drawing.Point bboxCenter)
         {
             System.Drawing.Point p1 = line.MidPoint;
-            return Math.Sqrt(this.Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
+            return Math.Sqrt(Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
         }
-        private double Distance(LineSegment line, System.Drawing.PointF bboxCenter)
+        private static double Distance(LineSegment line, System.Drawing.PointF bboxCenter)
         {
             System.Drawing.Point p1 = line.MidPoint;
-            return Math.Sqrt(this.Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
+            return Math.Sqrt(Pow2(bboxCenter.X - p1.X) + Pow2(bboxCenter.Y - p1.Y));
         }
 
-        private double Pow2(double x)
+        private static double Pow2(double x)
         {
             return x * x;
         }

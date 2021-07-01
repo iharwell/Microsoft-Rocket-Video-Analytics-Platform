@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-﻿using System;
+using System;
 using OpenCvSharp;
 
 namespace Decoder
@@ -12,8 +12,6 @@ namespace Decoder
         string inputURL;
 
         bool toLoop;
-
-        int objTotal, objDirA, objDirB;
 
         public Decoder(string input, bool loop)
         {
@@ -53,7 +51,7 @@ namespace Decoder
                     capture.Read(sourceMat);
                 }
             }
- 
+
             return sourceMat;
         }
 
@@ -71,13 +69,6 @@ namespace Decoder
             framerate = capture.Get(VideoCaptureProperties.Fps);
 
             return framerate;
-        }
-
-        public void updateObjNum(int[] dirCount)
-        {
-            objTotal = dirCount[0] + dirCount[1] + dirCount[2];
-            objDirA = dirCount[0];
-            objDirB = dirCount[1];
         }
     }
 }

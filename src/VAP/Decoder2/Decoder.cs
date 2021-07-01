@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using System;
 using LibAvSharp.Codec;
 using LibAvSharp.Format;
 using LibAvSharp.Native;
@@ -275,7 +278,6 @@ namespace Decoder2
                 if (Frame.TransferHWFrame(f, _picture, 0) < 0)
                 {
                     throw new OpenCVException("Error copying data from GPU to CPU (av_hwframe_transfer_data)");
-                    return false;
                 }
             }
 
