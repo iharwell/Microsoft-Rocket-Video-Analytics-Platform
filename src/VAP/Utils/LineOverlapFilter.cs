@@ -87,6 +87,11 @@ namespace Utils
 
         public static float GetOverlapRatio(LineSegment segment, RectangleF rect)
         {
+            if( rect.Contains(segment.P1) && rect.Contains(segment.P2))
+            {
+                return 1;
+            }
+
             PointF? topIntersect = GetIntersection(segment.P1, segment.P2, rect.TopLeft(), rect.TopRight());
             PointF? bottomIntersect = GetIntersection(segment.P1, segment.P2, rect.BottomLeft(), rect.BottomRight());
             PointF? leftIntersect = GetIntersection(segment.P1, segment.P2, rect.TopLeft(), rect.BottomLeft());
@@ -174,7 +179,9 @@ namespace Utils
                 }
                 else
                 {
-                    return 0.0f;
+                    Rectangle r = new Rectangle((int)(rect.X + 0.5f), (int)(rect.Y + 0.5f), (int)(rect.Width + 0.5f), (int)(rect.Height + 0.5f));
+
+                    Utils.CheckLineBboxOverlapRatio(segment, r);
                 }
             }
 

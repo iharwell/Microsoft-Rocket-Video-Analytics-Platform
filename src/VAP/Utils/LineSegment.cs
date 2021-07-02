@@ -9,6 +9,26 @@ using Utils.ShapeTools;
 
 namespace Utils
 {
+    public enum LRPosition : sbyte
+    {
+        SegmentLeftFull = -2,
+        SegmentLeftPart = -1,
+        SegmentInner = 0,
+        SegmentStraddle = 1,
+        SegmentRightPart = 2,
+        SegmentRightFull =3
+    }
+
+    public enum TBPosition : sbyte
+    {
+        SegmentAboveFull = -2,
+        SegmentAbovePart = -1,
+        SegmentInner = 0,
+        SegmentStraddle = 1,
+        SegmentBelowPart = 2,
+        SegmentBelowFull = 3
+    }
+
     /// <summary>
     /// A simple line defined by two points.
     /// </summary>

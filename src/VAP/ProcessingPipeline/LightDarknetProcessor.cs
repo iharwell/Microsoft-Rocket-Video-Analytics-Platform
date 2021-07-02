@@ -76,7 +76,11 @@ namespace ProcessingPipeline
         public Color BoundingBoxColor { get; set; }
         public IDictionary<string, LineSegment> LineSegments { get; set; }
         public ISet<string> Categories { get; set; }
-        public bool DisplayOutput { get; set; }
+        public bool DisplayOutput
+        {
+            get => _darknet.DisplayFrame;
+            set => _darknet.DisplayFrame = value;
+        }
 
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {

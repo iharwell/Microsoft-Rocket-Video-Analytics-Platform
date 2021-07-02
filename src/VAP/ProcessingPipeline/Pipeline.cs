@@ -180,7 +180,7 @@ namespace ProcessingPipeline
             }
             if (DisplayEnabled)
             {
-                Cv2.WaitKey(1);
+                //Cv2.WaitKey(1);
             }
             return items;
         }

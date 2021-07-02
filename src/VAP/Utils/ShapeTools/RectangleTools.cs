@@ -9,27 +9,9 @@ using System.Text;
 
 namespace Utils.ShapeTools
 {
+
     public static class RectangleTools
     {
-        private enum LRPosition
-        {
-            SegmentLeftFull,
-            SegmentLeftPart,
-            SegmentStraddle,
-            SegmentInner,
-            SegmentRightPart,
-            SegmentRightFull
-        }
-
-        private enum TBPosition
-        {
-            SegmentAboveFull,
-            SegmentAbovePart,
-            SegmentStraddle,
-            SegmentInner,
-            SegmentBelowPart,
-            SegmentBelowFull
-        }
 
         public static Rectangle RoundRectF(this RectangleF rectf)
         {
@@ -418,7 +400,7 @@ namespace Utils.ShapeTools
             if (tHit) { hitCount++; }
             if (bHit) { hitCount++; }
 
-            (LRPosition xPos, TBPosition yPos) = DeterminePositionSituation(segment, boundingBox);
+            (LRPosition xPos, TBPosition yPos) = DeterminePositionSituation(boundingBox, segment);
 
             if (hitCount == 0)
             {
@@ -612,7 +594,7 @@ namespace Utils.ShapeTools
         }
 
 
-        private static (LRPosition xPos, TBPosition yPos) DeterminePositionSituation(LineSegment segment, Rectangle rect)
+        public static (LRPosition xPos, TBPosition yPos) DeterminePositionSituation(this Rectangle rect, LineSegment segment)
         {
             int segYMax = Math.Max(segment.P1.Y, segment.P2.Y);
             int segYMin = Math.Min(segment.P1.Y, segment.P2.Y);

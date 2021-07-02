@@ -17,6 +17,7 @@ namespace MotionTracker
     public class SparseIndexChooser : IIndexChooser
     {
         bool FromTheTop = true;
+        bool BufferChecked = false;
 
         private class ItemIDWithFrame
         {
@@ -37,10 +38,64 @@ namespace MotionTracker
 
         public SparseIndexChooser()
         {
-            Stride = 1;
+            Stride = 3;
         }
 
-        public int BufferDepth { get; set; }
+        public int BufferDepth
+        {
+            get => _bufferDepth;
+            set
+            {
+                _bufferDepth = value;
+                IndexOrder = new int[_bufferDepth];
+                for (int i = 0; i < _bufferDepth; i++)
+                {
+                    int den = 2;
+                    while (i + 1 >= den)
+                    {
+                        den <<= 1;
+                    }
+                    int num = 1 + 2 * ((i + 1) & ((den >> 1) - 1));
+                    int targetIndex = (_bufferDepth * num) / den;
+                    if (IndexOrder.Contains(targetIndex))
+                    {
+                        int tgtPlus = targetIndex;
+                        while (IndexOrder.Contains(tgtPlus))
+                        {
+                            tgtPlus++;
+                        }
+                        int tgtMinus = targetIndex;
+                        while (IndexOrder.Contains(tgtMinus))
+                        {
+                            tgtMinus--;
+                        }
+
+                        if (tgtMinus < 0)
+                        {
+                            tgtMinus = -3 * BufferDepth;
+                        }
+
+                        if (tgtPlus >= BufferDepth)
+                        {
+                            tgtPlus = 4 * BufferDepth;
+                        }
+
+                        if( tgtPlus - targetIndex > targetIndex - tgtMinus)
+                        {
+                            IndexOrder[i] = tgtMinus;
+                        }
+                        else
+                        {
+                            IndexOrder[i] = tgtPlus;
+                        }
+                    }
+                    else
+                    {
+                        IndexOrder[i] = targetIndex;
+                    }
+                }
+            }
+        }
 
         public int Stride { get; set; }
 
@@ -51,34 +106,70 @@ namespace MotionTracker
             return latestFrame - frameIndex + 1 < BufferDepth;
         }
 
+        int BufferIndex = 0;
+
+        private int[] IndexOrder;
+        private int _bufferDepth;
+
         public int ChooseNextIndex(IDictionary<int, IEnumerable<IItemID>> priorIDs, IList<(IFramedItem, ILineTriggeredItemID)> triggerIDs, int prevIndex, int latestFrame)
         {
             // Rebuild the cache so we can add and remove items, and otherwise work freely without disturbing the original.
+
+            if (!BufferChecked)
+            {
+                var ids = priorIDs.ToArray();
+                if(BufferIndex>=ids.Length)
+                {
+                    BufferChecked = true;
+                }
+                else
+                {
+                    if (ids[BufferIndex].Key == latestFrame)
+                    {
+                        BufferIndex++;
+                    }
+                    BufferIndex++;
+                    if (BufferIndex > ids.Length)
+                    {
+                        BufferChecked = true;
+                    }
+                    else
+                    {
+                        return ids[BufferIndex - 1].Key;
+                    }
+                }
+            }
 
             int cacheCount = priorIDs.Count;
 
             if (cacheCount <= 5)
             {
-                if (!priorIDs.ContainsKey(latestFrame + 2 - BufferDepth))
+                int index = 0;
+                while (priorIDs.ContainsKey(latestFrame - IndexOrder[index]))
                 {
-                    return latestFrame + 2 - BufferDepth;
+                    index++;
+                }
+                return latestFrame - IndexOrder[index];
+                /*if (!priorIDs.ContainsKey(latestFrame - BufferDepth / 4))
+                {
+                    return latestFrame - BufferDepth / 4;
                 }
                 if (!priorIDs.ContainsKey(latestFrame - BufferDepth / 2))
                 {
                     return latestFrame - BufferDepth / 2;
                 }
-                if (!priorIDs.ContainsKey(latestFrame - BufferDepth / 4))
+                if (!priorIDs.ContainsKey(latestFrame - BufferDepth * 3 / 4))
                 {
-                    return latestFrame - BufferDepth / 4;
+                    return latestFrame - BufferDepth * 3 / 4;
                 }
-                if (!priorIDs.ContainsKey(latestFrame - BufferDepth / 8))
+                if (!priorIDs.ContainsKey(latestFrame + 2 - BufferDepth))
                 {
-                    return latestFrame - BufferDepth / 8;
-                }
+                    return latestFrame + 2 - BufferDepth;
+                }*/
             }
             // Tracked Items - maps ItemIDs to the path that the ID is part of.
             IList<IList<ItemIDWithFrame>> paths = new List<IList<ItemIDWithFrame>>();
-            IDictionary<IItemID, IList<ItemIDWithFrame>> trackedItems = new Dictionary<IItemID, IList<ItemIDWithFrame>>();
+            IDictionary<IItemID, IList<IList<ItemIDWithFrame>>> trackedItems = new Dictionary<IItemID, IList<IList<ItemIDWithFrame>>>();
 
             // Rebuild the cache so we can add and remove items, and otherwise work freely without disturbing the original.
             IList<IList<IItemID>> rebuiltCache = RebuildCache(priorIDs, latestFrame);
@@ -86,9 +177,9 @@ namespace MotionTracker
             BuildPaths(paths, trackedItems, rebuiltCache, latestFrame);
             var movingPaths = FilterStationaryItems(rebuiltCache, paths, trackedItems, latestFrame, cacheCount);
 
-            if (movingPaths == null || movingPaths.Count == 0)
+            if (movingPaths == null || movingPaths.Count == 0 || cacheCount >= BufferDepth / Stride)
             {
-                if (cacheCount >= 5)
+                if (cacheCount > 5)
                 {
                     // We have 5 cached frames, and still haven't found a moving target.
                     // This is a false positive.
@@ -96,26 +187,229 @@ namespace MotionTracker
                 }
             }
 
+            int bestCrossingIndex = -1;
+            int bestConfidence = 0;
 
-            /*for (int i = 0; i < triggerIDs.Count; i++)
+            for (int i = 0; i < triggerIDs.Count; i++)
             {
-                IList<IList<ItemIDWithFrame>> crossingPaths = FindCrossingPaths(triggerIDs[i], movingPaths);
+                (int index, int confidence) = FindBestCrossingIndex(triggerIDs[i], movingPaths);
 
-            }*/
-            if (!priorIDs.ContainsKey(latestFrame - (BufferDepth * 5) / 8))
+                if (confidence > bestConfidence)
+                {
+                    bestConfidence = confidence;
+                    bestCrossingIndex = index;
+                }
+            }
+
+            if (bestCrossingIndex > 0 && !priorIDs.ContainsKey(bestCrossingIndex) && bestCrossingIndex <= latestFrame)
             {
-                return latestFrame - (BufferDepth * 5) / 8;
+                return bestCrossingIndex;
+            }
+            if (bestCrossingIndex > 0 && !priorIDs.ContainsKey(bestCrossingIndex + 1) && bestCrossingIndex < latestFrame)
+            {
+                return bestCrossingIndex + 1;
+            }
+
+            {
+                int index = 0;
+                while (priorIDs.ContainsKey(latestFrame - IndexOrder[index]))
+                {
+                    index++;
+                }
+                return latestFrame - IndexOrder[index];
+            }
+            /*
+            if (!priorIDs.ContainsKey(latestFrame - BufferDepth / 8))
+            {
+                return latestFrame - BufferDepth / 8;
             }
             if (!priorIDs.ContainsKey(latestFrame - (BufferDepth * 3) / 8))
             {
                 return latestFrame - (BufferDepth * 3) / 8;
             }
-            if (FromTheTop)
+            if (!priorIDs.ContainsKey(latestFrame - (BufferDepth * 5) / 8))
             {
-                FromTheTop = false;
-                return latestFrame - Stride;
+                return latestFrame - (BufferDepth * 5) / 8;
             }
-            return prevIndex - Stride;
+            if (!priorIDs.ContainsKey(latestFrame - (BufferDepth * 7) / 8))
+            {
+                return latestFrame - (BufferDepth * 5) / 8;
+            }
+            int proposedFrame = latestFrame - Stride;
+            while (priorIDs.ContainsKey(proposedFrame))
+            {
+                proposedFrame -= Stride;
+            }
+            return proposedFrame;*/
+        }
+
+        private (int index, int confidence) FindBestCrossingIndex((IFramedItem, ILineTriggeredItemID) p, IList<IList<ItemIDWithFrame>> movingPaths)
+        {
+            LineSegment triggerLine = p.Item2.TriggerSegment;
+
+            IList<IList<ItemIDWithFrame>> crossingPaths = new List<IList<ItemIDWithFrame>>();
+
+            int pathIndex = -1;
+            int index = -1;
+            int bestconfidence = 0;
+            int frameNumber = -1;
+
+            for (int i = 0; i < movingPaths.Count; i++)
+            {
+                List<ItemIDWithFrame> path = new List<ItemIDWithFrame>(movingPaths[i]);
+                path.Sort((ItemIDWithFrame item1, ItemIDWithFrame item2) => item1.FrameIndex - item2.FrameIndex);
+                List<(LRPosition, TBPosition, Point)> positions = new();
+                for (int j = 0; j < path.Count; j++)
+                {
+                    Rectangle rect = path[j].Item.BoundingBox;
+                    (var lr, var tb) = rect.DeterminePositionSituation(triggerLine);
+                    Point closest = rect.GetNearestPointToLine(triggerLine);
+                    positions.Add((lr, tb, closest));
+                }
+
+                (int lowerCrossIndex, int confidence) = DetermineLowerCrossingIndex(positions, triggerLine);
+                if (confidence > bestconfidence)
+                {
+                    index = lowerCrossIndex;
+                    bestconfidence = confidence;
+                    pathIndex = i;
+
+                    ItemIDWithFrame p1 = path[index];
+                    ItemIDWithFrame p2 = path[index + 1];
+
+                    float d1 = DistSq(positions[index].Item3, triggerLine.P1, triggerLine.P2);
+                    float d2 = DistSq(positions[index + 1].Item3, triggerLine.P1, triggerLine.P2);
+                    float ratio = d1 / (d1 + d2);
+
+                    frameNumber = p1.FrameIndex + (int)((p2.FrameIndex - p1.FrameIndex) * ratio + 0.5);
+                }
+            }
+
+            if (index == -1)
+            {
+                return (-1, 0);
+            }
+
+            return (frameNumber, bestconfidence);
+
+            //throw new NotImplementedException();
+        }
+
+        private (int index, int confidence) DetermineLowerCrossingIndex(List<(LRPosition lr, TBPosition tb, Point closest)> positions, LineSegment segment)
+        {
+            var prevLR = positions[0].lr;
+            var prevTB = positions[0].tb;
+            var prevClosest = positions[0].closest;
+
+            for (int i = 1; i < positions.Count; i++)
+            {
+                (var lr, var tb, var closest) = positions[i];
+                if (HasCrossedThrough(lr, tb, prevLR, prevTB))
+                {
+                    return (i - 1, 10);
+                }
+                prevLR = lr;
+                prevTB = tb;
+                prevClosest = closest;
+            }
+
+            prevLR = positions[0].lr;
+            prevTB = positions[0].tb;
+            prevClosest = positions[0].closest;
+            for (int i = 1; i < positions.Count; i++)
+            {
+                (var lr, var tb, var closest) = positions[i];
+                if (prevTB != tb || lr != prevLR)
+                {
+                    return (i - 1, 9);
+                }
+            }
+
+            float shortestDist = DistSq(positions[0].closest, segment.P1, segment.P2);
+            int shortestIndex = 0;
+            for (int i = 1; i < positions.Count; i++)
+            {
+                float distSq = DistSq(positions[0].closest, segment.P1, segment.P2);
+                if (distSq < shortestDist)
+                {
+                    shortestIndex = i;
+                    shortestDist = distSq;
+                }
+            }
+            if (shortestIndex > 0 && shortestDist < (positions.Count - 1))
+            {
+                float prevDist = DistSq(positions[shortestIndex - 1].closest, segment.P1, segment.P2);
+                float nextDist = DistSq(positions[shortestIndex + 1].closest, segment.P1, segment.P2);
+                if (prevDist < nextDist)
+                {
+                    return (shortestIndex - 1, 8);
+                }
+                return (shortestIndex, 8);
+            }
+            if (shortestIndex == positions.Count - 1)
+            {
+                return (shortestIndex - 1, 7);
+            }
+            return (shortestIndex, 7);
+        }
+
+        private bool HasCrossedThrough(LRPosition lr, TBPosition tb, LRPosition prevLR, TBPosition prevTB)
+        {
+            sbyte slr = (sbyte)lr;
+            sbyte stb = (sbyte)tb;
+            sbyte splr = (sbyte)prevLR;
+            sbyte sptb = (sbyte)prevTB;
+
+            if (lr == prevLR && (lr == LRPosition.SegmentLeftFull || lr == LRPosition.SegmentRightFull))
+            {
+                return false;
+            }
+
+            if (tb == prevTB && (tb == TBPosition.SegmentAboveFull || tb == TBPosition.SegmentBelowFull))
+            {
+                return false;
+            }
+
+            if (splr * slr < 0)
+            {
+                if (prevTB != tb)
+                {
+                    return true;
+                }
+                else if (prevTB != TBPosition.SegmentAboveFull && prevTB != TBPosition.SegmentBelowFull)
+                {
+                    return true;
+                }
+                else if (tb != TBPosition.SegmentAboveFull && tb != TBPosition.SegmentBelowFull)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            else if (stb * sptb < 0)
+            {
+                if (prevLR != lr)
+                {
+                    return true;
+                }
+                else if (prevLR != LRPosition.SegmentLeftFull && prevLR != LRPosition.SegmentRightFull)
+                {
+                    return true;
+                }
+                else if (lr != LRPosition.SegmentLeftFull && lr != LRPosition.SegmentRightFull)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return false;
         }
 
         private static float DistanceSquared(PointF p1, Point p2)
@@ -244,6 +538,9 @@ namespace MotionTracker
         public int FirstIndex(IDictionary<int, IEnumerable<IItemID>> priorIDs, IList<(IFramedItem, ILineTriggeredItemID)> triggerIDs, int latestFrame)
         {
             FromTheTop = true;
+            BufferChecked = false;
+
+            BufferIndex = 0;
             for (int i = 0; i < Stride; i++)
             {
                 if (priorIDs.ContainsKey(latestFrame - i))
@@ -255,7 +552,11 @@ namespace MotionTracker
         }
 
         // Switch to ItemPaths without using frame data?
-        private IList<IList<ItemIDWithFrame>> FilterStationaryItems(IList<IList<IItemID>> rebuiltCache, IList<IList<ItemIDWithFrame>> paths, IDictionary<IItemID, IList<ItemIDWithFrame>> trackedItems, int latestFrame, int cacheCount)
+        private IList<IList<ItemIDWithFrame>> FilterStationaryItems(IList<IList<IItemID>> rebuiltCache,
+                                                                    IList<IList<ItemIDWithFrame>> paths,
+                                                                    IDictionary<IItemID, IList<IList<ItemIDWithFrame>>> trackedItems,
+                                                                    int latestFrame,
+                                                                    int cacheCount)
         {
             //IList<IList<IItemID>> rebuiltCache = RebuildCache(rawCache, latestFrame);
             // Tracked Items - maps ItemIDs to the path that the ID is part of.
@@ -278,7 +579,7 @@ namespace MotionTracker
                 float jitter = CalculateJitter(paths[i]);
                 if (jitter < JitterThreshold)
                 {
-                    RemoveItemsInPathFromSet(paths[i], rebuiltCache, latestFrame);
+                    RemoveItemsInPathFromSet(paths[i], rebuiltCache, latestFrame, trackedItems);
                 }
                 else
                 {
@@ -289,11 +590,18 @@ namespace MotionTracker
             return filteredPaths;
         }
 
-        private static void RemoveItemsInPathFromSet(IList<ItemIDWithFrame> itemIDWithFrames, IList<IList<IItemID>> rebuiltCache, int latestFrame)
+        private static void RemoveItemsInPathFromSet(IList<ItemIDWithFrame> itemIDWithFrames,
+                                                     IList<IList<IItemID>> rebuiltCache,
+                                                     int latestFrame,
+                                                     IDictionary<IItemID, IList<IList<ItemIDWithFrame>>> trackedItems)
         {
             for (int i = 0; i < itemIDWithFrames.Count; i++)
             {
                 var itemToRemove = itemIDWithFrames[i];
+                if (trackedItems[itemToRemove.Item].Count > 1)
+                {
+                    continue;
+                }
                 rebuiltCache[itemToRemove.GetBufferIndex(latestFrame)].Remove(itemToRemove.Item);
             }
         }
@@ -344,7 +652,7 @@ namespace MotionTracker
             }
         }
 
-        private void BuildPaths(IList<IList<ItemIDWithFrame>> paths, IDictionary<IItemID, IList<ItemIDWithFrame>> trackedItems, IList<IList<IItemID>> rebuiltCache, int latestFrame)
+        private void BuildPaths(IList<IList<ItemIDWithFrame>> paths, IDictionary<IItemID, IList<IList<ItemIDWithFrame>>> trackedItems, IList<IList<IItemID>> rebuiltCache, int latestFrame)
         {
 
             for (int i = 0; i < BufferDepth; i++)
@@ -370,7 +678,7 @@ namespace MotionTracker
             }
         }
 
-        private void BuildPathFromID(IItemID itemID, IList<IList<ItemIDWithFrame>> paths, IDictionary<IItemID, IList<ItemIDWithFrame>> trackedItems, IList<IList<IItemID>> rebuiltCache, int bufferIndex, int latestFrame)
+        private void BuildPathFromID(IItemID itemID, IList<IList<ItemIDWithFrame>> paths, IDictionary<IItemID, IList<IList<ItemIDWithFrame>>> trackedItems, IList<IList<IItemID>> rebuiltCache, int bufferIndex, int latestFrame)
         {
             var pathList = new List<ItemIDWithFrame>
             {
@@ -404,11 +712,15 @@ namespace MotionTracker
             {
                 if (trackedItems.ContainsKey(pathList[i].Item))
                 {
-                    pathList.RemoveAt(i);
-                    i--;
+                    trackedItems[pathList[i].Item].Add(pathList);
                     continue;
                 }
-                trackedItems.Add(pathList[i].Item, pathList);
+                else
+                {
+                    var l = new List<IList<ItemIDWithFrame>>() { pathList };
+                    trackedItems.Add(pathList[i].Item, l);
+
+                }
             }
         }
 

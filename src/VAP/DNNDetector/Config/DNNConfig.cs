@@ -7,7 +7,7 @@ namespace DNNDetector.Config
     {
         public static double CONFIDENCE_THRESHOLD { get; set; } = 0.7; //threshold for calling heavy DNN
 
-        public static int FRAME_SEARCH_RANGE { get; set; } = 50; // frames
+        public static int FRAME_SEARCH_RANGE { get; set; } = 150; // frames
 
         public static int ValidRange { get; set; } = 200; // pixels. Deprecated with overlap checking instead.
 

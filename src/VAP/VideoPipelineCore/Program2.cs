@@ -161,6 +161,7 @@ namespace VideoPipelineCore
 
             LightDarknetProcessor lightDNProcessor = new LightDarknetProcessor(lcProcessor.LineSegments, category, Color.Pink, false)
             {
+                DisplayOutput = true,
                 IndexChooser = new MotionTracker.SparseIndexChooser()
             };
             pipeline.AppendStage(lightDNProcessor);

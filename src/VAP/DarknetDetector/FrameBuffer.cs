@@ -23,6 +23,10 @@ namespace DarknetDetector
             _frameBufferList = new List<IFrame>(_bSize + 1);
         }
 
+
+        public int Count => _frameBufferList.Count;
+
+        public bool IsFull => _frameBufferList.Count >= _bSize;
         public int Buffer(IFrame frame)
         {
             /*
