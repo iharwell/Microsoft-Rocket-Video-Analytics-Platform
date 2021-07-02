@@ -132,8 +132,8 @@ namespace VideoPipelineCore
             bool displayBGSVideo = false;
             Utils.Utils.CleanFolderAll();
 
-            var polyPredictor = new Utils.Items.CenterPolyPredictor();
-            var ioUPredictor = new Utils.Items.PiecewisePredictor(8.0);
+            var polyPredictor = new Utils.Items.PiecewisePredictor(8.0);
+            var ioUPredictor = new Utils.Items.IoUPredictor();
 
             //-----FramedItem buffer for tracking item paths-----
             IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(BUFFERSIZE + 1);

@@ -186,13 +186,25 @@ namespace MotionTracker
                     return latestFrame - BufferDepth * 2;
                 }
             }
+            if (cacheCount > 10)
+            {
+                int longestPath = 0;
+                for (int i = 0; i < movingPaths.Count; i++)
+                {
+                    longestPath = Math.Max(movingPaths[i].Count, longestPath);
+                }
+                if (longestPath * 5 < cacheCount)
+                {
+                    return latestFrame - BufferDepth * 2;
+                }
+            }
 
             int bestCrossingIndex = -1;
             int bestConfidence = 0;
 
             for (int i = 0; i < triggerIDs.Count; i++)
             {
-                (int index, int confidence) = FindBestCrossingIndex(triggerIDs[i], movingPaths);
+                (int index, int confidence) = FindBestCrossingIndex(triggerIDs[i], movingPaths, cacheCount);
 
                 if (confidence > bestConfidence)
                 {
@@ -201,13 +213,9 @@ namespace MotionTracker
                 }
             }
 
-            if (bestCrossingIndex > 0 && !priorIDs.ContainsKey(bestCrossingIndex) && bestCrossingIndex <= latestFrame)
+            if (bestCrossingIndex > 0 && bestCrossingIndex <= latestFrame)
             {
-                return bestCrossingIndex;
-            }
-            if (bestCrossingIndex > 0 && !priorIDs.ContainsKey(bestCrossingIndex + 1) && bestCrossingIndex < latestFrame)
-            {
-                return bestCrossingIndex + 1;
+                return ClosestUntestedFrame(bestCrossingIndex, latestFrame, priorIDs);
             }
 
             {
@@ -243,7 +251,29 @@ namespace MotionTracker
             return proposedFrame;*/
         }
 
-        private (int index, int confidence) FindBestCrossingIndex((IFramedItem, ILineTriggeredItemID) p, IList<IList<ItemIDWithFrame>> movingPaths)
+        private int ClosestUntestedFrame(int frameNumber, int latestFrame, IDictionary<int, IEnumerable<IItemID>> priorIDs)
+        {
+            for (int i = 0; i < BufferDepth; i++)
+            {
+                int frameHigh = frameNumber + i;
+                if (frameHigh <= latestFrame && !priorIDs.ContainsKey(frameHigh))
+                {
+                    return frameHigh;
+                }
+                int frameLow = frameNumber - i;
+                if (frameLow >= latestFrame - BufferDepth && !priorIDs.ContainsKey(frameLow))
+                {
+                    return frameLow;
+                }
+                if( frameHigh > latestFrame && frameLow < latestFrame-BufferDepth)
+                {
+                    break;
+                }
+            }
+            return -1;
+        }
+
+        private (int index, int confidence) FindBestCrossingIndex((IFramedItem, ILineTriggeredItemID) p, IList<IList<ItemIDWithFrame>> movingPaths, int cacheCount)
         {
             LineSegment triggerLine = p.Item2.TriggerSegment;
 
@@ -265,6 +295,35 @@ namespace MotionTracker
                     (var lr, var tb) = rect.DeterminePositionSituation(triggerLine);
                     Point closest = rect.GetNearestPointToLine(triggerLine);
                     positions.Add((lr, tb, closest));
+                }
+
+                if (cacheCount > 10 && IsOneSided(positions, triggerLine, out var lrIndicator, out var tbIndicator))
+                {
+                    if (lrIndicator == LRPosition.SegmentLeftPart || lrIndicator == LRPosition.SegmentRightPart
+                        || tbIndicator == TBPosition.SegmentAbovePart || tbIndicator == TBPosition.SegmentBelowPart)
+                    {
+                        for (int j = 0; j < path.Count; j++)
+                        {
+
+                        }
+                    }
+                    else
+                    {
+                        int closestIndex = 0;
+                        float closestdist = float.MaxValue;
+                        ItemIDWithFrame closestItemID = null;
+                        for (int j = 0; j < path.Count; j++)
+                        {
+                            float distsq = DistSq(positions[j].Item3, triggerLine.P1, triggerLine.P2);
+                            if(distsq < closestdist)
+                            {
+                                closestdist = distsq;
+                                closestIndex = j;
+                                closestItemID = path[j];
+                            }
+                        }
+                        return (closestItemID.FrameIndex, 11);
+                    }
                 }
 
                 (int lowerCrossIndex, int confidence) = DetermineLowerCrossingIndex(positions, triggerLine);
@@ -321,7 +380,7 @@ namespace MotionTracker
                 (var lr, var tb, var closest) = positions[i];
                 if (prevTB != tb || lr != prevLR)
                 {
-                    return (i - 1, 9);
+                    return (i - 1, 8);
                 }
             }
 
@@ -342,15 +401,118 @@ namespace MotionTracker
                 float nextDist = DistSq(positions[shortestIndex + 1].closest, segment.P1, segment.P2);
                 if (prevDist < nextDist)
                 {
-                    return (shortestIndex - 1, 8);
+                    return (shortestIndex - 1, 7);
                 }
-                return (shortestIndex, 8);
+                return (shortestIndex, 7);
             }
             if (shortestIndex == positions.Count - 1)
             {
-                return (shortestIndex - 1, 7);
+                return (shortestIndex - 1, 6);
             }
-            return (shortestIndex, 7);
+            return (shortestIndex, 6);
+        }
+
+        private bool IsOneSided(List<(LRPosition lr, TBPosition tb, Point closest)> positions, LineSegment segment, out LRPosition lrPosition, out TBPosition tbPosition)
+        {
+            Dictionary<LRPosition, int> lrCounts = new()
+            {
+                { LRPosition.SegmentLeftFull, 0 },
+                { LRPosition.SegmentLeftPart, 0 },
+                { LRPosition.SegmentInner, 0 },
+                { LRPosition.SegmentStraddle, 0 },
+                { LRPosition.SegmentRightPart, 0 },
+                { LRPosition.SegmentRightFull, 0 },
+            };
+            Dictionary<TBPosition, int> tbCounts = new()
+            {
+                { TBPosition.SegmentAboveFull, 0 },
+                { TBPosition.SegmentAbovePart, 0 },
+                { TBPosition.SegmentInner, 0 },
+                { TBPosition.SegmentStraddle, 0 },
+                { TBPosition.SegmentBelowPart, 0 },
+                { TBPosition.SegmentBelowFull, 0 },
+            };
+
+            var prevLR = positions[0].lr;
+            var prevTB = positions[0].tb;
+            var prevClosest = positions[0].closest;
+
+            for (int i = 1; i < positions.Count; i++)
+            {
+                (var lr, var tb, var closest) = positions[i];
+                lrCounts[lr] = lrCounts[lr] + 1;
+                tbCounts[tb] = tbCounts[tb] + 1;
+            }
+
+            int[] lrCountArr = new int[6];
+            int[] tbCountArr = new int[6];
+
+            lrCountArr[0] = lrCounts[LRPosition.SegmentLeftFull];
+            lrCountArr[1] = lrCounts[LRPosition.SegmentLeftPart];
+            lrCountArr[2] = lrCounts[LRPosition.SegmentInner];
+            lrCountArr[3] = lrCounts[LRPosition.SegmentStraddle];
+            lrCountArr[4] = lrCounts[LRPosition.SegmentRightPart];
+            lrCountArr[5] = lrCounts[LRPosition.SegmentRightFull];
+
+            tbCountArr[0] = tbCounts[TBPosition.SegmentAboveFull];
+            tbCountArr[1] = tbCounts[TBPosition.SegmentAbovePart];
+            tbCountArr[2] = tbCounts[TBPosition.SegmentInner];
+            tbCountArr[3] = tbCounts[TBPosition.SegmentStraddle];
+            tbCountArr[4] = tbCounts[TBPosition.SegmentBelowPart];
+            tbCountArr[5] = tbCounts[TBPosition.SegmentBelowFull];
+
+            if (lrCountArr[0] == positions.Count)
+            {
+                tbPosition = TBPosition.SegmentStraddle;
+                lrPosition = LRPosition.SegmentLeftFull;
+                return true;
+            }
+            if (lrCountArr[5] == positions.Count)
+            {
+                tbPosition = TBPosition.SegmentStraddle;
+                lrPosition = LRPosition.SegmentRightFull;
+                return true;
+            }
+            if (tbCountArr[0] == positions.Count)
+            {
+                tbPosition = TBPosition.SegmentAboveFull;
+                lrPosition = LRPosition.SegmentStraddle;
+                return true;
+            }
+            if (tbCountArr[5] == positions.Count)
+            {
+                tbPosition = TBPosition.SegmentBelowFull;
+                lrPosition = LRPosition.SegmentStraddle;
+                return true;
+            }
+
+            if (lrCountArr[0] + lrCountArr[1] == positions.Count)
+            {
+                tbPosition = TBPosition.SegmentStraddle;
+                lrPosition = LRPosition.SegmentLeftPart;
+                return true;
+            }
+            if (lrCountArr[5] + lrCountArr[4] == positions.Count)
+            {
+                tbPosition = TBPosition.SegmentStraddle;
+                lrPosition = LRPosition.SegmentLeftPart;
+                return true;
+            }
+            if (tbCountArr[0] + tbCountArr[1] == positions.Count)
+            {
+                tbPosition = TBPosition.SegmentAbovePart;
+                lrPosition = LRPosition.SegmentStraddle;
+                return true;
+            }
+            if (tbCountArr[5] + tbCountArr[4] == positions.Count)
+            {
+                tbPosition = TBPosition.SegmentBelowPart;
+                lrPosition = LRPosition.SegmentStraddle;
+                return true;
+            }
+            tbPosition = TBPosition.SegmentStraddle;
+            lrPosition = LRPosition.SegmentStraddle;
+            return false;
         }
 
         private bool HasCrossedThrough(LRPosition lr, TBPosition tb, LRPosition prevLR, TBPosition prevTB)

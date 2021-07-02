@@ -266,7 +266,7 @@ namespace DarknetDetector
                                     if(entry.Value < 0.5)
                                     {
                                         ++nMatches[i];
-                                        if(nMatches[i]<3)
+                                        if(nMatches[i]<2)
                                         {
                                             continue;
                                         }
@@ -398,9 +398,12 @@ namespace DarknetDetector
             if (DisplayFrame)
             {
                 Mat frame = frameYolo.Clone();
-                foreach(var item in results)
+                if (results != null)
                 {
-                    frame.Rectangle(new Rect(item.BoundingBox.X, item.BoundingBox.Y, item.BoundingBox.Width, item.BoundingBox.Height), new Scalar(color.B, color.G, color.R));
+                    foreach (var item in results)
+                    {
+                        frame.Rectangle(new Rect(item.BoundingBox.X, item.BoundingBox.Y, item.BoundingBox.Width, item.BoundingBox.Height), new Scalar(color.B, color.G, color.R));
+                    }
                 }
                 foreach(var item in _lines)
                 {

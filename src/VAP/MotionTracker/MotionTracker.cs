@@ -404,23 +404,32 @@ namespace MotionTracker
             while (lowIndex >= 0 || highIndex < orgFrames.Count)
             {
                 int currentSize = itemPath.FramedItems.Count;
-                for (; lowIndex >= 0; --lowIndex)
+                for (; lowIndex >= 0 && currentSize > 0; --lowIndex)
                 {
                     TestAndAdd(orgFrames[lowIndex], predictor, itemPath, similarityThreshold);
                     if (currentSize != itemPath.FramedItems.Count || orgFrames[lowIndex].Count == 0)
                     {
                         orgFrames.RemoveAt(lowIndex);
-                        --lowIndex;
-                        --highIndex;
-                        --startingIndex;
+                        if (lowIndex > 0)
+                        {
+                            --lowIndex;
+                        }
+                        if (highIndex > 0)
+                        {
+                            --highIndex;
+                        }
+                        if (startingIndex > 0)
+                        {
+                            --startingIndex;
+                        }
                         currentSize = itemPath.FramedItems.Count;
                         break;
                     }
                 }
-                for (; highIndex < orgFrames.Count; ++highIndex)
+                for (; highIndex < orgFrames.Count && orgFrames.Count > 0; ++highIndex)
                 {
                     TestAndAdd(orgFrames[highIndex], predictor, itemPath, similarityThreshold);
-                    if (currentSize != itemPath.FramedItems.Count || orgFrames[highIndex].Count == 0)
+                    if (orgFrames.Count != itemPath.FramedItems.Count || orgFrames[highIndex].Count == 0)
                     {
                         orgFrames.RemoveAt(highIndex);
                         break;

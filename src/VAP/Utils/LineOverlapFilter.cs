@@ -91,6 +91,7 @@ namespace Utils
             {
                 return 1;
             }
+            return Utils.CheckLineBboxOverlapRatio(segment, (int)(rect.X + 0.5), (int)(rect.Y + 0.5), (int)(rect.Width + 0.5), (int)(rect.Height + 0.5));
 
             PointF? topIntersect = GetIntersection(segment.P1, segment.P2, rect.TopLeft(), rect.TopRight());
             PointF? bottomIntersect = GetIntersection(segment.P1, segment.P2, rect.BottomLeft(), rect.BottomRight());
