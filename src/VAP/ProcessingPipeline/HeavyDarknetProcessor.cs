@@ -106,7 +106,7 @@ namespace ProcessingPipeline
         /// <inheritdoc/>
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
-            items = _cascadedDNN.Run(frame, items, LineSegments, Categories, this);
+            items = _cascadedDNN.Run(frame, items, Categories, previousStage, this);
 
             if (items == null)
             {

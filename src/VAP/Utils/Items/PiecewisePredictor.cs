@@ -41,9 +41,10 @@ namespace Utils.Items
 
         private RectangleF Interpolate(IItemPath path, int frameIndex)
         {
-            var nearest = path.NearestItems(frameIndex);
-            int closestDistance = nearest.First().Frame.FrameIndex - frameIndex;
-            int itemsRequired = (int)(((OrderForFrameOffset(closestDistance) + 1) * OverSampling) + 0.5);
+            var nearest = path.NearestItems(frameIndex,1);
+            int closestDistance = nearest[0].Frame.FrameIndex - frameIndex;
+            int itemsRequired = (int)(((OrderForFrameOffset(closestDistance)+1) * OverSampling) + 0.5);
+            nearest = path.NearestItems(frameIndex, itemsRequired);
             var enumerator = nearest.GetEnumerator();
             List<IFramedItem> itemList = new List<IFramedItem>(itemsRequired);
             for (int i = 0; i < itemsRequired; i++)
@@ -81,8 +82,8 @@ namespace Utils.Items
             {
                 CenterXCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, xSet, actualOrder),
                 CenterYCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, ySet, actualOrder),
-                WidthCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, wSet, actualOrder),
-                HeightCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, hSet, actualOrder)
+                WidthCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, wSet, 0),
+                HeightCoefs = MathNet.Numerics.Fit.Polynomial(frameIndices, hSet, 0)
             };
 
             return model.Predict(frameIndex);
@@ -92,10 +93,10 @@ namespace Utils.Items
         {
             if (offset <= 3)
             {
-                return 1;
+                return 0;
             }
 
-            return (int)(Math.Log2(offset));
+            return (int)(Math.Log2(offset)/2);
         }
 
         public static bool IsInterpolated(IItemPath path, int frameIndex)

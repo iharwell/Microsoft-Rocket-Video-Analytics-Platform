@@ -218,5 +218,22 @@ namespace Utils
             s.Flush();
             s.Close();
         }
+        public static void SaveFoundItemImage(string[] folderNames, string fileName, IFramedItem framedItem, int idIndex, Color taggedImageColor)
+        {
+            var outImage = framedItem.TaggedImageData(idIndex, taggedImageColor);
+            // output cheap YOLO results
+            //string blobName_Cheap = $@"frame-{framedItem.Frame.FrameIndex}-Cheap-{framedItem.ItemIDs[idIndex]}.jpg";
+
+            for (int i = 0; i < folderNames.Length; i++)
+            {
+                string filePath = folderNames[i] + fileName;
+                FileStream fstream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+                outImage.WriteToStream(fstream, ".jpg", new ImageEncodingParam(ImwriteFlags.JpegQuality, 90));
+                fstream.Flush();
+                fstream.Close();
+                fstream.Dispose();
+            }
+            outImage.Dispose();
+        }
     }
 }

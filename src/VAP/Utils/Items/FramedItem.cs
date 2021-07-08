@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.Serialization;
+using System.Text;
 using OpenCvSharp;
 using Utils.ShapeTools;
 
@@ -396,5 +397,15 @@ namespace Utils.Items
             }
             return name;
         }*/
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Fr: ");
+            sb.Append(Frame.FrameIndex);
+            sb.Append(", ");
+            sb.Append(ItemIDs[HighestConfidenceIndex].ObjName);
+            return sb.ToString();
+        }
     }
 }

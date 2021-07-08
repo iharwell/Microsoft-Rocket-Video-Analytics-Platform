@@ -34,7 +34,7 @@ namespace Decoder
         private ConcurrentBag<Decoder2.Decoder> _disposables;
         private ConcurrentQueue<Frame> _matQueue;
         private volatile bool _nextFileReady;
-        private int _queuesize = 750;
+        private int _queuesize = 250;
         private Task _queueTask;
         private volatile int _readFrames;
         private double _scale;

@@ -41,6 +41,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibAvSharp", "LibAvSharp\Li
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Decoder2", "Decoder2\Decoder2.csproj", "{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DarknetAAB", "DarknetAAB\DarknetAAB.csproj", "{77AD215A-5E20-499A-A39D-D30A58E2DD6F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotionTrackerTest", "MotionTrackerTest\MotionTrackerTest.csproj", "{283E69A0-CB41-4571-B93C-FDA62662261A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -201,6 +205,22 @@ Global
 		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Release|x64.ActiveCfg = Release|Any CPU
 		{B92BF4BE-8EB1-4052-B017-717BCA92A4E2}.Release|x64.Build.0 = Release|Any CPU
+		{77AD215A-5E20-499A-A39D-D30A58E2DD6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77AD215A-5E20-499A-A39D-D30A58E2DD6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77AD215A-5E20-499A-A39D-D30A58E2DD6F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{77AD215A-5E20-499A-A39D-D30A58E2DD6F}.Debug|x64.Build.0 = Debug|Any CPU
+		{77AD215A-5E20-499A-A39D-D30A58E2DD6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77AD215A-5E20-499A-A39D-D30A58E2DD6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77AD215A-5E20-499A-A39D-D30A58E2DD6F}.Release|x64.ActiveCfg = Release|Any CPU
+		{77AD215A-5E20-499A-A39D-D30A58E2DD6F}.Release|x64.Build.0 = Release|Any CPU
+		{283E69A0-CB41-4571-B93C-FDA62662261A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{283E69A0-CB41-4571-B93C-FDA62662261A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{283E69A0-CB41-4571-B93C-FDA62662261A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{283E69A0-CB41-4571-B93C-FDA62662261A}.Debug|x64.Build.0 = Debug|Any CPU
+		{283E69A0-CB41-4571-B93C-FDA62662261A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{283E69A0-CB41-4571-B93C-FDA62662261A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{283E69A0-CB41-4571-B93C-FDA62662261A}.Release|x64.ActiveCfg = Release|Any CPU
+		{283E69A0-CB41-4571-B93C-FDA62662261A}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

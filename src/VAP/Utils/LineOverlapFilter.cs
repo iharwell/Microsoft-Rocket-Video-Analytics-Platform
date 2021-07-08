@@ -23,6 +23,10 @@ namespace Utils
             IDictionary<T, float> overlaps = new Dictionary<T, float>();
             foreach (var item in items)
             {
+                if( overlaps.ContainsKey(item))
+                {
+                    continue;
+                }
                 overlaps.Add(item, GetOverlapRatio(segment, toRectangle(item)));
             }
             return overlaps;
@@ -91,7 +95,7 @@ namespace Utils
             {
                 return 1;
             }
-            return Utils.CheckLineBboxOverlapRatio(segment, (int)(rect.X + 0.5), (int)(rect.Y + 0.5), (int)(rect.Width + 0.5), (int)(rect.Height + 0.5));
+            //return Utils.CheckLineBboxOverlapRatio(segment, (int)(rect.X + 0.5), (int)(rect.Y + 0.5), (int)(rect.Width + 0.5), (int)(rect.Height + 0.5));
 
             PointF? topIntersect = GetIntersection(segment.P1, segment.P2, rect.TopLeft(), rect.TopRight());
             PointF? bottomIntersect = GetIntersection(segment.P1, segment.P2, rect.BottomLeft(), rect.BottomRight());
@@ -185,7 +189,10 @@ namespace Utils
                     Utils.CheckLineBboxOverlapRatio(segment, r);
                 }
             }
-
+            if(segment.IsVertical)
+            {
+                return (Math.Max(intersect1.Value.Y, intersect2.Value.Y) - Math.Min(intersect1.Value.Y, intersect2.Value.Y)) / (Math.Max(segment.P1.Y, segment.P2.Y) - Math.Min(segment.P1.Y, segment.P2.Y));
+            }
             return (Math.Max(intersect1.Value.X, intersect2.Value.X) - Math.Min(intersect1.Value.X, intersect2.Value.X)) / (Math.Max(segment.P1.X, segment.P2.X) - Math.Min(segment.P1.X, segment.P2.X));
         }
         private static bool IsInBox(PointF pointOfInterest, RectangleF rect)

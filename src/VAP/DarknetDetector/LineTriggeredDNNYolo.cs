@@ -14,6 +14,7 @@ using Wrapper.Yolo.Model;
 using Utils;
 using Utils.Items;
 using System.Drawing;
+using DarknetAAB;
 
 namespace DarknetDetector
 {
@@ -27,6 +28,8 @@ namespace DarknetDetector
 
         private readonly List<(string key, LineSegment coordinates)> _lines;
         private IIndexChooser _indexChooser;
+
+        private static string[] saveFolders = new string[] { OutputFolder.OutputFolderAll, OutputFolder.OutputFolderLtDNN };
 
         public bool DisplayFrame
         {
@@ -42,6 +45,7 @@ namespace DarknetDetector
                 _indexChooser.BufferDepth = DNNConfig.FRAME_SEARCH_RANGE;
             }
         }
+
         public LineTriggeredDNNDarknet(double rFactor)
         {
             _frameBufferLtDNNYolo = new FrameBuffer(DNNConfig.FRAME_SEARCH_RANGE);
@@ -59,13 +63,19 @@ namespace DarknetDetector
         { }
 
         public LineTriggeredDNNDarknet(List<(string key, LineSegment coordinates)> lines, IIndexChooser indexChooser)
+            : this(lines, indexChooser, new Yolo4Full(0))
+        {
+        }
+
+        public LineTriggeredDNNDarknet(List<(string key, LineSegment coordinates)> lines, IIndexChooser indexChooser, IDNNAnalyzer analyzer)
         {
             _frameBufferLtDNNYolo = new FrameBuffer(DNNConfig.FRAME_SEARCH_RANGE);
             _lines = lines;
-            _frameDNNYolo = new FrameDNNDarknet(YOLOCONFIG, DNNMode.LT, lines);
+            //_frameDNNYolo = new FrameDNNDarknet(YOLOCONFIG, DNNMode.LT, lines);
 
             IndexChooser = indexChooser;
             IndexChooser.BufferDepth = DNNConfig.FRAME_SEARCH_RANGE;
+            _frameDNNYolo = analyzer;
         }
 
         public IList<IFramedItem> RunOld(IFrame frame, Dictionary<string, int> counts, List<(string key, LineSegment coordinates)> lines, ISet<string> category, IList<IFramedItem> items, object sourceObject = null)
@@ -245,11 +255,12 @@ namespace DarknetDetector
                                     {
                                         framedItem.Frame = frameYolo;
                                     }
-
-                                    var outImage = framedItem.TaggedImageData(framedItem.ItemIDs.Count - 1, Color.Pink);
                                     // output cheap YOLO results
                                     string blobName_Cheap = $@"frame-{frameIndexYolo}-Cheap-{yoloTrackingItem.Confidence}.jpg";
-                                    string fileName_Cheap = @OutputFolder.OutputFolderLtDNN + blobName_Cheap;
+
+                                    Utils.Utils.SaveFoundItemImage(saveFolders, blobName_Cheap, framedItem, framedItem.ItemIDs.Count - 1, Color.Pink);
+
+                                    /*var outImage = framedItem.TaggedImageData(framedItem.ItemIDs.Count - 1, Color.Pink);
 
                                     FileStream fstream = new FileStream(fileName_Cheap, FileMode.OpenOrCreate, FileAccess.Write);
                                     outImage.WriteToStream(fstream, ".jpg", new ImageEncodingParam(ImwriteFlags.JpegQuality, 90));
@@ -262,7 +273,7 @@ namespace DarknetDetector
                                     fstream.Close();
                                     fstream.Dispose();
 
-                                    outImage.Dispose();
+                                    outImage.Dispose();*/
                                     if(entry.Value < 0.5)
                                     {
                                         ++nMatches[i];

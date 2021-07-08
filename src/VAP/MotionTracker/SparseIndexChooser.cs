@@ -48,14 +48,15 @@ namespace MotionTracker
             {
                 _bufferDepth = value;
                 IndexOrder = new int[_bufferDepth];
-                for (int i = 0; i < _bufferDepth; i++)
+                IndexOrder[0] = _bufferDepth - 2;
+                for (int i = 1; i < _bufferDepth; i++)
                 {
                     int den = 2;
-                    while (i + 1 >= den)
+                    while (i >= den)
                     {
                         den <<= 1;
                     }
-                    int num = 1 + 2 * ((i + 1) & ((den >> 1) - 1));
+                    int num = 1 + 2 * ((i) & ((den >> 1) - 1));
                     int targetIndex = (_bufferDepth * num) / den;
                     if (IndexOrder.Contains(targetIndex))
                     {
@@ -99,7 +100,7 @@ namespace MotionTracker
 
         public int Stride { get; set; }
 
-        public float JitterThreshold = 3.0f;
+        public float JitterThreshold = 7.0f;
 
         private bool IsInBuffer(int frameIndex, int latestFrame)
         {
@@ -201,7 +202,7 @@ namespace MotionTracker
 
             int bestCrossingIndex = -1;
             int bestConfidence = 0;
-
+            /*
             for (int i = 0; i < triggerIDs.Count; i++)
             {
                 (int index, int confidence) = FindBestCrossingIndex(triggerIDs[i], movingPaths, cacheCount);
@@ -216,7 +217,7 @@ namespace MotionTracker
             if (bestCrossingIndex > 0 && bestCrossingIndex <= latestFrame)
             {
                 return ClosestUntestedFrame(bestCrossingIndex, latestFrame, priorIDs);
-            }
+            }*/
 
             {
                 int index = 0;

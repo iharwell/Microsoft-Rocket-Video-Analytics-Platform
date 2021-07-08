@@ -325,6 +325,8 @@ namespace Utils.Items
             RectangleF srcRect = framedItem.MeanBounds;
             int frameNum = framedItem.Frame.FrameIndex;
 
+            bool alreadyExists = false;
+
             if (framedItem.ItemIDs.Count == 1 && framedItem.ItemIDs[0] is FillerID)
             {
                 if (target.Count == 0)
@@ -339,6 +341,11 @@ namespace Utils.Items
                 if (item.Frame.FrameIndex != frameNum)
                 {
                     continue;
+                }
+                if (item == framedItem)
+                {
+                    alreadyExists = true;
+                    return target;
                 }
                 string targetName = item.BestIDName();
                 double mergeBoost = 0.0;
@@ -355,6 +362,7 @@ namespace Utils.Items
                     bestMatch = item;
                 }
             }
+
             if (overlapValue >= mergeThreshold)
             {
                 for (int i = 0; i < framedItem.ItemIDs.Count; i++)
@@ -389,7 +397,7 @@ namespace Utils.Items
 
             foreach (IFramedItem item in target)
             {
-                if (item.Frame.FrameIndex != frameNum)
+                if (item.Frame.FrameIndex != frameNum || item == framedItem)
                 {
                     continue;
                 }

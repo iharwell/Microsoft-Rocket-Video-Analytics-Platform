@@ -106,7 +106,7 @@ namespace Wrapper.Yolo
         public YoloWrapper(YoloConfiguration yoloConfiguration, DNNMode dnnMode)
         {
             this._dnnMode = dnnMode;
-            this.Initialize(yoloConfiguration.ConfigFile, yoloConfiguration.WeightsFile, yoloConfiguration.NamesFile, 1);
+            this.Initialize(yoloConfiguration.ConfigFile, yoloConfiguration.WeightsFile, yoloConfiguration.NamesFile, 0);
         }
 
         public YoloWrapper(string configurationFilename, string weightsFilename, string namesFilename, int gpu = 0)
@@ -224,7 +224,7 @@ namespace Wrapper.Yolo
 
             if (File.Exists(@"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudnn64_7.dll"))
             {
-                report.CudnnExists = true;
+                //report.CudnnExists = true;
             }
 
             var envirormentVariables = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Machine);
@@ -236,7 +236,7 @@ namespace Wrapper.Yolo
             if (envirormentVariables.Contains("CUDA_PATH"))
             {
                 //var cudaVersion = envirormentVariables["CUDA_PATH"];
-                report.CudaExists = true;
+                //report.CudaExists = true;
             }
 
             return report;

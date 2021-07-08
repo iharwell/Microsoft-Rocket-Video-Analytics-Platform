@@ -54,6 +54,8 @@ namespace Utils.Items
         /// </returns>
         Mat CroppedImageData(int itemIDIndex);
 
+        int HighestConfidenceIndex { get; }
+
         RectangleF MeanBounds { get; }
     }
 }

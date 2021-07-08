@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using MathNet.Numerics.Statistics;
 using Utils.Items;
@@ -107,8 +108,30 @@ namespace Utils.ShapeTools
 
             return new RectangleF((float)xSet.Mean(), (float)ySet.Mean(), (float)wSet.Mean(), (float)hSet.Mean());
         }
-        public static RectangleF MeanBox(IList<IItemID> ids)
+        public unsafe static RectangleF MeanBox(IList<IItemID> ids)
         {
+            var sumVec = System.Runtime.Intrinsics.Vector128<int>.Zero;
+            Rectangle tmp;
+            for (int i = 0; i < ids.Count; i++)
+            {
+                tmp = ids[i].BoundingBox;
+                int* ptr = (int*)&tmp;
+                var v = System.Runtime.Intrinsics.X86.Sse2.LoadVector128(ptr);
+                sumVec = System.Runtime.Intrinsics.X86.Sse2.Add(v, sumVec);
+            }
+            var vals = stackalloc int[4];
+            System.Runtime.Intrinsics.X86.Sse2.Store(vals, sumVec);
+
+            float k = 1.0f / ids.Count;
+
+            float sumx1 = vals[0] * k;
+            float sumy1 = vals[1] * k;
+            float sumw1 = vals[2] * k;
+            float sumh1 = vals[3] * k;
+
+            return new RectangleF(sumx1, sumy1, sumw1, sumh1);
+
+            /*
             float sumx = 0;
             float sumy = 0;
             float sumw = 0;
@@ -124,7 +147,7 @@ namespace Utils.ShapeTools
             }
             int c = ids.Count;
 
-            return new RectangleF((float)sumx / c, (float)sumy / c, (float)sumw / c, (float)sumh / c);
+            return new RectangleF((float)sumx / c, (float)sumy / c, (float)sumw / c, (float)sumh / c);*/
         }
         public static RectangleF UpdateMeanBox(IList<IItemID> ids, RectangleF oldMean, int oldCount)
         {

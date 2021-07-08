@@ -296,7 +296,16 @@ namespace LineDetector
                 double area = sr.Mean.Width * sr.Mean.Height;
                 if (area < MIN_BOX_SIZE)
                     continue;
-                double overlapFraction = GetFractionContainedInBox(mask);
+                double overlapFraction;
+                if(b.Frame.ForegroundMask != null)
+                {
+                    overlapFraction = GetFractionContainedInBox(mask);
+                }
+                else
+                {
+                    overlapFraction = Utils.LineOverlapFilter.GetOverlapRatio(this.Line, b.ItemIDs.Last().BoundingBox);
+                }
+
                 if (overlapFraction > maxOverlapFraction)
                 {
                     maxOverlapFraction = overlapFraction;
@@ -372,7 +381,8 @@ namespace LineDetector
                 {
                     TriggerSegment = this.Line,
                     TriggerLine = LineName,
-                    SourceObject = signature
+                    SourceObject = signature,
+                    FurtherAnalysisTriggered = true
                 };
                 b.ItemIDs.Add(id);
                 return (true, b);

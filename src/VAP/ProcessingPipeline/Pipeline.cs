@@ -178,9 +178,9 @@ namespace ProcessingPipeline
                 stage.Run(frame, ref items, prev);
                 prev = stage;
             }
-            if (DisplayEnabled)
+            if (DisplayEnabled && (frame.FrameIndex & 1) == 0)
             {
-                //Cv2.WaitKey(1);
+                Cv2.WaitKey(1);
             }
             return items;
         }

@@ -106,6 +106,7 @@ namespace LineDetector
                 {
                     SourceObject = signature,
                     TriggerLine = this._line.LineName,
+                    TriggerSegment = this._line.Line,
                     FurtherAnalysisTriggered = true
                 };
                 _bbox = new FramedItem(frame, item);
