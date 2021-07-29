@@ -43,6 +43,15 @@ namespace LibAvSharp.Util
         {
             get => (IntPtr)(&_frame->linesize0);
         }
+
+        public bool IsKeyFrame
+        {
+            get
+            {
+                return _frame->key_frame == 1;
+            }
+        }
+
         public long TimeStamp
         {
             get

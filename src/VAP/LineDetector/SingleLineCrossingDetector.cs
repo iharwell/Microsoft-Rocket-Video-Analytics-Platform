@@ -74,9 +74,9 @@ namespace LineDetector
         /// Returns a Tuple that contains a boolean indicating whether a crossing was detected, and
         /// the bounding box of the crossing item.
         /// </returns>
-        public (bool crossingResult, IFramedItem b) NotifyFrameArrival(IFrame frame, int frameNo, IList<IFramedItem> boxes, OpenCvSharp.Mat mask)
+        public (bool crossingResult, IFramedItem b) NotifyFrameArrival(IFrame frame, IList<IFramedItem> boxes)
         {
-            return NotifyFrameArrival(frame, frameNo, boxes, mask, null);
+            return NotifyFrameArrival(frame, frame.FrameIndex, boxes, frame.ForegroundMask, null);
         }
 
         /// <summary>
@@ -202,5 +202,7 @@ namespace LineDetector
         {
             return (GetDetectionLine().P1, GetDetectionLine().P2);
         }
+
+        public void RotateLine(int rotateCount, Size frameSize) => _line.RotateLine(rotateCount, frameSize);
     }
 }

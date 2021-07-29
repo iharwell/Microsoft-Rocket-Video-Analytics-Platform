@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using Utils;
 using Utils.Items;
@@ -14,6 +15,9 @@ namespace ProcessingPipeline
     /// <summary>
     ///   A heavy darknet Yolo processing stage used to identify items that have been flagged by the previous stage.
     /// </summary>
+    [DataContract]
+    [KnownType(typeof(Dictionary<string, LineSegment>))]
+    [KnownType(typeof(HashSet<string>))]
     public class HeavyDarknetProcessor : IProcessor
     {
         private readonly DarknetDetector.CascadedDNNDarknet _cascadedDNN;
@@ -34,19 +38,20 @@ namespace ProcessingPipeline
         /// <param name="displayOutput">
         ///   <see langword="true"/> to display the output of this stage; <see langword="false"/> otherwise.
         /// </param>
-        public HeavyDarknetProcessor(ISet<string> categories,
+        public HeavyDarknetProcessor(HashSet<string> categories,
                                       double resFactor,
                                       Color boxColor,
                                       bool displayOutput)
         {
             _cascadedDNN = new DarknetDetector.CascadedDNNDarknet(resFactor);
-            Categories = categories;
+            IncludeCategories = categories;
+            ExcludeCategories = new();
             BoundingBoxColor = boxColor;
             DisplayOutput = displayOutput;
         }
 
         public HeavyDarknetProcessor(IList<(string, LineSegment)> lines,
-                                      ISet<string> categories,
+                                      HashSet<string> categories,
                                       double resFactor,
                                       Color boxColor,
                                       bool displayOutput)
@@ -82,7 +87,7 @@ namespace ProcessingPipeline
         ///   <see langword="true" /> to display the output of this stage; <see langword="false" /> otherwise.
         /// </param>
         public HeavyDarknetProcessor(IDictionary<string, LineSegment> lines,
-                                      ISet<string> categories,
+                                      HashSet<string> categories,
                                       double resFactor,
                                       Color boxColor,
                                       bool displayOutput)
@@ -92,21 +97,29 @@ namespace ProcessingPipeline
         }
 
         /// <inheritdoc/>
+        [DataMember]
         public Color BoundingBoxColor { get; set; }
 
         /// <inheritdoc/>
-        public IDictionary<string, LineSegment> LineSegments { get; set; }
+        [DataMember]
+        public HashSet<string> IncludeCategories { get; set; }
 
         /// <inheritdoc/>
-        public ISet<string> Categories { get; set; }
+        [DataMember]
+        public HashSet<string> ExcludeCategories { get; set; }
 
         /// <inheritdoc/>
+        [DataMember]
         public bool DisplayOutput { get; set; }
+
+        /// <inheritdoc/>
+        [DataMember]
+        public IDictionary<string, LineSegment> LineSegments { get; set; }
 
         /// <inheritdoc/>
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
-            items = _cascadedDNN.Run(frame, items, Categories, previousStage, this);
+            items = _cascadedDNN.Run(frame, items, IncludeCategories, previousStage, this);
 
             if (items == null)
             {

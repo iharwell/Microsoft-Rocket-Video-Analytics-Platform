@@ -43,7 +43,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Decoder2", "Decoder2\Decode
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DarknetAAB", "DarknetAAB\DarknetAAB.csproj", "{77AD215A-5E20-499A-A39D-D30A58E2DD6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotionTrackerTest", "MotionTrackerTest\MotionTrackerTest.csproj", "{283E69A0-CB41-4571-B93C-FDA62662261A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotionTrackerTest", "MotionTrackerTest\MotionTrackerTest.csproj", "{283E69A0-CB41-4571-B93C-FDA62662261A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DecoderTest", "DecoderTest\DecoderTest.csproj", "{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PathVid", "PathVid\PathVid.csproj", "{E11AEAA2-8404-4803-95A9-7E704130AECB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rocket.ML.Net", "Rocket.ML.Net\Rocket.ML.Net.csproj", "{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -221,6 +227,30 @@ Global
 		{283E69A0-CB41-4571-B93C-FDA62662261A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{283E69A0-CB41-4571-B93C-FDA62662261A}.Release|x64.ActiveCfg = Release|Any CPU
 		{283E69A0-CB41-4571-B93C-FDA62662261A}.Release|x64.Build.0 = Release|Any CPU
+		{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}.Debug|x64.Build.0 = Debug|Any CPU
+		{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}.Release|x64.ActiveCfg = Release|Any CPU
+		{83737DDA-ABAC-486E-ABF5-CCAF3BCECEC3}.Release|x64.Build.0 = Release|Any CPU
+		{E11AEAA2-8404-4803-95A9-7E704130AECB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E11AEAA2-8404-4803-95A9-7E704130AECB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E11AEAA2-8404-4803-95A9-7E704130AECB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E11AEAA2-8404-4803-95A9-7E704130AECB}.Debug|x64.Build.0 = Debug|Any CPU
+		{E11AEAA2-8404-4803-95A9-7E704130AECB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E11AEAA2-8404-4803-95A9-7E704130AECB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E11AEAA2-8404-4803-95A9-7E704130AECB}.Release|x64.ActiveCfg = Release|Any CPU
+		{E11AEAA2-8404-4803-95A9-7E704130AECB}.Release|x64.Build.0 = Release|Any CPU
+		{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}.Debug|x64.Build.0 = Debug|Any CPU
+		{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}.Release|x64.ActiveCfg = Release|Any CPU
+		{2EE0F8E3-C660-4CC2-A23C-3A8AE6FE05B0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

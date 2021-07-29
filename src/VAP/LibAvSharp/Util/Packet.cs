@@ -11,9 +11,12 @@ namespace LibAvSharp.Util
         internal AVPacket* _packet;
         private bool disposedValue;
 
+        public bool PacketReffed { get; set; }
+
         public Packet()
         {
             _packet = AVCodecC.av_packet_alloc();
+            PacketReffed = false;
         }
 
         /*public void NotifyBytesRead( int bytesRead )
@@ -49,7 +52,10 @@ namespace LibAvSharp.Util
                 {
                     // TODO: dispose managed state (managed objects)
                 }
-
+                if (PacketReffed)
+                {
+                    this.Unref();
+                }
                 AVCodecC.av_packet_free(ref _packet);
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

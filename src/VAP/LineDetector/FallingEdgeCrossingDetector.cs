@@ -13,8 +13,8 @@ namespace LineDetector
     {
         private readonly List<int> _frameNoList = new();
         private readonly List<double> _occupancyValueList = new();
-        private readonly int _upStateTransitionLength = 4;
-        private readonly int _downStateTransitionLength = 10;
+        private readonly int _upStateTransitionLength = 2;
+        private readonly int _downStateTransitionLength = 5;
         private readonly int _history;
         private OCCUPANCY_STATE _curState = OCCUPANCY_STATE.UNOCCUPIED;
         private bool _debug = false;

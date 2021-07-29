@@ -48,5 +48,10 @@ namespace Utils.Items
         ///   The time that the frame was taken.
         /// </summary>
         DateTime TimeStamp { get; set; }
+
+        /// <summary>
+        ///   The time that the frame was taken.
+        /// </summary>
+        float FrameRate { get; set; }
     }
 }

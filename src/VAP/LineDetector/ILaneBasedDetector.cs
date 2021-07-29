@@ -94,5 +94,7 @@ namespace LineDetector
         /// Gets the line segments used by this detector.
         /// </summary>
         List<LineSegment> GetLineCoor();
+
+        void RotateLine(int rotateCount, System.Drawing.Size frameSize);
     }
 }

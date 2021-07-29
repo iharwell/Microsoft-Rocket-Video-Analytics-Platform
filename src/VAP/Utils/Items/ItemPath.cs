@@ -22,7 +22,8 @@ namespace Utils.Items
     [KnownType(typeof(OpenCvSharp.Mat))]
     [KnownType(typeof(List<IItemID>))]
     [KnownType(typeof(FillerID))]
-    public class ItemPath : IItemPath
+    [KnownType(typeof(System.Drawing.Color))]
+    public class ItemPath : IItemPath, IDisposable
     {
         public ItemPath()
         {
@@ -99,6 +100,7 @@ namespace Utils.Items
 
         [IgnoreDataMember]
         private int _highestConfidenceID;
+        private bool _disposedValue;
 
         [IgnoreDataMember]
         public int Count { get; set; }
@@ -127,5 +129,40 @@ namespace Utils.Items
 
         /// <inheritdoc />
         IList<IFramedItem> IItemPath.FramedItems => FramedItems;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    for (int i = 0; i < FramedItems.Count; i++)
+                    {
+                        FramedItems[i] = null;
+                    }
+                    FramedItems = null;
+                }
+
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~ItemPath()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

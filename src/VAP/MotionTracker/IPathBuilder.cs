@@ -13,5 +13,6 @@ namespace MotionTracker
     public interface IPathBuilder
     {
         public void BuildPaths(out IDictionary<IFramedItem, IItemPath> pathTable, out IList<IItemPath> paths, IList<IList<IFramedItem>> sortedFramedItems, float iouThreshold);
+        public void BuildPaths(out IDictionary<IFramedItem, IItemPath> pathTable, out IList<IItemPath> paths, IList<IList<IFramedItem>> sortedFramedItems, float iouThreshold, IDictionary<IFramedItem, bool> filterTable);
     }
 }

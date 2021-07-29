@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DarknetAAB
 {
+    [Serializable]
     public class Yolo4Tiny : Yolo4DNN
     {
         public Yolo4Tiny()
@@ -18,6 +20,7 @@ namespace DarknetAAB
             : base("yolov4-tiny.cfg", "yolov4-tiny.weights", gpu)
         { }
     }
+    [Serializable]
     public class Yolo4Full : Yolo4DNN
     {
         public Yolo4Full()

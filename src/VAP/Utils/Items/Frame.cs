@@ -14,7 +14,7 @@ namespace Utils.Items
     ///   in a video.
     /// </summary>
     [Serializable]
-    public class Frame : IFrame, ISerializable
+    public class Frame : IFrame, ISerializable, IDisposable
     {
         public Frame()
         {
@@ -46,29 +46,39 @@ namespace Utils.Items
             SourceName = sourceName;
             FrameIndex = frameIndex;
             FrameData = frameData;
+            FrameSize = new System.Drawing.Size(frameData.Width, frameData.Height);
         }
 
         protected Frame(SerializationInfo info, StreamingContext context)
         {
             SourceName = info.GetString(nameof(SourceName));
             FrameIndex = info.GetInt32(nameof(FrameIndex));
+            FrameRate = info.GetSingle(nameof(FrameRate));
+            FileFrameIndex = info.GetInt32(nameof(FileFrameIndex));
+            CameraName = info.GetString(nameof(CameraName));
             TimeStamp = (DateTime)info.GetValue(nameof(TimeStamp), typeof(DateTime));
 
-            object framebytes = info.GetValue(nameof(FrameData), typeof(byte[]));
+            int width = info.GetInt32(nameof(FrameSize.Width));
+            int height = info.GetInt32(nameof(FrameSize.Height));
 
-            FrameData = Mat.FromImageData(framebytes as byte[], ImreadModes.Color);
+            FrameSize = new System.Drawing.Size(width, height);
+
+            LastKeyFrame = info.GetInt32(nameof(LastKeyFrame));
+            //object framebytes = info.GetValue(nameof(FrameData), typeof(byte[]));
+
+            //FrameData = Mat.FromImageData(framebytes as byte[], ImreadModes.Color);
 
 
-            object o = info.GetValue(nameof(ForegroundMask), typeof(byte[]));
+            //object o = info.GetValue(nameof(ForegroundMask), typeof(byte[]));
 
-            if (o is null)
+            /*if (o is null)
             {
                 ForegroundMask = null;
             }
             else
             {
                 ForegroundMask = Mat.FromImageData(o as byte[], ImreadModes.AnyColor);
-            }
+            }*/
         }
 
         /// <summary>
@@ -91,16 +101,30 @@ namespace Utils.Items
             SourceName = sourceName;
             FrameIndex = frameIndex;
             FrameData = frameData;
+            FrameSize = new System.Drawing.Size(frameData.Width, frameData.Height);
             TimeStamp = timeStamp;
         }
 
 
 
         /// <inheritdoc />
-        public Mat FrameData { get; set; }
+        public Mat FrameData
+        {
+            get
+            {
+                return _frameData;
+            }
+            set
+            {
+                _frameData = value;
+                FrameSize = new System.Drawing.Size(value.Width, value.Height);
+            }
+        }
 
         /// <inheritdoc />
         public Mat ForegroundMask { get; set; }
+
+        public System.Drawing.Size FrameSize { get; set; }
 
         /// <inheritdoc />
         public string SourceName { get; set; }
@@ -118,12 +142,26 @@ namespace Utils.Items
         public string CameraName { get; set; }
 
         /// <inheritdoc />
+        public float FrameRate { get; set; }
+
+
+        public long LastKeyFrame { get; set; }
+
+        /// <inheritdoc />
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue(nameof(SourceName), SourceName);
-            info.AddValue(nameof(FrameIndex), FrameIndex);
+            info.AddValue(nameof(FileFrameIndex), FileFrameIndex);
             info.AddValue(nameof(TimeStamp), TimeStamp);
-            info.AddValue(nameof(FrameData), FrameData.ToBytes(".jpg", s_encodingParamsJPG));
+            info.AddValue(nameof(CameraName), CameraName);
+            info.AddValue(nameof(FrameIndex), FrameIndex);
+            info.AddValue(nameof(FrameRate), FrameRate);
+
+            info.AddValue(nameof(FrameSize.Width), FrameSize.Width);
+            info.AddValue(nameof(FrameSize.Height), FrameSize.Height);
+
+            info.AddValue(nameof(LastKeyFrame), LastKeyFrame);
+            /*info.AddValue(nameof(FrameData), FrameData.ToBytes(".jpg", s_encodingParamsJPG));
             if (ForegroundMask != null)
             {
                 info.AddValue(nameof(ForegroundMask), ForegroundMask.ToBytes(".png", s_encodingParamsPNG));
@@ -132,7 +170,7 @@ namespace Utils.Items
             {
                 info.AddValue(nameof(ForegroundMask), null);
             }
-
+            */
         }
 
         private static readonly ImageEncodingParam[] s_encodingParamsJPG = new ImageEncodingParam[]
@@ -145,5 +183,57 @@ namespace Utils.Items
             new ImageEncodingParam(ImwriteFlags.PngCompression, 7 ),
             new ImageEncodingParam(ImwriteFlags.PngBilevel, 1 )
         };
+        private bool _disposedValue;
+        private Mat _frameData;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    if (FrameData != null)
+                    {
+                        FrameData.Dispose();
+                    }
+                    FrameData = null;
+                    if (ForegroundMask != null)
+                    {
+                        ForegroundMask.Dispose();
+                    }
+                    ForegroundMask = null;
+                }
+
+                /*if (FrameData != null)
+                {
+                    //FrameData.Dispose();
+                    FrameData = null;
+                }
+                if (ForegroundMask != null)
+                {
+                    //ForegroundMask.Dispose();
+                    ForegroundMask = null;
+                }*/
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~Frame()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

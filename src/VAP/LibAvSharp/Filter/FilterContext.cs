@@ -35,11 +35,11 @@ namespace LibAvSharp.Filter
 
         public void PushFrame(Frame frame)
         {
-            AVFilterC.av_buffersrc_add_frame_flags(_context, frame._frame, (int)BufferSourceFlags.AV_BUFFERSRC_FLAG_NO_CHECK_FORMAT);
+            AVException.ProcessException(AVFilterC.av_buffersrc_add_frame_flags(_context, frame._frame, (int)BufferSourceFlags.AV_BUFFERSRC_FLAG_NO_CHECK_FORMAT));
         }
-        public int PullFrame(ref Frame frame)
+        public void PullFrame(ref Frame frame)
         {
-            return AVFilterC.av_buffersink_get_frame(_context, frame._frame);
+            AVException.ProcessException(AVFilterC.av_buffersink_get_frame(_context, frame._frame));
         }
 
         public AVPixelFormat[] FormatSetting

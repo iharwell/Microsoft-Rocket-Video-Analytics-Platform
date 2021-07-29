@@ -15,6 +15,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.5.2.20210404" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="System.Runtime" Version="4.3.1" />
   </ItemGroup>
 
@@ -22,11 +27,17 @@
     <None Update="avcodec-59.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="avdevice-58.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
     <None Update="avdevice-59.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="avfilter-8.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="avformat-58.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="avformat-59.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -34,11 +45,17 @@
     <None Update="avutil-57.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="postproc-55.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
     <None Update="postproc-56.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="swresample-4.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="swscale-5.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="swscale-6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

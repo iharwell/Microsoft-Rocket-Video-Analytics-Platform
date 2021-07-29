@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using OpenCvSharp;
@@ -12,22 +13,41 @@ using Utils.Items;
 
 namespace DarknetAAB
 {
-    public class Yolo4DNN : IDNNAnalyzer, IDisposable
+    [Serializable]
+    public class Yolo4DNN : IDNNAnalyzer, IDisposable, ISerializable
     {
         private YoloWrapper _yolo;
         private bool _disposedValue;
+
+        private string ConfigFile;
+        private string WeightsFile;
+        private int Gpu;
 
         public string Name { get; set; }
 
         public Yolo4DNN(string configFile, string weightsFile, int gpu)
         {
             _yolo = new YoloWrapper(configFile, weightsFile, gpu);
+            ConfigFile = configFile;
+            WeightsFile = weightsFile;
+            Gpu = gpu;
         }
         public Yolo4DNN(string name, string configFile, string weightsFile, int gpu)
         {
             _yolo = new YoloWrapper(configFile, weightsFile, gpu);
+            Name = name;
+            ConfigFile = configFile;
+            WeightsFile = weightsFile;
+            Gpu = gpu;
         }
-
+        public Yolo4DNN(SerializationInfo info, StreamingContext context)
+        {
+            Name = info.GetString(nameof(Name));
+            ConfigFile = info.GetString(nameof(ConfigFile));
+            WeightsFile = info.GetString(nameof(WeightsFile));
+            Gpu = info.GetInt32(nameof(Gpu));
+            _yolo = new YoloWrapper(ConfigFile, WeightsFile, Gpu);
+        }
         public IEnumerable<IItemID> Analyze(Mat frameData, ISet<string> category, object sourceObject)
         {
             var results = _yolo.Detect(frameData);
@@ -58,6 +78,8 @@ namespace DarknetAAB
             return items;
         }
 
+        ~Yolo4DNN() => Dispose(false);
+
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -65,8 +87,8 @@ namespace DarknetAAB
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    _yolo.Dispose();
                 }
+                _yolo.Dispose();
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
                 _disposedValue = true;
@@ -99,6 +121,14 @@ namespace DarknetAAB
                 ObjName = Coco.Names[itembbox.obj_id],
                 SourceObject = sourceObject
             };
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue(nameof(Name), Name);
+            info.AddValue(nameof(ConfigFile), ConfigFile);
+            info.AddValue(nameof(WeightsFile), WeightsFile);
+            info.AddValue(nameof(Gpu), Gpu);
         }
     }
 }

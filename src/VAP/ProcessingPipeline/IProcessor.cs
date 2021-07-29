@@ -28,7 +28,12 @@ namespace ProcessingPipeline
         /// <summary>
         ///   A set of the categories to look for.
         /// </summary>
-        ISet<string> Categories { get; set; }
+        HashSet<string> IncludeCategories { get; set; }
+
+        /// <summary>
+        ///   A set of the categories to look for.
+        /// </summary>
+        HashSet<string> ExcludeCategories { get; set; }
 
         /// <summary>
         ///   Processes the frame, adds any results to the provided list of items, and returns a

@@ -283,5 +283,13 @@ namespace LineDetector
         {
             return _lineCrossingDetectors[0].GetDetectionLine();
         }
+
+        public void RotateLine(int rotateCount, Size frameSize)
+        {
+            for (int i = 0; i < _lineCrossingDetectors.Count; i++)
+            {
+                _lineCrossingDetectors[i].RotateLine(rotateCount, frameSize);
+            }
+        }
     }
 }

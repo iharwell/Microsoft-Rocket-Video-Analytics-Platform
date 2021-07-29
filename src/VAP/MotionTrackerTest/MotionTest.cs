@@ -258,5 +258,273 @@ namespace MotionTrackerTest
             Assert.Equal(5.5f, result.Width, 4);
             Assert.Equal(6.5f, result.Height, 4);
         }
+
+        [Fact]
+        public void NearestItemsTest1()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID()),
+                new FramedItem(new Frame(null, 11), new ItemID()),
+                new FramedItem(new Frame(null, 12), new ItemID()),
+                new FramedItem(new Frame(null, 13), new ItemID()),
+                new FramedItem(new Frame(null, 14), new ItemID()),
+                new FramedItem(new Frame(null, 15), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(12, 3);
+
+            Assert.Equal(3, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[1]));
+            Assert.True(nearestItems.Contains(pathFrames[2]));
+            Assert.True(nearestItems.Contains(pathFrames[3]));
+
+        }
+
+        [Fact]
+        public void NearestItemsTest2()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID()),
+                new FramedItem(new Frame(null, 11), new ItemID()),
+                new FramedItem(new Frame(null, 12), new ItemID()),
+                new FramedItem(new Frame(null, 13), new ItemID()),
+                new FramedItem(new Frame(null, 14), new ItemID()),
+                new FramedItem(new Frame(null, 15), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(9, 3);
+
+            Assert.Equal(3, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[0]));
+            Assert.True(nearestItems.Contains(pathFrames[1]));
+            Assert.True(nearestItems.Contains(pathFrames[2]));
+
+        }
+
+        [Fact]
+        public void NearestItemsTest3()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID()),
+                new FramedItem(new Frame(null, 11), new ItemID()),
+                new FramedItem(new Frame(null, 12), new ItemID()),
+                new FramedItem(new Frame(null, 13), new ItemID()),
+                new FramedItem(new Frame(null, 14), new ItemID()),
+                new FramedItem(new Frame(null, 15), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(19, 3);
+
+            Assert.Equal(3, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[3]), "Result does not contain frame 13.");
+            Assert.True(nearestItems.Contains(pathFrames[4]), "Result does not contain frame 14.");
+            Assert.True(nearestItems.Contains(pathFrames[5]), "Result does not contain frame 15.");
+        }
+
+        [Fact]
+        public void NearestItemsTest4()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID()),
+                new FramedItem(new Frame(null, 11), new ItemID()),
+                new FramedItem(new Frame(null, 12), new ItemID()),
+                new FramedItem(new Frame(null, 13), new ItemID()),
+                new FramedItem(new Frame(null, 14), new ItemID()),
+                new FramedItem(new Frame(null, 15), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(12, 1);
+
+            Assert.Equal(1, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[2]));
+        }
+
+        [Fact]
+        public void NearestItemsTest5()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID()),
+                new FramedItem(new Frame(null, 11), new ItemID()),
+                new FramedItem(new Frame(null, 12), new ItemID()),
+                new FramedItem(new Frame(null, 13), new ItemID()),
+                new FramedItem(new Frame(null, 14), new ItemID()),
+                new FramedItem(new Frame(null, 15), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(9, 1);
+
+            Assert.Equal(1, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[0]));
+        }
+
+        [Fact]
+        public void NearestItemsTest6()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID()),
+                new FramedItem(new Frame(null, 11), new ItemID()),
+                new FramedItem(new Frame(null, 12), new ItemID()),
+                new FramedItem(new Frame(null, 13), new ItemID()),
+                new FramedItem(new Frame(null, 14), new ItemID()),
+                new FramedItem(new Frame(null, 15), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(19, 1);
+
+            Assert.Equal(1, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[5]));
+        }
+
+        [Fact]
+        public void NearestItemsTest7()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID()),
+                new FramedItem(new Frame(null, 11), new ItemID()),
+                new FramedItem(new Frame(null, 12), new ItemID()),
+                new FramedItem(new Frame(null, 15), new ItemID()),
+                new FramedItem(new Frame(null, 16), new ItemID()),
+                new FramedItem(new Frame(null, 17), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(13, 1);
+
+            Assert.Equal(1, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[2]));
+        }
+
+        [Fact]
+        public void NearestItemsTest8()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID()),
+                new FramedItem(new Frame(null, 11), new ItemID()),
+                new FramedItem(new Frame(null, 12), new ItemID()),
+                new FramedItem(new Frame(null, 15), new ItemID()),
+                new FramedItem(new Frame(null, 16), new ItemID()),
+                new FramedItem(new Frame(null, 17), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(14, 1);
+
+            Assert.Equal(1, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[3]));
+        }
+
+        [Fact]
+        public void NearestItemsTest9()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(14, 10);
+
+            Assert.Equal(1, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[0]));
+        }
+
+        [Fact]
+        public void NearestItemsTest10()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(9, 10);
+
+            Assert.Equal(1, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[0]));
+        }
+
+        [Fact]
+        public void NearestItemsTest11()
+        {
+            ItemPath path = new ItemPath();
+
+            var pathFrames = new FramedItem[]
+            {
+                new FramedItem(new Frame(null, 10), new ItemID())
+            };
+            for (int i = 0; i < pathFrames.Length; i++)
+            {
+                path.FramedItems.Add(pathFrames[i]);
+            }
+
+            var nearestItems = path.NearestItems(10, 10);
+
+            Assert.Equal(1, nearestItems.Count);
+            Assert.True(nearestItems.Contains(pathFrames[0]));
+        }
     }
 }

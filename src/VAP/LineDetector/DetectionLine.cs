@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using BGSObjectDetector;
@@ -408,6 +409,30 @@ namespace LineDetector
             else
             {
                 return false;
+            }
+        }
+
+        public void RotateLine(int rotateCount, Size frameSize)
+        {
+            rotateCount = rotateCount & 3;
+            if(rotateCount == 1)
+            {
+                var p1 = new Point(frameSize.Height - P1.Y, P1.X);
+                var p2 = new Point(frameSize.Height - P2.Y, P2.X);
+                _lineSegment = new LineSegment(p1, p2);
+            }
+            else if (rotateCount == 2)
+            {
+                var p1 = new Point(frameSize.Width - P1.X, frameSize.Height - P1.Y);
+                var p2 = new Point(frameSize.Width - P2.X, frameSize.Height - P2.Y);
+                _lineSegment = new LineSegment(p1, p2);
+            }
+            else if (rotateCount == 3)
+            {
+                var p1 = new Point(P1.Y, frameSize.Width - P1.X);
+                var p2 = new Point(P2.Y, frameSize.Width - P2.X);
+
+                _lineSegment = new LineSegment(p1, p2);
             }
         }
 

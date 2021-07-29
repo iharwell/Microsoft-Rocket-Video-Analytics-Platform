@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 
 namespace Utils.ShapeTools
@@ -94,14 +96,22 @@ namespace Utils.ShapeTools
         }
         public static float IntersectionOverUnion(this Rectangle rect, Rectangle rect2)
         {
+            if (Math.Max(rect.Left, rect2.Left) >= Math.Min(rect.Right, rect2.Right))
+            {
+                return 0;
+            }
+            if (Math.Max(rect.Top, rect2.Top) >= Math.Min(rect.Bottom, rect2.Bottom))
+            {
+                return 0;
+            }
             Rectangle intersect;
             {
                 Point intersectLoc = new Point(Math.Max(rect.Left, rect2.Left), Math.Max(rect.Top, rect2.Top));
-                intersect = new Rectangle(intersectLoc.X, intersectLoc.Y, Math.Min(rect.Right, rect2.Right) - intersectLoc.X, Math.Min(rect.Bottom, rect2.Bottom) - intersectLoc.Y);
-            }
-            if (intersect.Width < 0 || intersect.Height < 0)
-            {
-                return 0.0f;
+
+                intersect = new Rectangle(intersectLoc.X,
+                                          intersectLoc.Y,
+                                          Math.Min(rect.Right, rect2.Right) - intersectLoc.X,
+                                          Math.Min(rect.Bottom, rect2.Bottom) - intersectLoc.Y);
             }
             long intArea = intersect.Width * (long)intersect.Height;
             long r1Area = rect.Width * (long)rect.Height;
@@ -113,6 +123,14 @@ namespace Utils.ShapeTools
         }
         public static float IntersectionOverUnion(this RectangleF rect, Rectangle rect2)
         {
+            if (Math.Max(rect.Left, rect2.Left) >= Math.Min(rect.Right, rect2.Right))
+            {
+                return 0;
+            }
+            if (Math.Max(rect.Top, rect2.Top) >= Math.Min(rect.Bottom, rect2.Bottom))
+            {
+                return 0;
+            }
             RectangleF intersect;
             {
                 PointF intersectLoc = new PointF(Math.Max(rect.Left, rect2.Left), Math.Max(rect.Top, rect2.Top));
@@ -132,6 +150,14 @@ namespace Utils.ShapeTools
         }
         public static float IntersectionOverUnion(this Rectangle rect, RectangleF rect2)
         {
+            if (Math.Max(rect.Left, rect2.Left) >= Math.Min(rect.Right, rect2.Right))
+            {
+                return 0;
+            }
+            if (Math.Max(rect.Top, rect2.Top) >= Math.Min(rect.Bottom, rect2.Bottom))
+            {
+                return 0;
+            }
             RectangleF intersect;
             {
                 PointF intersectLoc = new PointF(Math.Max(rect.Left, rect2.Left), Math.Max(rect.Top, rect2.Top));
@@ -151,6 +177,14 @@ namespace Utils.ShapeTools
         }
         public static float IntersectionOverUnion(this RectangleF rect, RectangleF rect2)
         {
+            if (Math.Max(rect.Left, rect2.Left) >= Math.Min(rect.Right, rect2.Right))
+            {
+                return 0;
+            }
+            if (Math.Max(rect.Top, rect2.Top) >= Math.Min(rect.Bottom, rect2.Bottom))
+            {
+                return 0;
+            }
             RectangleF intersect;
             {
                 PointF intersectLoc = new PointF(Math.Max(rect.Left, rect2.Left), Math.Max(rect.Top, rect2.Top));

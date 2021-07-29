@@ -24,15 +24,15 @@ namespace LibAvSharp.Native
     };
     public static unsafe class AVIOC
     {
-        [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvFormat, CallingConvention = CallingConvention.Cdecl)]
         public static extern string avio_find_protocol_name([In] string url);
 
 
-        [DllImport("avformat-59.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvFormat, CallingConvention = CallingConvention.Cdecl)]
         public static extern int avio_check([In] string url, int flags);
 
 
-        [DllImport("avutil_57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int avio_alloc_context([In] byte* buffer, int buffer_size, int write_flags, void* opaque,
                                                      delegate* unmanaged[Cdecl]<void*, byte*, int, int> read_packet,
                                                      delegate* unmanaged[Cdecl]<void*, byte*, int, int> write_packet,

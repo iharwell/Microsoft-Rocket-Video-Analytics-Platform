@@ -30,22 +30,28 @@ namespace LibAvSharp.Format
 
         public void DumpFormat(int index, int is_output)
         {
-            AVFormatC.av_dump_format(native_context, index, fileName, is_output);
+            AVException.ProcessException(AVFormatC.av_dump_format(native_context, index, fileName, is_output));
         }
         public void OpenInput(string file)
         {
-            AVFormatC.avformat_open_input(ref native_context, file, null, null);
+            AVException.ProcessException(AVFormatC.avformat_open_input(ref native_context, file, null, null));
             fileName = file;
         }
 
         public int ReadFrame(ref Packet p)
         {
-            return AVFormatC.av_read_frame(native_context, p._packet);
+            p.PacketReffed = true;
+            int ret = AVFormatC.av_read_frame(native_context, p._packet);
+            if(ret<0)
+            {
+                p.PacketReffed = false;
+            }
+            return ret;
         }
 
         public void FindStreamInfo()
         {
-            AVFormatC.avformat_find_stream_info(native_context, null);
+            AVException.ProcessException(AVFormatC.avformat_find_stream_info(native_context, null));
         }
 
         public CodecContext OpenCodecContext(ref int streamIndex, AVMediaType mediaType, AVPixelFormat format = AVPixelFormat.AV_PIX_FMT_NONE)
@@ -75,25 +81,17 @@ namespace LibAvSharp.Format
                 {
                     throw new NullReferenceException();
                 }
-                int ret = AVCodecC.avcodec_parameters_to_context(context._native_context, st->codecpar);
+                AVException.ProcessException(AVCodecC.avcodec_parameters_to_context(context._native_context, st->codecpar));
                 context.PixelFormat = format;
-                if (ret < 0)
-                {
-                    throw new Exception();
-                }
 
-                ret = AVCodecC.avcodec_open2(context._native_context, dec, &dict);
-                if (ret < 0)
-                {
-                    throw new InvalidOperationException();
-                }
+                AVException.ProcessException(AVCodecC.avcodec_open2(context._native_context, dec, &dict));
                 return context;
             }
         }
 
         public void Close()
         {
-            AVFormatC.avformat_close_input(ref native_context);
+            AVException.ProcessException(AVFormatC.avformat_close_input(ref native_context));
         }
 
         private static AVCodec* findCodecHWAccel(AVCodecID codec_id)
@@ -239,7 +237,7 @@ namespace LibAvSharp.Format
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 if (native_context != null)
                 {
-                    AVFormatC.avformat_close_input(ref native_context);
+                    AVException.ProcessException(AVFormatC.avformat_close_input(ref native_context));
                 }
 
                 // TODO: set large fields to null

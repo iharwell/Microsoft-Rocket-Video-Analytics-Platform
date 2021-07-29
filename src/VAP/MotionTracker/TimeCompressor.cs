@@ -5,31 +5,39 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Utils.Items;
 
 namespace MotionTracker
 {
+    [DataContract]
     public class TimeCompressor
     {
-
-        public float VelocityThreshold { get; set; }
-
-        public int MaxJump { get; set; }
-
-        public int BlockSize { get; set; }
-
         public TimeCompressor()
-            : this(7.0f, 15, 30)
-        {}
+            : this(23.0f, 15, 30, 1.0)
+        { }
 
-        public TimeCompressor(float velocityThreshold, int maxJump, int blockSize)
+        public TimeCompressor(double resolutionFactor)
+            : this(23.0f, 15, 30, resolutionFactor)
+        { }
+
+        public TimeCompressor(float velocityThreshold, int maxJump, int blockSize, double resolutionFactor)
         {
-            VelocityThreshold = velocityThreshold;
+            VelocityThreshold = (float)(velocityThreshold * resolutionFactor);
             MaxJump = maxJump;
             BlockSize = blockSize;
         }
+
+        [DataMember]
+        public int BlockSize { get; set; }
+
+        [DataMember]
+        public int MaxJump { get; set; }
+
+        [DataMember]
+        public float VelocityThreshold { get; set; }
 
         public void ProcessPath(IItemPath path)
         {

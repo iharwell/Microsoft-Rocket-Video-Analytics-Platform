@@ -20,10 +20,10 @@ namespace LibAvSharp.Native
             }
         }
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe AVOption* av_opt_find2(void* obj, string name, string unit, int opt_flags, int search_flags, void** target_obj);
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe AVOption* av_opt_set_bin(void* obj, string name, byte* val, int len, int search_flags);
     }
 }

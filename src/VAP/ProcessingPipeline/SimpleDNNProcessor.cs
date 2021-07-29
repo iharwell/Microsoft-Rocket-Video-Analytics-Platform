@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using DarknetDetector;
@@ -14,26 +15,52 @@ using Utils.Items;
 
 namespace ProcessingPipeline
 {
-    public class SimpleDNNProcessor : IProcessor
+    [DataContract]
+    [KnownType(typeof(Dictionary<string, LineSegment>))]
+    [KnownType(typeof(HashSet<string>))]
+    public class SimpleDNNProcessor : IProcessor, IDisposable
     {
-        public SimpleDNNDarknet _darknet;
+        [DataMember]
+        private IDNNAnalyzer _analyzer;
+        private bool _disposedValue;
 
-        public SimpleDNNProcessor(SimpleDNNDarknet darknet)
+        public SimpleDNNProcessor(IDNNAnalyzer analyzer)
         {
-            _darknet = darknet;
+            _analyzer = analyzer;
+
+            ExcludeCategories = new();
+
+            IncludeCategories = new();
         }
 
+        ~SimpleDNNProcessor() => Dispose(false);
+
+        [DataMember]
         public Color BoundingBoxColor { get; set; }
-        public IDictionary<string, LineSegment> LineSegments { get; set; }
-        public ISet<string> Categories { get; set; }
+        [DataMember]
+        public HashSet<string> IncludeCategories { get; set; }
+        /// <inheritdoc/>
+        [DataMember]
+        public HashSet<string> ExcludeCategories { get; set; }
+        [DataMember]
         public bool DisplayOutput { get; set; }
+        [DataMember]
+        public IDictionary<string, LineSegment> LineSegments { get; set; }
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
             int prevResults = items.Count;
-            items = _darknet.Run(frame, Categories, items, this);
+            items = RunAnalyzer(frame, IncludeCategories, items, this);
 
-            if (DisplayOutput && (frame.FrameIndex & 1) == 0)
+
+
+            if (DisplayOutput && (frame.FrameIndex & 3) == 0)
             {
                 Mat output = frame.FrameData.Clone();
                 var col = new Scalar(BoundingBoxColor.B, BoundingBoxColor.G, BoundingBoxColor.R);
@@ -65,9 +92,77 @@ namespace ProcessingPipeline
 
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                if (_analyzer is IDisposable d)
+                {
+                    d.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _disposedValue = true;
+            }
+        }
+
         private static Rect ToRect(IItemID id)
         {
             return new Rect(id.BoundingBox.X, id.BoundingBox.Y, id.BoundingBox.Width, id.BoundingBox.Height);
         }
+
+        private IList<IFramedItem> RunAnalyzer(IFrame frame,
+                                                               ISet<string> category,
+                                               IList<IFramedItem> items,
+                                               object sourceObject)
+        {
+            var rawItems = _analyzer.Analyze(frame.FrameData, category, sourceObject);
+            foreach (var id in rawItems)
+            {
+                if (KeepItem(id))
+                {
+                    IFramedItem fi = new FramedItem(frame, id);
+                    items.Add(fi);
+                }
+                /*if (id.InsertIntoFramedItemList(items, out var framedItem, frame.FrameIndex))
+                {
+                    framedItem.Frame = frame;
+                }*/
+            }
+            return items;
+        }
+
+        private bool KeepItem(IItemID id)
+        {
+            if(IncludeCategories != null && IncludeCategories.Count>0)
+            {
+                if (id.ObjName != null && id.ObjName.Length > 0)
+                {
+                    return IncludeCategories.Contains(id.ObjName);
+                }
+                return true;
+            }
+            else if(ExcludeCategories!=null && ExcludeCategories.Count>0)
+            {
+                if (id.ObjName != null && id.ObjName.Length > 0)
+                {
+                    return !ExcludeCategories.Contains(id.ObjName);
+                }
+                return true;
+            }
+            return true;
+        }
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~SimpleDNNProcessor()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
     }
 }

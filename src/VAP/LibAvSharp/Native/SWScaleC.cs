@@ -23,5 +23,8 @@ namespace LibAvSharp.Native
         public static extern int sws_scale(IntPtr context, [In] byte** srcSlice,
                                             [In] int* srcH, int srcSliceY, int srcSliceH,
                                             [Out, In] byte** dst, [In] int* dstStride);
+
+        [DllImport("swscale-6.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void sws_freeContext(IntPtr context);
     }
 }

@@ -21,11 +21,22 @@ namespace LibAvSharp.Codec
         {
             get
             {
-                return _native_context->pix_fmt;
+                if (_native_context != null)
+                {
+                    return _native_context->pix_fmt;
+                }
+                throw new NullReferenceException();
             }
             set
             {
-                _native_context->pix_fmt = value;
+                if (_native_context != null)
+                {
+                    _native_context->pix_fmt = value;
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
         }
 
@@ -37,6 +48,7 @@ namespace LibAvSharp.Codec
         {
             int ret = AVCodecC.avcodec_send_packet(_native_context, pkt._packet);
 
+
             _currentPacket = pkt;
             return ret;
         }
@@ -45,9 +57,9 @@ namespace LibAvSharp.Codec
             int outVal;
             outVal = AVCodecC.avcodec_receive_frame(_native_context, output._frame);
 
-            if (outVal < 0 && outVal != -11)
+            if (outVal < 0 && outVal != (int)AVErrorCode.AV_EAGAIN)
             {
-
+                AVException.ProcessException(outVal);
             }
             if (outVal >= 0 && _currentPacket != null)
             {

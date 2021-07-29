@@ -118,24 +118,30 @@ namespace Wrapper.Yolo
         {
             if (!_isDisposed)
             {
+                int ret = 0;
                 _isDisposed = true;
                 switch (this._detectionSystem)
                 {
                     case DetectionSystem.CPU:
-                        DisposeYoloCpu();
+                        ret = DisposeYoloCpu();
                         break;
                     case DetectionSystem.GPU:
                         switch (this._dnnMode)
                         {
                             case DNNMode.Frame:
                             case DNNMode.LT:
-                                DisposeYoloGpuLt();
+                                ret = DisposeYoloGpuLt();
                                 break;
                             case DNNMode.CC:
-                                DisposeYoloGpuCc();
+                                ret = DisposeYoloGpuCc();
                                 break;
                         }
                         break;
+                }
+
+                if (ret < 0)
+                {
+                    throw new Exception($"Error code {ret.ToString("X")} thrown.");
                 }
                 GC.SuppressFinalize(this);
             }
@@ -162,10 +168,16 @@ namespace Wrapper.Yolo
 
             int deviceCount;
             StringBuilder deviceName;
+            int ret = 0;
             switch (this._detectionSystem)
             {
                 case DetectionSystem.CPU:
-                    InitializeYoloCpu(configurationFilename, weightsFilename, 0);
+                    ret = InitializeYoloCpu(configurationFilename, weightsFilename, 0);
+
+                    if (ret < 0)
+                    {
+                        throw new Exception($"Error code {ret.ToString("X")} thrown.");
+                    }
                     break;
                 case DetectionSystem.GPU:
                     switch (this._dnnMode)
@@ -179,10 +191,20 @@ namespace Wrapper.Yolo
                             }
 
                             deviceName = new StringBuilder(); //allocate memory for string
-                            GetDeviceNameLt(gpu, deviceName);
+                            ret = GetDeviceNameLt(gpu, deviceName);
+
+                            if (ret < 0)
+                            {
+                                throw new Exception($"Error code {ret.ToString("X")} thrown.");
+                            }
                             this.EnvironmentReport.GraphicDeviceName = deviceName.ToString();
 
-                            InitializeYoloGpuLt(configurationFilename, weightsFilename, gpu);
+                            ret = InitializeYoloGpuLt(configurationFilename, weightsFilename, gpu);
+
+                            if (ret < 0)
+                            {
+                                throw new Exception($"Error code {ret.ToString("X")} thrown.");
+                            }
                             break;
                         case DNNMode.CC:
                             deviceCount = GetDeviceCountCc();
@@ -192,10 +214,20 @@ namespace Wrapper.Yolo
                             }
 
                             deviceName = new StringBuilder(); //allocate memory for string
-                            GetDeviceNameCc(gpu, deviceName);
+                            ret = GetDeviceNameCc(gpu, deviceName);
+
+                            if (ret < 0)
+                            {
+                                throw new Exception($"Error code {ret.ToString("X")} thrown.");
+                            }
                             this.EnvironmentReport.GraphicDeviceName = deviceName.ToString();
 
-                            InitializeYoloGpuCc(configurationFilename, weightsFilename, gpu);
+                            ret = InitializeYoloGpuCc(configurationFilename, weightsFilename, gpu);
+
+                            if (ret < 0)
+                            {
+                                throw new Exception($"Error code {ret.ToString("X")} thrown.");
+                            }
                             break;
                     }
                     break;

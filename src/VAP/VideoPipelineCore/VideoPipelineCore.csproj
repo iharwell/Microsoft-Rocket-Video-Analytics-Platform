@@ -7,6 +7,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Silk.NET" Version="$(SilkNETVersion)" />
     <PackageReference Include="OpenCvSharp4" Version="$(OpenCvSharp4Version)" />
@@ -16,8 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AML.Client\AML.Client.csproj" />
-    <ProjectReference Include="..\AML.tfserving\AML.tfserving.csproj" />
     <ProjectReference Include="..\BGSObjectDetector\BGSObjectDetector.csproj" />
     <ProjectReference Include="..\DarknetDetector\DarknetDetector.csproj" />
     <ProjectReference Include="..\Decoder\Decoder.csproj" />
@@ -27,7 +29,6 @@
     <ProjectReference Include="..\MotionTracker\MotionTracker.csproj" />
     <ProjectReference Include="..\PostProcessor\PostProcessor.csproj" />
     <ProjectReference Include="..\ProcessingPipeline\ProcessingPipeline.csproj" />
-    <ProjectReference Include="..\TFDetector\TFDetector.csproj" />
     <ProjectReference Include="..\Utils\Utils.csproj" />
   </ItemGroup>
 

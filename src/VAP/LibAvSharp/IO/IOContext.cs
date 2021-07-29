@@ -49,7 +49,7 @@ namespace LibAvSharp.IO
 
         public void MapFile(string url)
         {
-            Native.AVUtilsC.av_file_map(url, out buffer, out size, 0, null);
+            AVException.ProcessException(Native.AVUtilsC.av_file_map(url, out buffer, out size, 0, null));
             bd.buffer = buffer;
             bd.size = size;
         }
@@ -67,10 +67,13 @@ namespace LibAvSharp.IO
                 {
                     Native.AVUtilsC.av_freep(ref avio_buffer);
                 }
-                Native.AVUtilsC.av_freep(&(_context->buffer));
+                if(_context != null && _context->buffer != null)
+                {
+                    Native.AVUtilsC.av_freep(&(_context->buffer));
+                }
                 if (buffer != null)
                 {
-                    Native.AVUtilsC.av_file_unmap(buffer, size);
+                    AVException.ProcessException(Native.AVUtilsC.av_file_unmap(buffer, size));
                     buffer = null;
                 }
 

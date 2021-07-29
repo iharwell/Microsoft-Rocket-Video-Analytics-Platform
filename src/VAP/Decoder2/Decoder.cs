@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using System;
+using LibAvSharp;
 using LibAvSharp.Codec;
 using LibAvSharp.Format;
 using LibAvSharp.Native;
@@ -73,7 +74,18 @@ namespace Decoder2
         }
 
         public Decoder(string file, double scaleFactor, AVPixelFormat format)
+            : this(file, format)
         {
+            ResizeToTargetDimension = false;
+            TargetSize = System.Drawing.Size.Empty;
+            ScaleFactor = scaleFactor;
+        }
+
+        public Decoder(string file, AVPixelFormat format)
+        {
+            ResizeToTargetDimension = false;
+            TargetSize = System.Drawing.Size.Empty;
+            ScaleFactor = 1.0;
             _file = file;
             _fctx = new FormatContext();
             _fctx.OpenInput(file);
@@ -86,11 +98,19 @@ namespace Decoder2
             _packet = new Packet();
             frameNumber = 0;
             firstFrameNumber = 0;
-            ScaleFactor = scaleFactor;
             rawMode = false;
             rawModeInitialized = false;
         }
 
+        public Decoder(string file, System.Drawing.Size targetSize, AVPixelFormat format)
+            : this(file, format)
+        {
+            ResizeToTargetDimension = true;
+            TargetSize = targetSize;
+        }
+
+        public System.Drawing.Size TargetSize { get; set; }
+        public bool ResizeToTargetDimension { get; set; }
         public void Close()
         {
             _stream = null;
@@ -144,11 +164,15 @@ namespace Decoder2
                 {
                     continue;
                 }
-                if (ret == error_eof)
+                else if (ret == error_eof)
                 {
                     if (rawMode)
                         break;
                     _packet.FlushToIndex(_streamIndex);
+                }
+                else
+                {
+                    AVException.ProcessException(ret);
                 }
                 if (_packet.StreamIndex != _streamIndex)
                 {
@@ -165,9 +189,14 @@ namespace Decoder2
                     valid = processRawPacket();
                     break;
                 }
-                if (_vctx.SendPacket(ref _packet) < 0)
+                ret = _vctx.SendPacket(ref _packet);
+                if (ret == (int)AVErrorCode.AV_EAGAIN || ret == (int)AVErrorCode.AV_EOF)
                 {
                     break;
+                }
+                else if (ret < 0)
+                {
+                    AVException.ProcessException(ret);
                 }
                 ret = _vctx.ReceiveFrame(ref _picture);
 
@@ -256,7 +285,34 @@ namespace Decoder2
             throw new NotImplementedException();
         }
 
-        public double ScaleFactor { get; set; }
+        private double _scaleFactor;
+
+        public double ScaleFactor
+        {
+            get
+            {
+                if (ResizeToTargetDimension)
+                {
+                    if (_vctx.CodedHeight * 1.0f / TargetSize.Height < _vctx.CodedWidth * 1.0f / TargetSize.Width)
+                    {
+                        // Scale height to size;
+                        return TargetSize.Height * 1.0 / _vctx.CodedHeight;
+                    }
+                    else
+                    {
+                        return TargetSize.Width * 1.0 / _vctx.CodedWidth;
+                    }
+                }
+                else
+                {
+                    return _scaleFactor;
+                }
+            }
+            set
+            {
+                _scaleFactor = value;
+            }
+        }
 
         private unsafe bool cvRetrieveFrame(int n, ref IntPtr data, ref int step, ref int width, ref int height, ref int cn)
         {
@@ -275,10 +331,7 @@ namespace Decoder2
             if (_picture != null && _picture.HWFramesContextVoid != null)
             {
                 f = new Frame();
-                if (Frame.TransferHWFrame(f, _picture, 0) < 0)
-                {
-                    throw new OpenCVException("Error copying data from GPU to CPU (av_hwframe_transfer_data)");
-                }
+                AVException.ProcessException(Frame.TransferHWFrame(f, _picture, 0), "Error copying data from GPU to CPU (av_hwframe_transfer_data)");
             }
 
             if (f == null || f.DataPtrEntry(0) == IntPtr.Zero)
@@ -301,7 +354,7 @@ namespace Decoder2
                                     f.Format,
                                     (int)(bufferWidth * ScaleFactor), (int)(bufferHeight * ScaleFactor),
                                     LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_BGR24,
-                                    LibAvSharp.Native.SWS_Flags.SWS_FAST_BILINEAR,
+                                    LibAvSharp.Native.SWS_Flags.SWS_AREA,
                                     IntPtr.Zero, IntPtr.Zero, null);
 
                 if (img_convert_ctx == IntPtr.Zero)
@@ -326,12 +379,12 @@ namespace Decoder2
                 _image._step = _rgb_frame.LineSizeItem(0);
             }
 
-            LibAvSharp.Native.SWScaleC.sws_scale(img_convert_ctx,
-                                                 (byte**)f.DataPtr,
-                                                 (int*)f.LineSizes,
-                                                 0, _vctx.CodedHeight,
-                                                 (byte**)_rgb_frame.DataPtr,
-                                                 (int*)_rgb_frame.LineSizes);
+            AVException.ProcessException(SWScaleC.sws_scale(img_convert_ctx,
+                                                            (byte**)f.DataPtr,
+                                                            (int*)f.LineSizes,
+                                                            0, _vctx.CodedHeight,
+                                                            (byte**)_rgb_frame.DataPtr,
+                                                            (int*)_rgb_frame.LineSizes));
             data = (IntPtr)_image._data;
             step = _image._step;
             width = _image._width;
@@ -364,19 +417,45 @@ namespace Decoder2
         {
             if (!_disposedValue)
             {
+                if (img_convert_ctx != IntPtr.Zero)
+                {
+                    SWScaleC.sws_freeContext(img_convert_ctx);
+                    img_convert_ctx = IntPtr.Zero;
+                }
                 if (disposing)
                 {
+                    if (_stream != null)
+                    {
+                        this._stream.Dispose();
+                        _stream = null;
+                    }
+                    if (_rgb_frame != null)
+                    {
+                        this._rgb_frame.Dispose();
+                        _rgb_frame = null;
+                    }
+                    if (_picture != null)
+                    {
+                        this._picture.Dispose();
+                        _picture = null;
+                    }
+                    if (_packet != null)
+                    {
+                        this._packet.Dispose();
+                        _packet = null;
+                    }
+                    if (_fctx != null)
+                    {
+                        this._fctx.Dispose();
+                        _fctx = null;
+                    }
+                    if (_vctx != null)
+                    {
+                        this._vctx.Dispose();
+                        _vctx = null;
+                    }
                     // TODO: dispose managed state (managed objects)
                 }
-                if (_stream != null)
-                {
-                    this._stream.Dispose();
-                }
-                this._rgb_frame.Dispose();
-                this._picture.Dispose();
-                this._packet.Dispose();
-                this._vctx.Dispose();
-                this._fctx.Dispose();
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null

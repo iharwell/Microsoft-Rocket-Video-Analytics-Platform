@@ -10,7 +10,7 @@ namespace LibAvSharp.Native
 {
     public static class AVDeviceC
     {
-        [DllImport("avdevice-59.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvDevice, CallingConvention = CallingConvention.Cdecl)]
         public static extern void avdevice_register_all();
     }
 }

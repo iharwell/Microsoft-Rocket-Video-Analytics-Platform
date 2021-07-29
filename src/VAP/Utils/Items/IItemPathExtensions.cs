@@ -48,13 +48,47 @@ namespace Utils.Items
                                where !(item.ItemIDs.Count == 1 && item.ItemIDs[0] is FillerID)
                                orderby Math.Abs(frameIndex - item.Frame.FrameIndex) ascending
                                select item;*/
+            int FrameDist(IFramedItem item1, int targetIndex) => Math.Abs(item1.Frame.FrameIndex - targetIndex);
+
             var sortedItems = SortedItems(path);
 
             int index = IndexOfFrameIndex(sortedItems, frameIndex);
             List<IFramedItem> nearestItems = new List<IFramedItem>();
-            nearestItems.Add(sortedItems[index]);
-            int lowIndex = index - 1;
+            //nearestItems.Add(sortedItems[index]);
+            int lowIndex = index;
             int highIndex = index + 1;
+            if (IsIndexInRange(highIndex, sortedItems) && IsIndexInRange(lowIndex, sortedItems))
+            {
+                if(FrameDist(sortedItems[highIndex], frameIndex) < FrameDist(sortedItems[lowIndex], frameIndex))
+                {
+                    nearestItems.Add(sortedItems[highIndex]);
+                    highIndex++;
+                }
+                else
+                {
+                    nearestItems.Add(sortedItems[lowIndex]);
+                    lowIndex--;
+                }
+            }
+            else if (IsIndexInRange(highIndex, sortedItems))
+            {
+                nearestItems.Add(sortedItems[highIndex]);
+                highIndex++;
+            }
+            else if (IsIndexInRange(lowIndex, sortedItems))
+            {
+                nearestItems.Add(sortedItems[lowIndex]);
+                lowIndex--;
+            }
+            else if(sortedItems.Count == 0)
+            {
+                return nearestItems;
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+
             if (lowIndex > 0 && lowIndex < sortedItems.Count
                 && highIndex > 0 && highIndex < sortedItems.Count)
             {
@@ -64,7 +98,7 @@ namespace Utils.Items
                     while (lowIndex >= 0
                         && nearestItems.Count < count
                         && ((!IsIndexInRange(highIndex, sortedItems) && IsIndexInRange(lowIndex, sortedItems))
-                            || Math.Abs(sortedItems[highIndex].Frame.FrameIndex - frameIndex) >= Math.Abs(sortedItems[lowIndex].Frame.FrameIndex - frameIndex)))
+                            || FrameDist(sortedItems[highIndex], frameIndex) >= FrameDist(sortedItems[lowIndex], frameIndex)))
                     {
                         nearestItems.Add(sortedItems[lowIndex]);
                         --lowIndex;
@@ -72,7 +106,7 @@ namespace Utils.Items
                     while (highIndex < sortedItems.Count
                         && nearestItems.Count < count
                         && ((IsIndexInRange(highIndex, sortedItems) && !IsIndexInRange(lowIndex, sortedItems))
-                            || Math.Abs(sortedItems[highIndex].Frame.FrameIndex - frameIndex) <= Math.Abs(sortedItems[lowIndex].Frame.FrameIndex - frameIndex)))
+                            || FrameDist(sortedItems[highIndex], frameIndex) <= FrameDist(sortedItems[lowIndex], frameIndex)))
                     {
                         nearestItems.Add(sortedItems[highIndex]);
                         ++highIndex;
@@ -85,6 +119,7 @@ namespace Utils.Items
                     && lowIndex >= 0)
                 {
                     nearestItems.Add(sortedItems[lowIndex]);
+                    --lowIndex;
                 }
             }
             else
@@ -103,7 +138,7 @@ namespace Utils.Items
             return index >= 0 && index < list.Count;
         }
 
-        private static int IndexOfFrameIndex( List<IFramedItem> sortedItems, int frameIndex)
+        private static int IndexOfFrameIndex(IList<IFramedItem> sortedItems, int frameIndex)
         {
             int upperIndex = sortedItems.Count - 1;
             int lowerIndex = 0;
@@ -141,6 +176,10 @@ namespace Utils.Items
                         lowerIndex = mid;
                     }
                 }
+            }
+            if (lowerIndex >= sortedItems.Count || sortedItems[lowerIndex].Frame.FrameIndex > frameIndex)
+            {
+                --lowerIndex;
             }
             return lowerIndex;
         }

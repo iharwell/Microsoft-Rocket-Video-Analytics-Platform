@@ -128,6 +128,10 @@ namespace Utils.Items
             }
         }
 
+        public static bool IsFiller(this IFramedItem item)
+        {
+            return item.ItemIDs.Count == 1 && item.ItemIDs.First() is FillerID;
+        }
 
         /// <summary>
         ///   Calculates a similarity score between the provided rectangle and the items in this <see cref="IFramedItem" />.
@@ -292,7 +296,6 @@ namespace Utils.Items
 
         public static IList<IFramedItem> MergeIntoFramedItemListSameFrame(this IFramedItem item, ref IList<IFramedItem> target, bool includeFiller, double mergeThreshold, double nameBoost)
         {
-            //TODO(iharwell): Add algorithm to merge IFramedItems based on very high similarity scores.
             if (item is null)
             {
                 return target;
@@ -301,6 +304,10 @@ namespace Utils.Items
             if (target.Count == 0)
             {
                 target.Add(item);
+            }
+            else if (target.Contains(item))
+            {
+                return target;
             }
             else
             {

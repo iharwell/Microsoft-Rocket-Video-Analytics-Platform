@@ -110,6 +110,7 @@ namespace Utils.ShapeTools
         }
         public unsafe static RectangleF MeanBox(IList<IItemID> ids)
         {
+            var karray = stackalloc float[4];
             var sumVec = System.Runtime.Intrinsics.Vector128<int>.Zero;
             Rectangle tmp;
             for (int i = 0; i < ids.Count; i++)
@@ -119,17 +120,18 @@ namespace Utils.ShapeTools
                 var v = System.Runtime.Intrinsics.X86.Sse2.LoadVector128(ptr);
                 sumVec = System.Runtime.Intrinsics.X86.Sse2.Add(v, sumVec);
             }
-            var vals = stackalloc int[4];
-            System.Runtime.Intrinsics.X86.Sse2.Store(vals, sumVec);
-
             float k = 1.0f / ids.Count;
+            karray[0] = k;
+            karray[1] = k;
+            karray[2] = k;
+            karray[3] = k;
+            var sumVecF = System.Runtime.Intrinsics.X86.Sse2.ConvertToVector128Single(sumVec);
+            var kv = System.Runtime.Intrinsics.X86.Sse.LoadVector128(&karray[0]);
+            sumVecF = System.Runtime.Intrinsics.X86.Sse2.Multiply(sumVecF, kv);
+            RectangleF result = new RectangleF();
+            System.Runtime.Intrinsics.X86.Sse2.Store((float*)&result, sumVecF);
 
-            float sumx1 = vals[0] * k;
-            float sumy1 = vals[1] * k;
-            float sumw1 = vals[2] * k;
-            float sumh1 = vals[3] * k;
-
-            return new RectangleF(sumx1, sumy1, sumw1, sumh1);
+            return result;
 
             /*
             float sumx = 0;

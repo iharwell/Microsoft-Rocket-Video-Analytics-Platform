@@ -20,7 +20,9 @@ namespace Utils.Items
     [KnownType(typeof(Frame))]
     [KnownType(typeof(ItemID))]
     [KnownType(typeof(LineTriggeredItemID))]
-    public class FramedItem : IFramedItem
+    [KnownType(typeof(System.Drawing.Color))]
+    [KnownType(typeof(System.Drawing.Size))]
+    public class FramedItem : IFramedItem, IDisposable
     {
         /// <summary>
         ///   Creates an empty <see cref="FramedItem" />.
@@ -95,6 +97,7 @@ namespace Utils.Items
         private int _highestConfidenceItemCount;
         private RectangleF? _median;
         private int _medianItemCount;
+        private bool _disposedValue;
 
         public RectangleF MeanBounds
         {
@@ -400,12 +403,53 @@ namespace Utils.Items
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            string s = $"Fr: {Frame.FrameIndex}, {ItemIDs[HighestConfidenceIndex].ObjName}, X:{MeanBounds.X}, Y:{MeanBounds.Y}, W:{MeanBounds.Width}, H:{MeanBounds.Height}";
+            return s;
+            /*StringBuilder sb = new StringBuilder();
             sb.Append("Fr: ");
             sb.Append(Frame.FrameIndex);
             sb.Append(", ");
             sb.Append(ItemIDs[HighestConfidenceIndex].ObjName);
-            return sb.ToString();
+            return sb.ToString();*/
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    if(Frame is IDisposable d)
+                    {
+                        d.Dispose();
+                    }
+                    this.Frame = null;
+                    for (int i = 0; i < ItemIDs.Count; i++)
+                    {
+                        ItemIDs[0] = null;
+                    }
+                    ItemIDs = null;
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~FramedItem()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

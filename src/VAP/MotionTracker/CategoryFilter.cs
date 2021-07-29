@@ -4,12 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Utils.Items;
 
 namespace MotionTracker
 {
+    [DataContract]
+    [KnownType(typeof(HashSet<string>))]
     public class CategoryFilter : ICacheFilter
     {
         public CategoryFilter()
@@ -17,7 +20,8 @@ namespace MotionTracker
             ExcludeCategories = new HashSet<string>();
         }
 
-        public ISet<string> ExcludeCategories { get; set; }
+        [DataMember]
+        public HashSet<string> ExcludeCategories { get; set; }
 
         public IDictionary<IFramedItem, bool> FilterCache(IList<IList<IFramedItem>> cache, IItemPath path)
         {

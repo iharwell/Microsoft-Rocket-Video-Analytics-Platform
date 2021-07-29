@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Utils;
@@ -13,11 +14,12 @@ using Utils.Items;
 
 namespace ProcessingPipeline
 {
+    [DataContract]
+    [KnownType(typeof(Dictionary<string, LineSegment>))]
+    [KnownType(typeof(HashSet<string>))]
     public class LineCrossingItemSearchProcessor : IProcessor
     {
         private List<IList<IFramedItem>> _itemBuffer;
-
-        public int BufferSize { get; set; }
 
         public LineCrossingItemSearchProcessor()
         {
@@ -25,11 +27,19 @@ namespace ProcessingPipeline
             BufferSize = 150;
         }
 
+        [DataMember]
         public Color BoundingBoxColor { get; set; }
-        public IDictionary<string, LineSegment> LineSegments { get; set; }
-        public ISet<string> Categories { get; set; }
+        [DataMember]
+        public int BufferSize { get; set; }
+        [DataMember]
+        public HashSet<string> IncludeCategories { get; set; }
+        /// <inheritdoc/>
+        [DataMember]
+        public HashSet<string> ExcludeCategories { get; set; }
+        [DataMember]
         public bool DisplayOutput { get; set; }
-
+        [DataMember]
+        public IDictionary<string, LineSegment> LineSegments { get; set; }
         public bool Run(IFrame frame, ref IList<IFramedItem> items, IProcessor previousStage)
         {
             Buffer(items);
@@ -43,6 +53,10 @@ namespace ProcessingPipeline
                 for (int j = 0; j < items[i].ItemIDs.Count; j++)
                 {
                     var id = items[i].ItemIDs[j];
+                    if (id.SourceObject != previousStage)
+                    {
+                        continue;
+                    }
                     if (id.SourceObject == previousStage && id.FurtherAnalysisTriggered)
                     {
                         Debug.Assert(id is ILineTriggeredItemID);
@@ -57,7 +71,6 @@ namespace ProcessingPipeline
                         float bestConfidence = 0.0f;
                         for (int k = 0; k < intersections.Count; k++)
                         {
-
                             var hci = intersections[k].HighestConfidenceIndex;
                             var hcid = intersections[k].ItemIDs[hci];
                             float confidence = (float)hcid.Confidence;
@@ -89,7 +102,10 @@ namespace ProcessingPipeline
                             TriggerSegment = ltid.TriggerSegment
                         };
                         bestMatch.ItemIDs.Add(myid);
-                        itemsToPost.Add(bestMatch);
+                        if(!items.Contains(bestMatch))
+                        {
+                            itemsToPost.Add(bestMatch);
+                        }
                         foundItem = true;
                     }
                 }
@@ -100,6 +116,15 @@ namespace ProcessingPipeline
                 items.Add(itemsToPost[i]);
             }
             return foundItem;
+        }
+
+        private void Buffer(IList<IFramedItem> items)
+        {
+            _itemBuffer.Add(items);
+            if (_itemBuffer.Count > BufferSize)
+            {
+                _itemBuffer.RemoveRange(0, _itemBuffer.Count - BufferSize);
+            }
         }
 
         private IList<IFramedItem> FindIntersectingObjects(ILineTriggeredItemID ltid, IFrame frame)
@@ -117,7 +142,7 @@ namespace ProcessingPipeline
                 float bestConfidence = 0.0f;
                 foreach (var entry in overlaps)
                 {
-                    if(entry.Value < 0.1)
+                    if(entry.Value < 0.01)
                     {
                         continue;
                     }
@@ -140,15 +165,6 @@ namespace ProcessingPipeline
                 }
             }
             return results;
-        }
-
-        private void Buffer(IList<IFramedItem> items)
-        {
-            _itemBuffer.Add(items);
-            if (_itemBuffer.Count > BufferSize)
-            {
-                _itemBuffer.RemoveRange(0, _itemBuffer.Count - BufferSize);
-            }
         }
     }
 }

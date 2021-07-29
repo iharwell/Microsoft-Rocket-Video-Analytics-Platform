@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.Serialization;
 using System.Text;
 using OpenCvSharp;
 using Utils;
@@ -28,6 +29,8 @@ namespace ProcessingPipeline
             BoundingBoxColor = Color.Gray;
             SamplingFactor = 1;
             ResolutionFactor = 1;
+
+            ExcludeCategories = new();
         }
 
         /// <summary>
@@ -54,6 +57,8 @@ namespace ProcessingPipeline
             BoundingBoxColor = bboxColor;
             SamplingFactor = samplingFactor;
             ResolutionFactor = resolutionFactor;
+
+            ExcludeCategories = new();
         }
 
         private BGSObjectDetector.BGSObjectDetector Detector { get; set; }
@@ -65,7 +70,11 @@ namespace ProcessingPipeline
         public IDictionary<string, LineSegment> LineSegments { get; set; }
 
         /// <inheritdoc/>
-        public ISet<string> Categories { get; set; }
+        public HashSet<string> IncludeCategories { get; set; }
+
+        /// <inheritdoc/>
+        [DataMember]
+        public HashSet<string> ExcludeCategories { get; set; }
 
         /// <inheritdoc/>
         public int SamplingFactor { get; set; }

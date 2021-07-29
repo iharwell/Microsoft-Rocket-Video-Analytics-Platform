@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace ProcessingPipeline
@@ -10,23 +11,26 @@ namespace ProcessingPipeline
     /// <summary>
     ///   A falling edge trigger that fires when a value drops below some threshold.
     /// </summary>
+    [DataContract]
     public class FallingEdgeTrigger : IEdgeTrigger
     {
         /// <inheritdoc/>
-        public IList<double> ValueHistory { get; set; }
+        public bool CurrentState { get; protected set; }
 
         /// <inheritdoc/>
-        /// </summary>
-        public double TriggerThreshold { get; set; }
-
-        /// <inheritdoc/>
+        [DataMember]
         public double Hysteresis { get; set; }
 
         /// <inheritdoc/>
+        [DataMember]
         public int MinimumEntriesForTransition { get; set; }
 
         /// <inheritdoc/>
-        public bool CurrentState { get; protected set; }
+        [DataMember]
+        public double TriggerThreshold { get; set; }
+
+        /// <inheritdoc/>
+        public IList<double> ValueHistory { get; set; }
 
         /// <inheritdoc/>
         public bool NotifyNextValue(double value)

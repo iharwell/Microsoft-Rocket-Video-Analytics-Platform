@@ -91,17 +91,26 @@ namespace Utils
 
         public static float GetOverlapRatio(LineSegment segment, RectangleF rect)
         {
-            if( rect.Contains(segment.P1) && rect.Contains(segment.P2))
+            if (rect.Contains(segment.P1) && rect.Contains(segment.P2))
             {
                 return 1;
             }
             //return Utils.CheckLineBboxOverlapRatio(segment, (int)(rect.X + 0.5), (int)(rect.Y + 0.5), (int)(rect.Width + 0.5), (int)(rect.Height + 0.5));
 
-            PointF? topIntersect = GetIntersection(segment.P1, segment.P2, rect.TopLeft(), rect.TopRight());
-            PointF? bottomIntersect = GetIntersection(segment.P1, segment.P2, rect.BottomLeft(), rect.BottomRight());
-            PointF? leftIntersect = GetIntersection(segment.P1, segment.P2, rect.TopLeft(), rect.BottomLeft());
-            PointF? rightIntersect = GetIntersection(segment.P1, segment.P2, rect.TopRight(), rect.BottomRight());
-
+            PointF? topIntersect = null;
+            PointF? bottomIntersect = null;
+            if (rect.Width != 0)
+            {
+                topIntersect = GetIntersection(segment.P1, segment.P2, rect.TopLeft(), rect.TopRight());
+                bottomIntersect = GetIntersection(segment.P1, segment.P2, rect.BottomLeft(), rect.BottomRight());
+            }
+            PointF? leftIntersect = null;
+            PointF? rightIntersect = null;
+            if (rect.Height != 0)
+            {
+                leftIntersect = GetIntersection(segment.P1, segment.P2, rect.TopLeft(), rect.BottomLeft());
+                rightIntersect = GetIntersection(segment.P1, segment.P2, rect.TopRight(), rect.BottomRight());
+            }
             PointF? intersect1;
             PointF? intersect2;
 

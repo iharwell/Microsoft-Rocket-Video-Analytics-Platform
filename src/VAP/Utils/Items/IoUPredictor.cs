@@ -19,8 +19,11 @@ namespace Utils.Items
         public override Rectangle Predict(IItemPath path, int frameIndex)
         {
             int bestIndex;
+            int bestIndexAlt;
+            int bestFrameAlt = int.MinValue;
             int bestFrame = int.MinValue;
             IFramedItem bestItem = null;
+            IFramedItem bestItemAlt = null;
 
             for (int i = 0; i < path.FramedItems.Count; i++)
             {
@@ -31,6 +34,16 @@ namespace Utils.Items
                     bestIndex = i;
                     bestFrame = frameInd;
                     bestItem = path.FramedItems[i];
+
+                    bestIndexAlt = int.MinValue;
+                    bestFrameAlt = int.MinValue;
+                    bestItemAlt = null;
+                }
+                else if (Math.Abs(frameIndex - frameInd) == Math.Abs(bestFrame - frameIndex))
+                {
+                    bestIndexAlt = i;
+                    bestFrameAlt = frameInd;
+                    bestItemAlt = path.FramedItems[i];
                 }
             }
 
@@ -39,9 +52,23 @@ namespace Utils.Items
                 throw new InvalidOperationException();
             }
 
-            StatisticRectangle sr = new StatisticRectangle(bestItem.ItemIDs);
-            var median = sr.Median;
-            return new Rectangle((int)(median.X + 0.5), (int)(median.Y + 0.5), (int)(median.Width + 0.5), (int)(median.Height + 0.5));
+            if (bestItemAlt == null)
+            {
+                var median = bestItem.MeanBounds;
+                return new Rectangle((int)(median.X + 0.5), (int)(median.Y + 0.5), (int)(median.Width + 0.5), (int)(median.Height + 0.5));
+            }
+
+            else
+            {
+                var mean = bestItem.MeanBounds;
+                var meanAlt = bestItemAlt.MeanBounds;
+                return new Rectangle((int)((mean.X + meanAlt.X + 1) / 2),
+                                     (int)((mean.Y + meanAlt.Y + 1) / 2),
+                                     (int)((mean.Width + meanAlt.Width + 1) / 2),
+                                     (int)((mean.Height + meanAlt.Height + 1) / 2));
+
+            }
+
         }
     }
 }

@@ -22,12 +22,12 @@ namespace LibAvSharp.Filter
         public void CreateFilter(ref FilterContext filterContext, Filter filter, string name, string args, IntPtr opaque)
         {
             AVFilterContext* ptr = null;
-            int ret = AVFilterC.avfilter_graph_create_filter(&ptr, filter._filter, name, args, (void*)opaque, _graph);
+            AVException.ProcessException(AVFilterC.avfilter_graph_create_filter(&ptr, filter._filter, name, args, (void*)opaque, _graph));
 
             filterContext._context = ptr;
         }
 
-        public int Parse(string filters_desc, FilterInOut[] inputs, FilterInOut[] outputs)
+        public void Parse(string filters_desc, FilterInOut[] inputs, FilterInOut[] outputs)
         {
             AVFilterInOut*[] inputPtrs = new AVFilterInOut*[inputs.Length];
             AVFilterInOut*[] outputPtrs = new AVFilterInOut*[outputs.Length];
@@ -47,7 +47,7 @@ namespace LibAvSharp.Filter
             {
                 res = AVFilterC.avfilter_graph_parse_ptr(_graph, filters_desc, inptrs, outptrs, null);
             }
-
+            AVException.ProcessException(res);
             for (int i = 0; i < inputPtrs.Length; i++)
             {
                 inputs[i]._filterIO = inputPtrs[i];
@@ -56,13 +56,11 @@ namespace LibAvSharp.Filter
             {
                 outputs[i]._filterIO = outputPtrs[i];
             }
-
-            return res;
         }
 
-        public int Config()
+        public void Config()
         {
-            return AVFilterC.avfilter_graph_config(_graph, null);
+            AVException.ProcessException(AVFilterC.avfilter_graph_config(_graph, null));
         }
 
     }

@@ -6,54 +6,69 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Decoder2;
+using LibAvSharp.Native;
 using OpenCvSharp;
 using Utils.Items;
 
 namespace Decoder
 {
-    public class DecoderFFMPEG : IDecoder
+    public class DecoderFFMPEG : IDecoder, IDisposable, ISerializable
     {
+
+        // private const AVPixelFormat TARGET_FORMAT = AVPixelFormat.AV_PIX_FMT_CUDA;
+        // private const AVPixelFormat TARGET_FORMAT = AVPixelFormat.AV_PIX_FMT_NV12;
+        // private const AVPixelFormat TARGET_FORMAT = AVPixelFormat.AV_PIX_FMT_P010LE;
+        // private const AVPixelFormat TARGET_FORMAT = AVPixelFormat.AV_PIX_FMT_P016LE;
+        private const AVPixelFormat TARGET_FORMAT = AVPixelFormat.AV_PIX_FMT_NONE;
         private static readonly string[] Extensions = new string[]
         {
             "mp4",
+            "m4v",
             "mov",
             "wmv",
             "mkv"
         };
 
         private readonly bool _toLoop;
+        private ConcurrentBag<LibAvSharp.Decoder> _disposables;
         private Task _fileTask;
-        private Task _disposalTask;
-        private volatile Decoder2.Decoder _inner;
-        private volatile Decoder2.Decoder _innerNext;
-
-        private ConcurrentBag<Decoder2.Decoder> _disposables;
-        private ConcurrentQueue<Frame> _matQueue;
-        private volatile bool _nextFileReady;
-        private int _queuesize = 250;
         private Task _queueTask;
-        private volatile int _readFrames;
+        private Task _disposalTask;
+
+        private volatile LibAvSharp.Decoder _inner;
+        private volatile LibAvSharp.Decoder _innerNext;
+        private volatile bool _nextFileReady;
+
+        private bool _disposedValue;
+        private ConcurrentQueue<Frame> _matQueue;
+        private int _queuesize = 100;
+        private volatile int _readFramesThisFile;
+        private volatile int _readFramesTotal;
         private double _scale;
         private SpinLock _spinner;
+        private string _inputText;
 
+        public int RotateCount { get; set; }
         public DecoderFFMPEG(string input, double scale, bool loop)
         {
+            _inputText = input;
+            ResizeToDimension = false;
             _matQueue = new ConcurrentQueue<Frame>();
-            _disposables = new ConcurrentBag<Decoder2.Decoder>();
+            _disposables = new ConcurrentBag<LibAvSharp.Decoder>();
+            _readFramesTotal = 0;
             PathIndex = 0;
             FilePaths = new List<string>();
             _toLoop = loop;
             this._scale = scale;
             _nextFileReady = false;
             _spinner = new SpinLock();
-
-            if (input != null)
+            if (input != null && System.IO.File.Exists(input))
             {
-                _inner = new Decoder2.Decoder(input, scale, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_NV12);
+                _inner = new LibAvSharp.Decoder(input, scale, TARGET_FORMAT);
                 FilePaths.Add(input);
             }
             else
@@ -62,11 +77,112 @@ namespace Decoder
                 _innerNext = null;
             }
         }
+        public DecoderFFMPEG(string input, System.Drawing.Size targetSize, bool loop)
+        {
+            _inputText = input;
+            ResizeToDimension = true;
+            _matQueue = new ConcurrentQueue<Frame>();
+            _disposables = new ConcurrentBag<LibAvSharp.Decoder>();
+            PathIndex = 0;
+            FilePaths = new List<string>();
+            _toLoop = loop;
+            _readFramesTotal = 0;
+            this.TargetFrameSize = targetSize;
+            _nextFileReady = false;
+            _spinner = new SpinLock();
+
+            if (input != null && System.IO.File.Exists(input))
+            {
+                _inner = new LibAvSharp.Decoder(input, targetSize, TARGET_FORMAT);
+                FilePaths.Add(input);
+            }
+            else
+            {
+                _inner = null;
+                _innerNext = null;
+            }
+        }
+        public DecoderFFMPEG(SerializationInfo info, StreamingContext context)
+        {
+            string text = info.GetString(nameof(_inputText));
+            _inputText = text;
+            _matQueue = new ConcurrentQueue<Frame>();
+            _disposables = new ConcurrentBag<LibAvSharp.Decoder>();
+            _scale = info.GetDouble(nameof(_scale));
+            PathIndex = 0;
+            _readFramesTotal = 0;
+            _toLoop = info.GetBoolean(nameof(_toLoop));
+            _nextFileReady = false;
+            _spinner = new SpinLock();
+            FilePaths = new List<string>();
+            if (text[^4] == '.')
+            {
+                if (text != null && System.IO.File.Exists(text))
+                {
+                    _inner = new LibAvSharp.Decoder(text, _scale, TARGET_FORMAT);
+                    FilePaths.Add(text);
+                }
+                else
+                {
+                    _inner = null;
+                    _innerNext = null;
+                }
+            }
+            else
+            {
+                var files = Directory.GetFiles(text);
+                List<string> filtered = new List<string>();
+                foreach (var file in files)
+                {
+                    if (Extensions.Contains(file[^3..]))
+                    {
+                        filtered.Add(file);
+                    }
+                }
+                if (filtered.Count > 0)
+                {
+                    for (int i = 0; i < filtered.Count; i++)
+                    {
+                        FilePaths.Add(filtered[i]);
+                    }
+                    _inner = CreateDecoder();
+                }
+            }
+
+            /*_inputText = input;
+            ResizeToDimension = true;
+            _matQueue = new ConcurrentQueue<Frame>();
+            _disposables = new ConcurrentBag<LibAvSharp.Decoder>();
+            PathIndex = 0;
+            FilePaths = new List<string>();
+            _toLoop = loop;
+            this.TargetFrameSize = targetSize;
+            _nextFileReady = false;
+            _spinner = new SpinLock();
+
+            if (input != null && System.IO.File.Exists(input))
+            {
+                _inner = new LibAvSharp.Decoder(input, targetSize, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_NV12);
+                FilePaths.Add(input);
+            }
+            else
+            {
+                _inner = null;
+                _innerNext = null;
+            }*/
+        }
 
         private DecoderFFMPEG(double scale, bool loop)
             : this(null, scale, loop)
         { }
 
+        ~DecoderFFMPEG() => Dispose(false);
+
+        public delegate string NameParser(IFrame frame);
+
+        public delegate DateTime TimeParser(IFrame frame);
+
+        public NameParser CameraNameParser { get; set; }
         public string FilePath => FilePaths[PathIndex];
 
         public IList<string> FilePaths { get; }
@@ -77,6 +193,12 @@ namespace Decoder
 
         public int PathIndex { get; protected set; }
 
+        public bool ResizeToDimension { get; set; }
+
+        public System.Drawing.Size TargetFrameSize { get; set; }
+
+        public TimeParser TimeStampParser { get; set; }
+
         public int TotalFrameNumber
         {
             get
@@ -86,7 +208,14 @@ namespace Decoder
                 try
                 {
                     _spinner.Enter(ref gotLock);
-                    val = (int)_inner.FrameCount;
+                    if (_inner == null)
+                    {
+                        val = 0;
+                    }
+                    else
+                    {
+                        val = (int)_inner.FrameCount;
+                    }
                 }
                 finally
                 {
@@ -98,19 +227,13 @@ namespace Decoder
                 return val;
             }
         }
-
-        public delegate DateTime TimeParser(IFrame frame);
-
-        public delegate string NameParser(IFrame frame);
-
-        public TimeParser TimeStampParser { get; set; }
-        public NameParser CameraNameParser { get; set; }
-
-        public static DecoderFFMPEG GetDirectoryDecoder(string folder, double scale)
+        public static DecoderFFMPEG GetDirectoryDecoder(string folder, double scale, int rotateCount)
         {
             if (folder[^4] == '.')
             {
-                return new DecoderFFMPEG(folder, scale, false);
+                var dec = new DecoderFFMPEG(folder, scale, false);
+                return dec;
+
             }
             var files = Directory.GetFiles(folder);
             List<string> filtered = new List<string>();
@@ -124,11 +247,45 @@ namespace Decoder
             if (filtered.Count > 0)
             {
                 var decoder = new DecoderFFMPEG(scale, false);
+                decoder.RotateCount = rotateCount;
                 for (int i = 0; i < filtered.Count; i++)
                 {
                     decoder.FilePaths.Add(filtered[i]);
                 }
-                decoder._inner = new Decoder2.Decoder(decoder.FilePath, scale, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_P016LE);
+                decoder._inner = decoder.CreateDecoder();
+                Console.WriteLine(Enum.GetName(decoder._inner.PixelFormat));
+                return decoder;
+            }
+            return null;
+        }
+        public static DecoderFFMPEG GetDirectoryDecoder(string folder, double scale) => GetDirectoryDecoder(folder, scale, 0);
+        public static DecoderFFMPEG GetDirectoryDecoder(string folder, System.Drawing.Size targetSize)
+        {
+            if (folder[^4] == '.')
+            {
+                var dec = new DecoderFFMPEG(folder, targetSize, false);
+                return dec;
+            }
+            var files = Directory.GetFiles(folder);
+            List<string> filtered = new List<string>();
+            foreach (var file in files)
+            {
+                if (Extensions.Contains(file[^3..]))
+                {
+                    filtered.Add(file);
+                }
+            }
+            if (filtered.Count > 0)
+            {
+                var decoder = new DecoderFFMPEG(folder, targetSize, false);
+                for (int i = 0; i < filtered.Count; i++)
+                {
+                    decoder.FilePaths.Add(filtered[i]);
+                }
+                if (decoder._inner == null)
+                {
+                    decoder._inner = new LibAvSharp.Decoder(decoder.FilePath, targetSize, TARGET_FORMAT);
+                }
                 return decoder;
             }
             return null;
@@ -139,23 +296,24 @@ namespace Decoder
             Mat sourceMat;
             try
             {
-                if (_readFrames >= TotalFrameNumber)
+                sourceMat = _inner.GetNextFrame();
+                if (sourceMat == null)
                 {
                     if (!NextFile())
                     {
                         return null;
                     }
+                    sourceMat = _inner.GetNextFrame();
                 }
                 _inner.GrabFrame();
-                sourceMat = _inner.GetNextFrame();
             }
 
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
                 Console.WriteLine("********RESET*****");
-
-                _inner = new Decoder2.Decoder(FilePath);
+                _inner = CreateDecoder();
+                _inner.Spool();
 
                 return null;
             }
@@ -167,9 +325,10 @@ namespace Decoder
             {
                 if (sourceMat.Height == 0 && sourceMat.Width == 0)
                 {
-                    _inner = new Decoder2.Decoder(FilePath, _scale, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_P016LE);
-                    _inner.GrabFrame();
-                    sourceMat = _inner.GetNextFrame();
+                    _inner = CreateDecoder();
+                    _inner.Spool();
+                    /*_inner.GrabFrame();
+                    sourceMat = _inner.GetNextFrame();*/
                 }
             }
 
@@ -178,12 +337,20 @@ namespace Decoder
 
         public void BeginReading()
         {
+            _inner.Spool();
             _fileTask = new Task(() => PreloadFiles());
             _fileTask.Start();
             _queueTask = new Task(() => RunDecode());
             _queueTask.Start();
             _disposalTask = new Task(() => TrashDisposal());
             _disposalTask.Start();
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
         public IFrame GetNextFrame()
@@ -196,38 +363,27 @@ namespace Decoder
             return f;
         }
 
-        internal IFrame GetNextImage()
+        public Mat GetNextFrameImage()
         {
-            if (_queueTask != null)
+            var f = GetNextFrame();
+            if (f == null)
             {
-                // int totalframes = TotalFrameNumber;
-                do
-                {
-                    if (_matQueue.TryDequeue(out Frame mat2))
-                    {
-                        return mat2;
-                    }
-                    else
-                    {
-                        Thread.Sleep(1);
-                    }
-                } while (HasMoreFrames)
-                    ;
+                return null;
             }
-            Frame f = new Frame
-            {
-                FrameData = _internalGetFrame(),
-                SourceName = FilePath
-            };
-            if (TimeStampParser != null)
-            {
-                f.TimeStamp = TimeStampParser(f);
-            }
-            if (CameraNameParser != null)
-            {
-                f.CameraName = CameraNameParser(f);
-            }
-            return f;
+            return f.FrameData;
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~DecoderFFMPEG()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue(nameof(_inputText), _inputText);
+            info.AddValue(nameof(_scale), _scale);
+            info.AddValue(nameof(_toLoop), _toLoop);
         }
 
         public int GetTotalFrameNum()
@@ -254,14 +410,172 @@ namespace Decoder
             return framerate;
         }
 
+        public void Wrapup()
+        {
+            if (_fileTask != null && !_fileTask.IsCompleted)
+            {
+                _fileTask.Wait();
+            }
+            if (_queueTask != null && !_queueTask.IsCompleted)
+            {
+                _queueTask.Wait();
+            }
+            if(_disposalTask != null && !_disposalTask.IsCompleted)
+            {
+                _disposalTask.Wait();
+            }
+        }
+        internal IFrame GetNextImage()
+        {
+            if (_queueTask != null)
+            {
+                // int totalframes = TotalFrameNumber;
+                do
+                {
+                    if (_matQueue.TryDequeue(out Frame mat2))
+                    {
+                        return mat2;
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                } while (HasMoreFrames)
+                    ;
+            }
+            Frame f = new Frame
+            {
+                FrameData = _internalGetFrame(),
+                SourceName = FilePath,
+                FrameRate = (float)GetVideoFPS(),
+                FileFrameIndex = _readFramesThisFile,
+                LastKeyFrame = _inner.LastKeyFrame,
+                FrameIndex = ++_readFramesTotal
+            };
+            _readFramesThisFile++;
+            if (TimeStampParser != null)
+            {
+                f.TimeStamp = TimeStampParser(f);
+            }
+            if (CameraNameParser != null)
+            {
+                f.CameraName = CameraNameParser(f);
+            }
+            return f;
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    if (this._disposalTask != null)
+                    {
+                        if (!_disposalTask.IsCompleted)
+                        {
+                            _disposalTask.Wait();
+                        }
+                        _disposalTask.Dispose();
+                        _disposalTask = null;
+                    }
+                    if (this._fileTask != null)
+                    {
+                        if (!_fileTask.IsCompleted)
+                        {
+                            _fileTask.Wait();
+                        }
+                        _fileTask.Dispose();
+                        _fileTask = null;
+                    }
+                    if (this._queueTask != null)
+                    {
+                        if (!_queueTask.IsCompleted)
+                        {
+                            _queueTask.Wait();
+                        }
+                        _queueTask.Dispose();
+                        _queueTask = null;
+                    }
+                    if (this._inner != null)
+                    {
+                        _inner.Dispose();
+                        _inner = null;
+                    }
+                    if (this._innerNext != null)
+                    {
+                        _innerNext.Dispose();
+                        _innerNext = null;
+                    }
+                    if (this._matQueue != null)
+                    {
+                        _matQueue = null;
+                    }
+                    if (this._disposables != null)
+                    {
+                        _disposables = null;
+                    }
+                }
+                if (this._disposalTask != null)
+                {
+                    if (!_disposalTask.IsCompleted)
+                    {
+                        _disposalTask.Wait();
+                    }
+                    _disposalTask.Dispose();
+                    _disposalTask = null;
+                }
+                if (this._fileTask != null)
+                {
+                    if (!_fileTask.IsCompleted)
+                    {
+                        _fileTask.Wait();
+                    }
+                    _fileTask.Dispose();
+                    _fileTask = null;
+                }
+                if (this._queueTask != null)
+                {
+                    if (!_queueTask.IsCompleted)
+                    {
+                        _queueTask.Wait();
+                    }
+                    _queueTask.Dispose();
+                    _queueTask = null;
+                }
+                if (this._inner != null)
+                {
+                    _inner.Dispose();
+                    _inner = null;
+                }
+                if (this._innerNext != null)
+                {
+                    _innerNext.Dispose();
+                    _innerNext = null;
+                }
+                if (this._matQueue != null)
+                {
+                    _matQueue = null;
+                }
+                if (this._disposables != null)
+                {
+                    _disposables = null;
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _disposedValue = true;
+            }
+        }
+
         private bool NextFile()
         {
             if (PathIndex < FilePaths.Count - 1)
             {
-                Decoder2.Decoder tmp;
+                LibAvSharp.Decoder tmp;
                 if (_fileTask == null)
                 {
-                    tmp = new Decoder2.Decoder(FilePath, _scale, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_P016LE);
+                    tmp = CreateDecoder();
                 }
                 else
                 {
@@ -275,15 +589,16 @@ namespace Decoder
                 }
                 int preCount = _matQueue.Count;
                 bool lockGot = false;
-                Decoder2.Decoder tmpDecoder = null;
+                //tmp.Spool();
+                LibAvSharp.Decoder tmpDecoder = null;
                 try
                 {
                     _spinner.Enter(ref lockGot);
                     ++PathIndex;
-                    _inner.Close();
+                    //_inner.Close();
                     tmpDecoder = (_inner);
                     _inner = tmp;
-                    _readFrames = 0;
+                    _readFramesThisFile = 0;
                 }
                 finally
                 {
@@ -311,11 +626,12 @@ namespace Decoder
         {
             while (true)
             {
-                if (!_nextFileReady && (TotalFrameNumber - _readFrames) < (_queuesize / 4))
+                if (!_nextFileReady && (TotalFrameNumber - _readFramesThisFile) < 200)
                 {
                     if (PathIndex < FilePaths.Count - 1)
                     {
-                        _innerNext = new Decoder2.Decoder(FilePaths[PathIndex + 1], _scale, LibAvSharp.Native.AVPixelFormat.AV_PIX_FMT_P016LE);
+                        _innerNext = CreateDecoder();
+                        _innerNext.Spool();
                         _nextFileReady = true;
                     }
                     else
@@ -325,7 +641,7 @@ namespace Decoder
                 }
                 else
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(20);
                 }
             }
         }
@@ -334,22 +650,41 @@ namespace Decoder
         {
             Mat image;
             bool notified = false;
+            float fps = (float)GetVideoFPS();
             while (true)
             {
                 if (_matQueue.Count < _queuesize)
                 {
                     notified = false;
                     image = _internalGetFrame();
-                    ++_readFrames;
+
                     if (image == null)
                     {
                         break;
                     }
+                    /*Mat image2 = new Mat(new Size(image.Height, image.Height), MatType.CV_8UC3, new Scalar(0,0,0));
+                    using (Mat image2Sub = image2.SubMat(new Rect(0, 0, image.Width, image.Height)))
+                    {
+                        image.CopyTo(image2Sub);
+                    }*/
                     Frame f = new Frame
                     {
                         SourceName = FilePath,
-                        FrameData = image.Clone()
+                        FrameRate = fps,
+                        FileFrameIndex = _readFramesThisFile,
+                        FrameData = image,
+                        LastKeyFrame = _inner.LastKeyFrame,
+                        FrameIndex = ++_readFramesTotal
                     };
+                    if (TimeStampParser != null)
+                    {
+                        f.TimeStamp = TimeStampParser(f);
+                    }
+                    if (CameraNameParser != null)
+                    {
+                        f.CameraName = CameraNameParser(f);
+                    }
+                    ++_readFramesThisFile;
                     _matQueue.Enqueue(f);
                 }
                 else
@@ -368,25 +703,32 @@ namespace Decoder
         {
             while (!_fileTask.IsCompleted)
             {
-                if (_disposables.TryTake(out Decoder2.Decoder result))
+                if (_disposables.TryTake(out LibAvSharp.Decoder result))
                 {
+                    result.Close();
                     result.Dispose();
                 }
                 else
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(10);
                 }
             }
         }
 
-        public Mat GetNextFrameImage()
+        private LibAvSharp.Decoder CreateDecoder()
         {
-            var f = GetNextFrame();
-            if (f == null)
+            LibAvSharp.Decoder decoder;
+            if (this.ResizeToDimension)
             {
-                return null;
+                decoder = new LibAvSharp.Decoder(FilePath, TargetFrameSize, TARGET_FORMAT);
             }
-            return f.FrameData;
+            else
+            {
+                decoder = new LibAvSharp.Decoder(FilePath, _scale, TARGET_FORMAT);
+            }
+
+            decoder.RotateCount = RotateCount;
+            return decoder;
         }
     }
 }

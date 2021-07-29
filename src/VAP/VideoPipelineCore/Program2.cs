@@ -1,26 +1,32 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-using AML.Client;
 using BGSObjectDetector;
+using DarknetAAB;
 using DarknetDetector;
 using DNNDetector;
 using DNNDetector.Config;
 using DNNDetector.Model;
 using LineDetector;
+using Microsoft.ML;
 using MotionTracker;
 using OpenCvSharp;
 using PostProcessor;
 using ProcessingPipeline;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
-using TFDetector;
 using Utils;
 using Utils.Items;
 using Utils.ShapeTools;
@@ -29,7 +35,7 @@ namespace VideoPipelineCore
 {
     internal class Program2
     {
-        private const int BUFFERSIZE = 180;
+        private const int BUFFERSIZE = 300;
         private const int UPDATEPERIOD = 128;
         private const int UPDATEMASK = UPDATEPERIOD - 1;
         private const int GCPERIOD = 256;
@@ -39,6 +45,10 @@ namespace VideoPipelineCore
         private const float IoUSimThreshold = 0.20f;
         private const float PolySimThreshold = 0.25f;
 
+        private const bool DisplayToggle = false;
+
+        private static volatile bool running = true;
+        private static int RotateCount = 0;
         internal static DateTime TimeStampParser(IFrame f)
         {
             DateTime ts = default;
@@ -62,8 +72,9 @@ namespace VideoPipelineCore
             int hour = int.Parse(startString.Substring(8, 2));
             int minute = int.Parse(startString.Substring(10, 2));
             int second = int.Parse(startString.Substring(12, 2));
-
-            return new DateTime(year, month, day, hour, minute, second);
+            var baseDT = new DateTime(year, month, day, hour, minute, second);
+            var VidTime = new TimeSpan((long)(f.FileFrameIndex / f.FrameRate * TimeSpan.TicksPerSecond));
+            return baseDT+VidTime;
         }
         internal static string CameraNameParser(IFrame f)
         {
@@ -113,11 +124,13 @@ namespace VideoPipelineCore
             Utils.Config.OutputFolder.OutputFolderBase = args[2];
             int samplingFactor = int.Parse(args[3]);
             double resolutionFactor = double.Parse(args[4]);
-            var decoder = Decoder.DecoderFFMPEG.GetDirectoryDecoder(videoUrl, resolutionFactor);
+
+            var decoder = Decoder.DecoderFFMPEG.GetDirectoryDecoder(videoUrl, resolutionFactor, RotateCount);
             decoder.TimeStampParser = TimeStampParser;
             decoder.CameraNameParser = CameraNameParser;
-            decoder.BeginReading();
 
+            decoder.BeginReading();
+            TrackerPipeline trackerPipeline = new();
             HashSet<string> category = new HashSet<string>();
             for (int i = 5; i < args.Length; i++)
             {
@@ -135,291 +148,328 @@ namespace VideoPipelineCore
             IList<IList<IFramedItem>> framedItemBuffer = new List<IList<IFramedItem>>(BUFFERSIZE + 1);
 
             //-----Decoder-----
-            //Decoder.Decoder2V decoder = new Decoder.Decoder2V(videoUrl, resolutionFactor, loop);
-            Pipeline pipeline;
-            SetupPipeline(lineFile, samplingFactor, resolutionFactor, category, displayBGSVideo, out pipeline);
-
-            /*LightDarknetProcessor lightDNProcessor = new LightDarknetProcessor(lcProcessor.LineSegments, category, Color.Pink, false)
+            Pipeline pipeline = null;
+            try
             {
-                DisplayOutput = true,
-                IndexChooser = new MotionTracker.SparseIndexChooser()
-            };
-            pipeline.AppendStage(lightDNProcessor);*/
+                SetupPipeline(lineFile, samplingFactor, resolutionFactor, category, displayBGSVideo, out pipeline);
 
-            MotionTracker.MotionTracker tracker = SetupTracker(IoUSimThreshold, PolySimThreshold);
-
-            TimeCompressor compressor = new TimeCompressor();
-            //-----Last minute prep-----
-            DateTime videoTimeStamp;
-            if (isVideoStream)
-            {
-                videoTimeStamp = DateTime.Now;
-            }
-            else
-            {
-                //TODO(iharwell): Find a portable option for pulling the "Media Created" property from a file for use here.
-                // videoTimeStamp = decoder.getTimeStamp();
-
-                videoTimeStamp = DateTime.Now;
-            }
-
-            double frameRate = decoder.GetVideoFPS();
-            int frameIndex = 0;
-            int videoTotalFrame = decoder.GetTotalFrameNum();
-            int videoNumber = 0;
-
-            IList<IFramedItem> itemList = null;
-            IList<IItemPath> itemPaths = new List<IItemPath>();
-            //string lastStageName = pipeline.LastStage.GetType().Name;
-            //string secondToLastStageName = pipeline[pipeline.Count-2].GetType().Name;
-            object lastStage = pipeline.LastStage;
-            object secondToLastStage = pipeline[^2];
-
-            //pipeline.SpoolPipeline();
-            //RUN PIPELINE 
-            DateTime startTime = DateTime.Now;
-            DateTime prevTime = DateTime.Now;
-
-            int prevFrame = 0;
-            while (true)
-            {
-                if (!loop)
+                Action decodeFunc = () =>
                 {
-                    if (!isVideoStream && !decoder.HasMoreFrames)
+                    while (decoder.HasMoreFrames)
                     {
-                        break;
+                        var f = decoder.GetNextFrame();
+                        pipeline.SyncPostFrame(f);
                     }
-                }
-                itemList = null;
-                //decoder
-                IFrame frame = decoder.GetNextFrame();
+                };
 
-                if (frame.FrameData == null)
+                Task decodeTask = new Task(decodeFunc);
+
+                decodeTask.Start();
+
+                pipeline.SpoolPipeline();
+
+                MotionTracker.MotionTracker tracker = SetupTracker(IoUSimThreshold, PolySimThreshold, (float)decoder.FramesPerSecond, resolutionFactor);
+
+                trackerPipeline.Tracker = tracker;
+                TimeCompressor compressor = new TimeCompressor(resolutionFactor);
+                trackerPipeline.Compressor = compressor;
+                trackerPipeline.BufferSize = BUFFERSIZE;
+                trackerPipeline.MergeSimilarityThreshold = MergeSimThreshold;
+                trackerPipeline.ShouldStartPathFunc = new Func<IFramedItem, bool>((IFramedItem framedItem) =>
                 {
-                    continue;
-                }
-                frame.FrameIndex = frameIndex;
-                if (frame.TimeStamp == default)
-                {
-                    frame.TimeStamp = startTime.AddSeconds((frameIndex * 1.0 / frameRate));
-                }
-
-                itemList = pipeline.ProcessFrame(frame);
-
-                int frameMainIndex = frameIndex;
-                /*pipeline.SyncPostFrame(frame);
-
-                if( !pipeline.TryReceiveList(out itemList,out frameOut) )
-                {
-                    frameIndex++;
-                    continue;
-                }
-
-                int frameMainIndex = frameOut.FrameIndex;*/
-
-                //itemList = pipeline.ProcessFrame(frame);
-
-                if (frame == null) continue;
-
-
-                if ((frameMainIndex & GCMASK) == 0)
-                {
-                    GC.Collect();
-                }
-
-                //Merge IFrame items to conserve memory.
-                CompressIFrames(itemList);
-
-                //display counts
-                if (itemList != null && itemList.Count > 0)
-                {
-                    Dictionary<string, string> kvpairs = new Dictionary<string, string>();
-                    foreach (IFramedItem it in itemList)
+                    for (int i = 0; i < framedItem.ItemIDs.Count; i++)
                     {
-                        foreach (IItemID id in it.ItemIDs)
-                        {
-                            if (id is ILineTriggeredItemID ltID && ltID.TriggerLine != null)
-                            {
-                                if (!kvpairs.ContainsKey(ltID.TriggerLine))
-                                    kvpairs.Add(ltID.TriggerLine, "1");
-                                break;
-                            }
-                        }
-                    }
-                    FramePreProcessor.FrameDisplay.UpdateKVPairs(kvpairs);
-                    lastStage = pipeline.LastStage;
-                    secondToLastStage = pipeline[^2];
-                    bool pathFound = false;
-                    if ((frameIndex & 0xF) == 0)
-                    {
-                        for (int i = 0; i < itemPaths.Count; i++)
-                        {
-                            int preCount = itemPaths[i].FramedItems.Count;
-                            /*tracker.ExpandPathFromBuffer(itemPaths[i], framedItemBuffer, ioUPredictor, IoUSimThreshold, true);
-                            if (itemPaths[i].FramedItems.Count > preCount && itemPaths[i].FramedItems.Count < 500)
-                            {
-                                MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
-                                tracker.ExpandPathFromBuffer(itemPaths[i], framedItemBuffer, polyPredictor, PolySimThreshold, true);
-                                if (itemPaths[i].FramedItems.Count > preCount && itemPaths[i].FramedItems.Count < 500)
-                                {
-                                    MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
-                                }
-                            }*/
-
-                            tracker.ExtendPath(itemPaths[i], framedItemBuffer, true);
-                            if (itemPaths[i].FramedItems.Count > preCount)
-                            {
-                                MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
-                            }
-                            tracker.TryMergePaths(ref itemPaths, MergeSimThreshold);
-
-                            if (itemPaths[i].FramedItems.Count > 500)
-                            {
-                                compressor.ProcessPath(itemPaths[i]);
-                            }
-                            /*if (MotionTracker.MotionTracker.TestAndAdd(itemList, ioUPredictor, itemPaths[i], IoUSimThreshold))
-                            {
-                                MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
-                            }
-                            else if (MotionTracker.MotionTracker.TestAndAdd(itemList, polyPredictor, itemPaths[i], PolySimThreshold))
-                            {
-                                MotionTracker.MotionTracker.SealPath(itemPaths[i], framedItemBuffer);
-                            }*/
-                        }
-                    }
-
-                    foreach (var item in itemList)
-                    {
-                        object source = item.ItemIDs.Last().SourceObject;
-                        // string lastMethod = ItemList.Last().ItemIDs.Last().IdentificationMethod;
-                        // Currently requires the use of a detection line filter, as it generates too many ItemPaths without it.
-                        if (!item.ItemIDs.Last().FurtherAnalysisTriggered)
+                        var id = framedItem.ItemIDs[i];
+                        object source = id.SourceObject;
+                        if (!id.FurtherAnalysisTriggered || source.GetType() != pipeline.LastStage.GetType())
                         {
                             continue;
                         }
-
-                        if (source.GetType() == lastStage.GetType()/* || source.GetType() == secondToLastStage.GetType()*/)
-                        {
-                            var path = tracker.BuildPath(item, framedItemBuffer, false);
-                            if (path != null)
-                            {
-                                MotionTracker.MotionTracker.SealPath(path, framedItemBuffer);
-                                itemPaths.Add(path);
-                                pathFound = true;
-                            }
-                            /*var path = tracker.GetPathFromIdAndBuffer(item, framedItemBuffer, ioUPredictor, IoUSimThreshold);
-                            int prevCount;
-                            if (path != null)
-                            {
-                                int currentCount = path.FramedItems.Count;
-                                do
-                                {
-                                    prevCount = currentCount;
-                                    tracker.ExpandPathFromBuffer(path, framedItemBuffer, polyPredictor, PolySimThreshold);
-                                    currentCount = path.FramedItems.Count;
-
-                                    if (currentCount > prevCount)
-                                    {
-                                        prevCount = currentCount;
-                                        tracker.ExpandPathFromBuffer(path, framedItemBuffer, ioUPredictor, IoUSimThreshold);
-                                        currentCount = path.FramedItems.Count;
-                                    }
-                                } while (currentCount > prevCount)
-                                    ;
-                                MotionTracker.MotionTracker.SealPath(path, framedItemBuffer);
-                                itemPaths.Add(path);
-                                pathFound = true;
-                            }*/
-                        }
+                        return true;
                     }
-                    if (pathFound && itemPaths.Count > 1)
-                    {
-                        tracker.TryMergePaths(ref itemPaths, MergeSimThreshold);
-                    }
+                    return false;
+                });
 
-                    WritePaths(itemPaths, frameRate, ref videoNumber, frameMainIndex, BUFFERSIZE);
-
-                    framedItemBuffer = MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, MergeSimThreshold, 0);
-
-                    while (framedItemBuffer.Count > BUFFERSIZE || framedItemBuffer[0].Count == 0)
-                    {
-                        framedItemBuffer.RemoveAt(0);
-                    }
-                    framedItemBuffer = MotionTracker.MotionTracker.GroupByFrame(framedItemBuffer, MergeSimThreshold, MergeSimThreshold / 2);
+                //-----Last minute prep-----
+                DateTime videoTimeStamp;
+                if (isVideoStream)
+                {
+                    videoTimeStamp = DateTime.Now;
                 }
                 else
                 {
-                    List<IFramedItem> dummylist = new List<IFramedItem>();
-                    IFramedItem dummyItem = new FramedItem
+                    //TODO(iharwell): Find a portable option for pulling the "Media Created" property from a file for use here.
+                    // videoTimeStamp = decoder.getTimeStamp();
+
+                    videoTimeStamp = DateTime.Now;
+                }
+                double frameRate = decoder.GetVideoFPS();
+                int frameIndex = 0;
+                int videoTotalFrame = decoder.GetTotalFrameNum();
+                int videoNumber = 0;
+
+                IList<IFramedItem> itemList = null;
+                IList<IItemPath> itemPaths = new List<IItemPath>();
+
+                //RUN PIPELINE 
+                DateTime startTime = DateTime.Now;
+                DateTime prevTime = DateTime.Now;
+                System.Diagnostics.Stopwatch shortTimer = new System.Diagnostics.Stopwatch();
+                System.Diagnostics.Stopwatch longTimer = new System.Diagnostics.Stopwatch();
+                bool firstPassDone = false;
+                int prevFrame = 0;
+                while (true)
+                {
+
+                    if (!loop)
                     {
-                        Frame = frame
-                    };
-                    dummylist.Add(dummyItem);
-                    framedItemBuffer = MotionTracker.MotionTracker.InsertIntoSortedBuffer(framedItemBuffer, itemList, MergeSimThreshold, 0);
-                    while (framedItemBuffer.Count > BUFFERSIZE || (framedItemBuffer.Count > 0 && framedItemBuffer[0].Count == 0))
+                        if (!isVideoStream && !(!decodeTask.IsCompleted || pipeline.StillProcessing))
+                        {
+                            break;
+                        }
+                    }
+
+                    if(!pipeline.TryReceiveList(out itemList, out var frame))
                     {
-                        framedItemBuffer.RemoveAt(0);
+                        Thread.Sleep(5);
+                        continue;
+                    }
+
+                    if (frame == null) continue;
+
+                    frameIndex = frame.FrameIndex;
+                    int frameMainIndex = frameIndex;
+
+                    //display counts
+                    if (itemList != null && itemList.Count > 0)
+                    {
+                        Dictionary<string, string> kvpairs = new Dictionary<string, string>();
+                        foreach (IFramedItem it in itemList)
+                        {
+                            foreach (IItemID id in it.ItemIDs)
+                            {
+                                if (id is ILineTriggeredItemID ltID && ltID.TriggerLine != null)
+                                {
+                                    if (!kvpairs.ContainsKey(ltID.TriggerLine))
+                                        kvpairs.Add(ltID.TriggerLine, "1");
+                                    break;
+                                }
+                            }
+                        }
+                        FramePreProcessor.FrameDisplay.UpdateKVPairs(kvpairs);
+                        trackerPipeline.PostFramedItems(itemList, frameMainIndex);
+                    }
+                    else
+                    {
+                        trackerPipeline.PostDummyFrame(frame);
+                    }
+
+
+                    //print out stats
+                    if ((frameMainIndex & UPDATEMASK) == 0 && firstPassDone)
+                    {
+                        double fps = (double)(Stopwatch.Frequency * UPDATEPERIOD) / shortTimer.ElapsedTicks;
+                        double avgFps = (double)(Stopwatch.Frequency * (frameMainIndex)) / longTimer.ElapsedTicks;
+                        Console.WriteLine("{0} {1,-5} {2} {3,-5} {4} {5,-15} {6} {7,-10:N2} {8} {9,-10:N2}",
+                                            "sFactor:", samplingFactor, "rFactor:", resolutionFactor, "FrameID:", frameIndex, "FPS:", fps, "avgFPS:", avgFps);
+                        shortTimer.Restart();
+                    }
+                    if (frameMainIndex != 0 && frameMainIndex != 1 && frameMainIndex != prevFrame && frameMainIndex != prevFrame + 1)
+                    {
+                        Console.WriteLine("Out of order.");
+                    }
+                    prevFrame = frameMainIndex;
+                    ++frameIndex;
+
+                    if (!firstPassDone)
+                    {
+                        firstPassDone = true;
+                        shortTimer.Restart();
+                        longTimer.Restart();
                     }
                 }
-
-
-                //print out stats
-                if ((frameMainIndex & UPDATEMASK) == 0)
+                /*for (int i = 0; i < itemPaths.Count; i++)
                 {
-                    double fps = 1000 * (double)(UPDATEPERIOD) / (DateTime.Now - prevTime).TotalMilliseconds;
-                    /*if (fps > 1000 )
+                    Console.WriteLine("Item path length " + (i + 1) + ": " + itemPaths[i].FramedItems.Count);
+                }
+                IList<IList<IFramedItem>> positiveIds = new List<IList<IFramedItem>>();
+                IList<IList<int>> frameNums = new List<IList<int>>();
+                foreach (var path in itemPaths)
+                {
+                    positiveIds.Add(new List<IFramedItem>(GetPositiveIDItems(path)));
+                    frameNums.Add(frameNumbers(path));
+                }
+                for (int i = 0; i < itemPaths.Count; i++)
+                {
+                    if (itemPaths[i].FramedItems.Count > BUFFERSIZE*2)
                     {
-                        Console.Write("Weird ");
-                    }*/
-                    double avgFps = 1000 * (long)frameMainIndex / (DateTime.Now - startTime).TotalMilliseconds;
-                    Console.WriteLine("{0} {1,-5} {2} {3,-5} {4} {5,-15} {6} {7,-10:N2} {8} {9,-10:N2}",
-                                        "sFactor:", samplingFactor, "rFactor:", resolutionFactor, "FrameID:", frameIndex, "FPS:", fps, "avgFPS:", avgFps);
-                    prevTime = DateTime.Now;
-                }
-                if (frameMainIndex != 0 && frameMainIndex != 1 && frameMainIndex != prevFrame && frameMainIndex != prevFrame + 1)
+                        compressor.ProcessPath(itemPaths[i]);
+                    }
+                }*/
+                trackerPipeline.WriteAllPaths();
+                //WritePaths(itemPaths, tracker, frameRate, ref videoNumber, frameIndex + BUFFERSIZE + 1, BUFFERSIZE, compressor);
+            }
+            finally
+            {
+                if (pipeline != null)
                 {
-                    Console.WriteLine("Out of order.");
+                    pipeline.Dispose();
                 }
-                prevFrame = frameMainIndex;
-                ++frameIndex;
+
+                GC.Collect(3, GCCollectionMode.Forced, true);
+                GC.Collect(3, GCCollectionMode.Forced, true);
             }
-            for (int i = 0; i < itemPaths.Count; i++)
-            {
-                Console.WriteLine("Item path length " + (i + 1) + ": " + itemPaths[i].FramedItems.Count);
-            }
-            IList<IList<IFramedItem>> positiveIds = new List<IList<IFramedItem>>();
-            IList<IList<int>> frameNums = new List<IList<int>>();
-            foreach (var path in itemPaths)
-            {
-                positiveIds.Add(new List<IFramedItem>(GetPositiveIDItems(path)));
-                frameNums.Add(frameNumbers(path));
-            }
-            WritePaths(itemPaths, frameRate, ref videoNumber, frameIndex + BUFFERSIZE + 1, BUFFERSIZE);
             Console.WriteLine("Done!");
         }
 
-        private static void SetupPipeline(string lineFile, int samplingFactor, double resolutionFactor, ISet<string> category, bool displayBGSVideo, out Pipeline pipeline)
+        private static void SetupPipeline(string lineFile, int samplingFactor, double resolutionFactor, HashSet<string> category, bool displayBGSVideo, out Pipeline pipeline)
         {
             pipeline = new Pipeline();
-            var dnn = new SimpleDNNDarknet(new DarknetAAB.Yolo4Tiny(0));
-
-            var lcProcessor = new LineCrossingProcessor(lineFile, samplingFactor, resolutionFactor, category, Color.CadetBlue)
+            var lcProcessor = new LineCrossingProcessor(lineFile, samplingFactor, resolutionFactor, Color.CadetBlue)
             {
                 DisplayOutput = displayBGSVideo
             };
-            var bgsStage = new SimpleDNNProcessor(dnn)
+
+            List<LineSegment> preSegments = new List<LineSegment>();
+            foreach (var entry in lcProcessor.LineSegments)
+            {
+                preSegments.Add(entry.Value);
+            }
+
+            /*lcProcessor.RotateLines(RotateCount, new System.Drawing.Size(480, 270));*/
+
+
+            List<LineSegment> postSegments = new List<LineSegment>();
+            foreach (var entry in lcProcessor.LineSegments)
+            {
+                postSegments.Add(entry.Value);
+            }
+            var bgsStage = new SimpleDNNProcessor(new DarknetAAB.Yolo4Tiny(0))
             {
                 BoundingBoxColor = Color.White,
-                Categories = category,
-                //DisplayOutput = true,
+                IncludeCategories = category,
+                DisplayOutput = DisplayToggle,
                 LineSegments = lcProcessor.LineSegments
             };
-            var searchStage = new LineCrossingItemSearchProcessor();
+            var searchStage = new LineCrossingItemSearchProcessor()
+            {
+                BufferSize = 150
+            };
 
 
             pipeline.AppendStage(bgsStage);
             pipeline.AppendStage(lcProcessor);
             pipeline.AppendStage(searchStage);
+            var settings = new DataContractJsonSerializerSettings();
+            settings.KnownTypes = new List<Type>()
+            {
+                typeof(Yolo4DNN),
+                typeof(Yolo4Tiny),
+                typeof(Yolo4Full),
+            };
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(pipeline.GetType(),settings);
+
+            FileStream fs = new FileStream("pipeline.json", FileMode.Create);
+            serializer.WriteObject(fs, pipeline);
+            fs.Flush();
+            fs.Close();
+        }
+
+
+        private static MotionTracker.MotionTracker SetupTracker(float iouThreshold, float polyThreshold, float fps, double resolutionFactor)
+        {
+            var iouPredictor = new Utils.Items.IoUPredictor();
+            var fastPredictor = new MotionTracker.FastPiecewisePredictor(30);
+            var fastPredictor2 = new MotionTracker.FastPiecewisePredictor(80);
+            var piecewise = new Utils.Items.PiecewisePredictor(5.0);
+            var polyPredictor = new Utils.Items.CenterPolyPredictor();
+
+            MotionTracker.MotionTracker tracker = new MotionTracker.MotionTracker();
+
+
+            {
+                CategoryFilter filterStage = new CategoryFilter();
+                // Driveway Filters
+                /*filterStage.ExcludeCategories.Add("umbrella");
+                filterStage.ExcludeCategories.Add("skateboard");
+                filterStage.ExcludeCategories.Add("skis");
+                filterStage.ExcludeCategories.Add("pottedplant");*/
+
+                // Side Filters
+                /*filterStage.ExcludeCategories.Add("pottedplant");
+                filterStage.ExcludeCategories.Add("suitcase");*/
+
+                // FrontDoor Filters
+                /*filterStage.ExcludeCategories.Add("refrigerator");
+                filterStage.ExcludeCategories.Add("pottedplant");
+                filterStage.ExcludeCategories.Add("book");
+                filterStage.ExcludeCategories.Add("tvmonitor");*/
+
+                // FrontYard Filters
+                filterStage.ExcludeCategories.Add("fire hydrant");
+                filterStage.ExcludeCategories.Add("handbag");
+                filterStage.ExcludeCategories.Add("surfboard");
+
+                //filterStage.ExcludeCategories.Add("giraffe");
+                //filterStage1.ExcludeCategories.Add("sheep");
+                tracker.Filters.Add(filterStage);
+            }
+
+            {
+                StationaryFilter filterStage = new StationaryFilter()
+                {
+                    ConfirmationCount = 3,
+                    VelocityThreshold = (float)(16f * resolutionFactor),
+                    OverlapThreshold = 0.7f,
+                    ChunkSize = (int)(0.5f + 3 * fps)
+                };
+                tracker.Filters.Add(filterStage);
+            }
+
+            {
+                TriggerIDFilter filterStage = new();
+                tracker.Filters.Add(filterStage);
+            }
+
+            {
+                var filterStage = new IntermittentFilter()
+                {
+                };
+                tracker.Filters.Add(filterStage);
+            }
+
+
+            {
+                var filterStage = new CollisionFilter(30, 30, null, 0.2f, 0.4f);
+                tracker.Filters.Add(filterStage);
+            }
+
+
+
+            tracker.Predictors.Add((iouPredictor, iouThreshold));
+            tracker.Predictors.Add((fastPredictor, polyThreshold));
+            tracker.Predictors.Add((fastPredictor2, polyThreshold));
+            tracker.Predictors.Add((piecewise, polyThreshold));
+            //tracker.Predictors.Add((polyPredictor,polyThreshold));
+
+            tracker.ManuallyStepFrames = false;
+            //tracker.DisplayProcess = true;
+            tracker.DisplayProcess = false;
+
+            var settings = new DataContractJsonSerializerSettings();
+            settings.KnownTypes = new List<Type>()
+            {
+                typeof(FastPiecewisePredictor)
+            };
+
+
+            System.Runtime.Serialization.Json.DataContractJsonSerializer serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(tracker.GetType(), settings);
+            FileStream fs = new FileStream("tracker.json", FileMode.Create);
+            serializer.WriteObject(fs, tracker);
+            fs.Flush();
+            fs.Close();
+
+            return tracker;
         }
 
         private static IEnumerable<IFramedItem> GetPositiveIDItems(IItemPath path)
@@ -450,110 +500,84 @@ namespace VideoPipelineCore
             return frameNumbers;
         }
 
-        private static void WriteVideos(ref IList<IItemPath> paths, double frameRate)
+        private static void WritePaths(IList<IItemPath> paths, MotionTracker.MotionTracker tracker, double frameRate, ref int videoNumber, int currentFrame, int bufferDepth, TimeCompressor compressor)
         {
             for (int i = 0; i < paths.Count; i++)
             {
-                var path = paths[i];
-                int conFrameIndex = path.HighestConfidenceFrameIndex;
-                int conIDIndex = path.HighestConfidenceIDIndex;
-                IFrame conframe = path.FramedItems[conFrameIndex].Frame;
-                string name = path.FramedItems[conFrameIndex].ItemIDs[conIDIndex].ObjName + " " + i + ".mp4";
-                OpenCvSharp.VideoWriter writer = new VideoWriter(Utils.Config.OutputFolder.OutputFolderVideo + name, FourCC.H265, frameRate, conframe.FrameData.Size());
-
-                var fItems = from fi in path.FramedItems
-                             let f = fi.Frame
-                             orderby f.FrameIndex
-                             select fi;
-
-                foreach (IFramedItem frameItem in fItems)
+                while (i < paths.Count && paths.Count > 0 && paths[i].GetPathBounds().maxFrame < currentFrame - bufferDepth)
                 {
-                    Mat frameData = frameItem.Frame.FrameData.Clone();
-                    if (!(frameItem.ItemIDs.Count == 1 && frameItem.ItemIDs[0] is FillerID))
+                    var path = paths[i];
+
+                    if( compressor != null)
                     {
-                        StatisticRectangle sr = new StatisticRectangle(frameItem.ItemIDs);
-                        var median = sr.Median;
-
-                        Cv2.Rectangle(frameData, new Rect((int)median.X, (int)median.Y, (int)median.Width, (int)median.Height), Scalar.Red);
+                        compressor.ProcessPath(path);
                     }
-
-                    writer.Write(frameData);
+                    tracker.ScrubPath(path);
+                    videoNumber = WritePath(paths, i, frameRate, videoNumber, path);
                 }
-                writer.Release();
-            }
-        }
-        private static void WritePaths(IList<IItemPath> paths, double frameRate, ref int videoNumber, int currentFrame, int bufferDepth)
-        {
-            while (paths.Count > 0 && paths[0].GetPathBounds().maxFrame < currentFrame - bufferDepth)
-            {
-                var path = paths[0];
-                int conFrameIndex = path.HighestConfidenceFrameIndex;
-                int conIDIndex = path.HighestConfidenceIDIndex;
-                IFrame conframe = path.FramedItems[conFrameIndex].Frame;
-                string name = path.FramedItems[conFrameIndex].ItemIDs[conIDIndex].ObjName + " " + videoNumber + ".mp4";
-                OpenCvSharp.VideoWriter writer = new VideoWriter(Utils.Config.OutputFolder.OutputFolderVideo + name, FourCC.H265, frameRate, conframe.FrameData.Size());
-
-                var fItems = from fi in path.FramedItems
-                             let f = fi.Frame
-                             orderby f.FrameIndex
-                             select fi;
-
-                foreach (IFramedItem frameItem in fItems)
-                {
-                    Mat frameData = frameItem.Frame.FrameData.Clone();
-                    if (!(frameItem.ItemIDs.Count == 1 && frameItem.ItemIDs[0] is FillerID))
-                    {
-                        StatisticRectangle sr = new StatisticRectangle(frameItem.ItemIDs);
-                        var median = sr.Median;
-
-                        Cv2.Rectangle(frameData, new Rect((int)median.X, (int)median.Y, (int)median.Width, (int)median.Height), Scalar.Red);
-                    }
-
-                    writer.Write(frameData);
-                }
-                writer.Release();
-
-                string output = "output";
-                DataContractSerializer serializer = new DataContractSerializer(typeof(ItemPath));
-                if (paths[0] is ItemPath p)
-                {
-                    string xmlname = output + videoNumber;
-                    using StreamWriter swriter = new StreamWriter(Utils.Config.OutputFolder.OutputFolderXML + xmlname + ".xml");
-                    serializer.WriteObject(swriter.BaseStream, p);
-                    swriter.Flush();
-                    swriter.Close();
-                }
-                ++videoNumber;
-                paths.RemoveAt(0);
             }
         }
 
-        private static MotionTracker.MotionTracker SetupTracker(float iouThreshold, float polyThreshold)
+        private static int WritePath(IList<IItemPath> paths, int index, double frameRate, int videoNumber, IItemPath path)
         {
-            MotionTracker.MotionTracker tracker = new MotionTracker.MotionTracker();
-            StationaryFilter filter1 = new StationaryFilter()
+            int conFrameIndex = path.HighestConfidenceFrameIndex;
+            int conIDIndex = path.HighestConfidenceIDIndex;
+            IFrame conframe = path.FramedItems[conFrameIndex].Frame;
+            string name = path.FramedItems[conFrameIndex].ItemIDs[conIDIndex].ObjName + " " + videoNumber + ".mp4";
+
+            string output = "output";
+
+            Console.WriteLine($"\tWriting output path to {name} and {output}{videoNumber}.xml");
+            // FourCC code = FourCC.X264;
+            // FourCC code = FourCC.FromFourChars('x', '2', '6', '4');
+            FourCC code = FourCC.FromFourChars('m', 'p', '4', 'v');
+            // FourCC code = FourCC.FromFourChars('h', '2', '6', '5');
+            OpenCvSharp.VideoWriter writer = new VideoWriter(Utils.Config.OutputFolder.OutputFolderVideo + name, code, frameRate, conframe.FrameData.Size());
+
+            var fItems = from fi in path.FramedItems
+                         let f = fi.Frame
+                         orderby f.FrameIndex
+                         select fi;
+
+            foreach (IFramedItem frameItem in fItems)
             {
-                ConfirmationCount = 3,
-                VelocityThreshold = 7.0f,
-                OverlapThreshold = 0.4f
-            };
-            CategoryFilter filter2 = new CategoryFilter();
-            filter2.ExcludeCategories.Add("diningtable");
-            filter2.ExcludeCategories.Add("oven");
-            filter2.ExcludeCategories.Add("pottedplant");
-            filter2.ExcludeCategories.Add("surfboard");
-            filter2.ExcludeCategories.Add("boat");
-            tracker.Filters.Add(filter2);
-            tracker.Filters.Add(filter1);
+                Mat frameData = frameItem.Frame.FrameData.Clone();
+                if (!(frameItem.ItemIDs.Count == 1 && frameItem.ItemIDs[0] is FillerID))
+                {
+                    StatisticRectangle sr = new StatisticRectangle(frameItem.ItemIDs);
+                    var median = sr.Median;
 
-            var iouPredictor = new Utils.Items.IoUPredictor();
-            var polyPredictor = new Utils.Items.CenterPolyPredictor();
-            var piecewise = new Utils.Items.PiecewisePredictor(8.0);
+                    Cv2.Rectangle(frameData, new Rect((int)median.X, (int)median.Y, (int)median.Width, (int)median.Height), Scalar.Red);
+                }
 
-            tracker.Predictors.Add((iouPredictor, iouThreshold));
-            tracker.Predictors.Add((piecewise,iouThreshold));
-            tracker.Predictors.Add((polyPredictor,polyThreshold));
-            return tracker;
+                writer.Write(frameData);
+            }
+            writer.Release();
+            writer.Dispose();
+            DataContractSerializer serializer = new DataContractSerializer(typeof(ItemPath));
+            if (path is ItemPath p)
+            {
+                string xmlname = output + videoNumber;
+                using StreamWriter swriter = new StreamWriter(Utils.Config.OutputFolder.OutputFolderXML + xmlname + ".xml");
+                serializer.WriteObject(swriter.BaseStream, p);
+                swriter.Flush();
+                swriter.Close();
+            }
+            ++videoNumber;
+            /*if(path is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }*/
+            {
+                var pa = paths[index];
+                for (int i = 0; i < pa.FramedItems.Count; i++)
+                {
+                    pa.FramedItems[i] = null;
+                }
+            }
+
+            paths.RemoveAt(index);
+            return videoNumber;
         }
 
         private static void CompressIFrames(IList<IFramedItem> itemList)
@@ -572,6 +596,10 @@ namespace VideoPipelineCore
                     {
                         if (!object.ReferenceEquals(itemList[j].Frame, itemList[i].Frame))
                         {
+                            if(itemList[j].Frame.FrameData != itemList[i].Frame.FrameData && itemList[j].Frame is IDisposable disposable)
+                            {
+                                disposable.Dispose();
+                            }
                             itemList[j].Frame = itemList[i].Frame;
                         }
                     }
@@ -582,13 +610,13 @@ namespace VideoPipelineCore
         private static void AddEntryToBuffer(ref IList<IList<IFramedItem>> buffer, IList<IFramedItem> itemsInFrame)
         {
 
-            buffer = MotionTracker.MotionTracker.InsertIntoSortedBuffer(buffer, itemsInFrame, MergeSimThreshold, 0);
+            buffer = Motion.InsertIntoSortedBuffer(buffer, itemsInFrame, MergeSimThreshold, 0);
 
             while (buffer.Count > BUFFERSIZE || buffer[0].Count == 0)
             {
                 buffer.RemoveAt(0);
             }
-            buffer = MotionTracker.MotionTracker.GroupByFrame(buffer, MergeSimThreshold, MergeSimThreshold / 2);
+            buffer = Motion.GroupByFrame(buffer, MergeSimThreshold, MergeSimThreshold / 2);
         }
     }
 }

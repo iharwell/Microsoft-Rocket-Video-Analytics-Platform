@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.Serialization;
 using System.Text;
 using LineDetector;
 using Utils;
@@ -15,9 +16,16 @@ namespace ProcessingPipeline
     ///   Takes bounding boxes found in a previous stage and determines whether any of them have
     ///   crossed any lines in screen space.
     /// </summary>
-    public class LineCrossingProcessor : IProcessor
+    // Todo(iharwell): Implement ISerializable
+    [Serializable]
+    public class LineCrossingProcessor : IProcessor, ISerializable
     {
         private readonly Detector _detector;
+
+        private LineCrossingProcessor()
+        {
+
+        }
 
         /// <summary>
         ///   Creates a <see cref="LineCrossingProcessor" /> from the provided values.
@@ -45,36 +53,79 @@ namespace ProcessingPipeline
         ///   otherwise. Note that in this case, this will output the equivalent to the legacy
         ///   BGSDISPLAY option.
         /// </param>
-        public LineCrossingProcessor(string lineFile, int samplingFactor, double resFactor, ISet<string> categories, Color bbColor, bool display = false)
+        public LineCrossingProcessor(string lineFile, int samplingFactor, double resFactor, Color bbColor, bool display = false)
         {
-            Categories = categories;
             BoundingBoxColor = bbColor;
-
+            LineFile = lineFile;
             _detector = new Detector(samplingFactor, resFactor, lineFile, display);
             var lines = _detector._multiLaneDetector.GetAllLines();
-            LineSegments = new Dictionary<string, LineSegment>();
 
-            for (int i = 0; i < lines.Count; i++)
-            {
-                LineSegments.Add(lines[i].key, lines[i].segments);
-            }
             DisplayOutput = display;
+        }
+
+        public LineCrossingProcessor(SerializationInfo info, StreamingContext context)
+        {
+            BoundingBoxColor = (Color)info.GetValue(nameof(BoundingBoxColor), typeof(Color));
+            LineFile = info.GetString(nameof(LineFile));
+            ResolutionFactor = info.GetDouble(nameof(ResolutionFactor));
+            SamplingFactor = info.GetInt32(nameof(SamplingFactor));
+
+            _detector = new Detector(SamplingFactor, ResolutionFactor, LineFile, false);
+            var lines = _detector._multiLaneDetector.GetAllLines();
+            DisplayOutput = info.GetBoolean(nameof(DisplayOutput));
         }
 
         /// <inheritdoc/>
         public Color BoundingBoxColor { get; set; }
 
         /// <inheritdoc/>
-        public IDictionary<string, LineSegment> LineSegments { get; set; }
-
+        public HashSet<string> IncludeCategories { get; set; }
         /// <inheritdoc/>
-        public ISet<string> Categories { get; set; }
+        [DataMember]
+        public HashSet<string> ExcludeCategories { get; set; }
 
         /// <inheritdoc/>
         public bool DisplayOutput
         {
             get => _detector.DISPLAY_BGS;
             set => _detector.DISPLAY_BGS = value;
+        }
+
+        public string LineFile { get; protected set; }
+
+        public int SamplingFactor { get; protected set; }
+
+        public double ResolutionFactor { get; protected set; }
+
+        /// <inheritdoc/>
+        public IDictionary<string, LineSegment> LineSegments
+        {
+            get
+            {
+                var dict = new Dictionary<string, LineSegment>();
+
+                var segments = this._detector._multiLaneDetector.GetAllLines();
+                for (int i = 0; i < segments.Count; i++)
+                {
+                    dict.Add(segments[i].key, segments[i].segments);
+                }
+                return dict;
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue(nameof(BoundingBoxColor), BoundingBoxColor);
+            info.AddValue(nameof(IncludeCategories), IncludeCategories);
+            info.AddValue(nameof(DisplayOutput), DisplayOutput);
+            info.AddValue(nameof(LineFile), LineFile);
+            info.AddValue(nameof(SamplingFactor), SamplingFactor);
+            info.AddValue(nameof(ResolutionFactor), ResolutionFactor);
+            info.AddValue(nameof(LineSegments), LineSegments);
         }
 
         /// <inheritdoc/>
@@ -103,6 +154,11 @@ namespace ProcessingPipeline
                 }
             }
             return false;
+        }
+
+        public void RotateLines(int rotateCount, Size frameSize)
+        {
+            this._detector.RotateLines(rotateCount, frameSize);
         }
     }
 }

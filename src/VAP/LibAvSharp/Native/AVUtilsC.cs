@@ -39,68 +39,68 @@ namespace LibAvSharp.Native
 
         // av_get_media_type_string
         // const char *av_get_media_type_string(enum AVMediaType media_type);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern byte* av_get_media_type_string(AVMediaType media_type);
 
         //char av_get_picture_type_char(enum AVPictureType pict_type);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern byte av_get_picture_type_char(AVMediaType media_type);
 
         //char av_get_picture_type_char(enum AVPictureType pict_type);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern byte* av_malloc(ulong size);
 
         //char av_get_picture_type_char(enum AVPictureType pict_type);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern void av_free(void* ptr);
 
         //char av_get_picture_type_char(enum AVPictureType pict_type);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern void av_freep(void** ptr);
         //char av_get_picture_type_char(enum AVPictureType pict_type);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern void av_freep([In, Out] ref void* ptr);
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern void av_freep([In, Out] byte** ptr);
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern void av_freep([In, Out] ref byte* ptr);
 
         //char av_get_picture_type_char(enum AVPictureType pict_type);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern AVFrame* av_frame_alloc();
 
         //void av_frame_unref(AVFrame *frame);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern void av_frame_unref([In, Out] AVFrame* frame);
 
         //char av_get_picture_type_char(enum AVPictureType pict_type);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern void av_frame_free([In, Out] ref AVFrame* frame);
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern void av_packet_unref(AVPacket* pkt);
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int av_hwcontext_transfer_data([Out, In] AVFrame* dst, [In] AVFrame* src, int flags);
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int av_hwcontext_transfer_data([Out, In] ref AVFrame dst, [In] ref AVFrame src, int flags);
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int av_frame_get_buffer([Out, In] AVFrame* frame, int align);
 
 
         // int av_file_map(const char *filename, uint8_t **bufptr, size_t *size, int log_offset, void *log_ctx);\
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int av_file_map([In] string filename, [Out] out byte* bufptr, out ulong size, int log_offset, void* log_ctx);
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int av_file_unmap(byte* bufptr, ulong size);
 
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern byte* av_strdup(string str);
     }
 }

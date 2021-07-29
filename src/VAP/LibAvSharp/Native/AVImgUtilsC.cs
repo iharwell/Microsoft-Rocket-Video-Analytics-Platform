@@ -318,7 +318,7 @@ namespace LibAvSharp.Native
          * error code in case of failure
          */
         //int av_image_alloc( uint8_t* pointers[4], int linesizes[4], int w, int h, enum AVPixelFormat pix_fmt, int align);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int av_image_alloc([Out] byte** pointers, [Out] int* linesizes, int w, int h, AVPixelFormat pix_fmt, int align);
 
         /*
@@ -331,7 +331,7 @@ namespace LibAvSharp.Native
         //                    const uint8_t *src_data[4], const int src_linesizes[4],
         //                    enum AVPixelFormat pix_fmt, int width, int height);
         // av_image_copy
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int av_image_copy([Out] byte** dst_data, [Out] int* dst_linesizes,
                                                 [In] byte** src_data, [In] int* src_linesizes,
                                                 AVPixelFormat pix_fmt, int width, int height);
@@ -340,7 +340,7 @@ namespace LibAvSharp.Native
         /* void av_image_copy_uc_from( uint8_t* dst_data[4],       const ptrdiff_t dst_linesizes[4],
                            const uint8_t *src_data[4], const ptrdiff_t src_linesizes[4],
                            enum AVPixelFormat pix_fmt, int width, int height);*/
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern int av_image_copy_uc_from([Out] byte** dst_data, [Out] ulong* dst_linesizes,
                                                 [In] byte** src_data, [In] ulong* src_linesizes,
                                                 AVPixelFormat pix_fmt, int width, int height);
@@ -354,7 +354,7 @@ namespace LibAvSharp.Native
          * @see av_get_pix_fmt(), av_get_pix_fmt_string()
          */
         // const char *av_get_pix_fmt_name(enum AVPixelFormat pix_fmt);
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern string av_get_pix_fmt_name(AVPixelFormat pix_fmt);
 
 
@@ -382,7 +382,7 @@ namespace LibAvSharp.Native
          */
         // void av_freep( void* ptr );
 
-        [DllImport("avutil-57.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibNames.LibAvUtil, CallingConvention = CallingConvention.Cdecl)]
         public static extern string av_freep(void* ptr);
 
     }

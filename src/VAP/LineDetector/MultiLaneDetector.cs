@@ -28,6 +28,8 @@ namespace LineDetector
             _laneDetector = lineBasedDetector;
         }
 
+        public IDictionary<string, ILineBasedDetector> LaneDetectors => _laneDetector;
+
         /// <summary>
         ///   Processes a frame upon arrival.
         /// </summary>
@@ -164,6 +166,14 @@ namespace LineDetector
                 lines.Add((lane.Key, coor));
             }
             return lines;
+        }
+
+        public void RotateLines(int rotateCount, Size frameSize)
+        {
+            foreach (var lane in _laneDetector)
+            {
+                lane.Value.RotateLine(rotateCount, frameSize);
+            }
         }
     }
 }

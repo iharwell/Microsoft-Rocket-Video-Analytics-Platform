@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-using AML.Client;
 using BGSObjectDetector;
 using DarknetDetector;
 using DNNDetector;
@@ -18,7 +17,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using TFDetector;
 using Utils;
 using Utils.Items;
 
